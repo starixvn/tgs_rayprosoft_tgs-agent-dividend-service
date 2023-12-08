@@ -1,0 +1,6 @@
+@Tgs.Agent.Dividend.Service_HostAddress = http://localhost:5034
+
+GET {{Tgs.Agent.Dividend.Service_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

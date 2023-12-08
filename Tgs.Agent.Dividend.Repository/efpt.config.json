@@ -1,0 +1,81 @@
+﻿{
+   "CodeGenerationMode": 4,
+   "ContextClassName": "tgsContext",
+   "ContextNamespace": null,
+   "DefaultDacpacSchema": null,
+   "FilterSchemas": false,
+   "IncludeConnectionString": false,
+   "ModelNamespace": "Entities",
+   "OutputContextPath": null,
+   "OutputPath": "Entities",
+   "PreserveCasingWithRegex": true,
+   "ProjectRootNamespace": "Tgs.Agent.Dividend.Repository",
+   "Schemas": null,
+   "SelectedHandlebarsLanguage": 2,
+   "SelectedToBeGenerated": 0,
+   "T4TemplatePath": null,
+   "Tables": [
+      {
+         "Name": "dbo.agent_dividend_conditions",
+         "ObjectType": 0
+      },
+      {
+         "Name": "dbo.agent_dividend_contracts",
+         "ObjectType": 0
+      },
+      {
+         "Name": "dbo.agent_dividend_multiple_layers",
+         "ObjectType": 0
+      },
+      {
+         "Name": "dbo.agent_dividends",
+         "ObjectType": 0
+      },
+      {
+         "Name": "dbo.agents",
+         "ObjectType": 0
+      },
+      {
+         "Name": "dbo.brands",
+         "ObjectType": 0
+      },
+      {
+         "Name": "dbo.player_daily_payment_statistics",
+         "ObjectType": 0
+      },
+      {
+         "Name": "dbo.players",
+         "ObjectType": 0
+      },
+      {
+         "Name": "report.player_aggregates",
+         "ObjectType": 0
+      },
+      {
+         "Name": "report.player_game_rebate_aggregates",
+         "ObjectType": 0
+      }
+   ],
+   "UiHint": "tgs",
+   "UncountableWords": null,
+   "UseBoolPropertiesWithoutDefaultSql": false,
+   "UseDatabaseNames": false,
+   "UseDateOnlyTimeOnly": false,
+   "UseDbContextSplitting": true,
+   "UseDecimalDataAnnotationForSprocResult": true,
+   "UseFluentApiOnly": true,
+   "UseHandleBars": false,
+   "UseHierarchyId": false,
+   "UseInflector": true,
+   "UseLegacyPluralizer": true,
+   "UseManyToManyEntity": true,
+   "UseNoDefaultConstructor": false,
+   "UseNoNavigations": false,
+   "UseNoObjectFilter": false,
+   "UseNodaTime": false,
+   "UseNullableReferences": true,
+   "UseSchemaFolders": true,
+   "UseSchemaNamespaces": false,
+   "UseSpatial": true,
+   "UseT4": false
+}
