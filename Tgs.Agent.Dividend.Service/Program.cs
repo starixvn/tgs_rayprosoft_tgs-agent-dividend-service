@@ -1,9 +1,7 @@
-using Microsoft.EntityFrameworkCore;
 using OpenTelemetry.Exporter;
 using OpenTelemetry.Instrumentation.AspNetCore;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
-using Tgs.Agent.Dividend.Core.DependencyInjection;
 using Tgs.Agent.Dividend.Core.Workers;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -28,10 +26,7 @@ builder.Services
     {
         var nodeIp = conifg.GetValue<string>("NODE_IP");
 
-        if (!string.IsNullOrWhiteSpace(nodeIp))
-        {
-            options.Endpoint = new($"http://{nodeIp}:4317");
-        }
+        if (!string.IsNullOrWhiteSpace(nodeIp)) options.Endpoint = new Uri($"http://{nodeIp}:4317");
 
         conifg.GetSection("Opentelemetry:Tracing").Bind(options);
     });
@@ -49,12 +44,12 @@ builder.Services.AddOpenTelemetry()
         .AddOtlpExporter())
     .Services
     .Configure<AspNetCoreInstrumentationOptions>(options => options.Filter =
-        httpContext => !httpContext.Request.Path.HasValue
-            || (!httpContext.Request.Path.StartsWithSegments("/swagger")
-                && !httpContext.Request.Path.StartsWithSegments("/healthz")
-                && !httpContext.Request.Path.StartsWithSegments("/profiler/")
-                && !new[] { "html", "ico", "png", "jpg" }.Any(
-                    ext => httpContext.Request.Path.Value.EndsWith($".{ext}"))));
+        httpContext => !httpContext.Request.Path.HasValue ||
+                       (!httpContext.Request.Path.StartsWithSegments("/swagger") &&
+                        !httpContext.Request.Path.StartsWithSegments("/healthz") &&
+                        !httpContext.Request.Path.StartsWithSegments("/profiler/") &&
+                        !new[] { "html", "ico", "png", "jpg" }.Any(
+                            ext => httpContext.Request.Path.Value.EndsWith($".{ext}"))));
 builder.Services.AddProfileViewer();
 
 builder.Services.AddHostedService<AgentDividendBackground>()

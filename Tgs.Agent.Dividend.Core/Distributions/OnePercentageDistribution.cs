@@ -4,10 +4,9 @@ using Tgs.Agent.Dividend.Domain.Interfaces;
 using Tgs.Agent.Dividend.Domain.Interfaces.Repositories;
 using Tgs.Agent.Dividend.Domain.Models;
 
-namespace Tgs.Agent.Dividend.Core;
+namespace Tgs.Agent.Dividend.Core.Distributions;
 
-internal class OnePercentageDistribution
-    (IContractRepository contractRepository, IRepository repository) : IDistribution
+internal class OnePercentageDistribution(IContractRepository contractRepository, IRepository repository) : IDistribution
 {
     public async IAsyncEnumerable<AgentPlayerAggregateModel> GetAgentPlayerAggregateAsync(int idNumber,
         BrandModel brand,
@@ -124,10 +123,7 @@ internal class OnePercentageDistribution
             },
             conditions);
 
-        foreach (var agentDividendMultipleLayerModel in agentDividends)
-        {
-            yield return agentDividendMultipleLayerModel;
-        }
+        foreach (var agentDividendMultipleLayerModel in agentDividends) yield return agentDividendMultipleLayerModel;
     }
 
     public IAsyncEnumerable<AgentPlayerAggregateModel> GenerateAdditionalAgentPlayerAsync(int idNumber,

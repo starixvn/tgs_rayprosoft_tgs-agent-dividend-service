@@ -39,7 +39,9 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IEnumera
         foreach (var model in models) yield return model;
     }
 
-    public IAsyncEnumerable<AgentModel> GetAgentsByPathCacheAsyncEnumerable(Guid brandId, LTree path, CancellationToken cancellationToken)
+    public IAsyncEnumerable<AgentModel> GetAgentsByPathCacheAsyncEnumerable(Guid brandId,
+        LTree path,
+        CancellationToken cancellationToken)
     {
         return GetAgentsCacheAsyncEnumerable(brandId, cancellationToken)
             .Where(x => path.IsDescendantOf(x.Path));
@@ -83,8 +85,8 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IEnumera
                         },
                         (agent, playerGames) => new
                         {
-                            ReportDate = agent.ReportDate,
-                            Hour = agent.Hour,
+                            agent.ReportDate,
+                            agent.Hour,
                             agent.AgentId,
                             agent.BrandId,
                             LiveDealerWinLoss =
@@ -129,7 +131,8 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IEnumera
                                     .Sum(l => l.WinLoss),
                             WinLoss = playerGames
                                 .Sum(l => l.WinLoss)
-                        }).ToArrayAsync(cancellationToken);
+                        })
+                    .ToArrayAsync(cancellationToken);
 
                 var playerAggregate = await context.PlayerAggregates
                     .Where(x => x.BrandId == brandId)
@@ -149,9 +152,9 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IEnumera
                         x.Key.ReportDate,
                         x.Key.Hour,
                         AgentId = x.Key.AgentId!.Value,
-                        BrandId = x.Key.BrandId,
+                        x.Key.BrandId,
                         AgentDividendPercentage = x.Key.AgentDividendPercentage ?? 0M,
-                        AgentDividendPercentageTreeData = x.Key.AgentDividendPercentageTreeData,
+                        x.Key.AgentDividendPercentageTreeData,
                         PromotionAmount = x.Sum(p => p.PromotionAmount),
                         RebateAmount = x.Sum(p => p.RebateAmount),
                         DepositAmount = x.Sum(p => p.DepositAmount),
@@ -291,8 +294,9 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IEnumera
                             CardGameWinLoss = list.Sum(x => x.CardGameWinLoss),
                             SportsWinLoss = list.Sum(x => x.SportsWinLoss),
                             ESportsWinLoss = list.Sum(x => x.ESportsWinLoss),
-                            VirtualSportsWinLoss = list.Sum(x => x.VirtualSportsWinLoss),
-                        }).ToArray();
+                            VirtualSportsWinLoss = list.Sum(x => x.VirtualSportsWinLoss)
+                        })
+                    .ToArray();
             });
 
         foreach (var model in models) yield return model;
@@ -611,24 +615,22 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IEnumera
             .ToArrayAsync(cancellationToken);
 
         _ = await context.AgentDividendRecords.AddAsync(new AgentDividendRecord
-        {
-            BrandId = brandId,
-            AgentId = agentId,
-            AgentDividendId = agentDividendId,
-            NegativeDividendIds = negativeDividends.Select(x => x.Id.ToString()).ToList(),
-            AgentDividendAmount = agentDividendAmount,
-            CreatedOn = DateTime.UtcNow
-        }, cancellationToken);
+            {
+                BrandId = brandId,
+                AgentId = agentId,
+                AgentDividendId = agentDividendId,
+                NegativeDividendIds = negativeDividends.Select(x => x.Id.ToString()).ToList(),
+                AgentDividendAmount = agentDividendAmount,
+                CreatedOn = DateTime.UtcNow
+            },
+            cancellationToken);
 
         await context.SaveChangesAsync(cancellationToken);
     }
 
     public void RemoveAllMemoryCacheAsync(CancellationToken cancellationToken)
     {
-        foreach (var cacheKey in cacheKeys)
-        {
-            memoryCache.Remove(cacheKey);
-        }
+        foreach (var cacheKey in cacheKeys) memoryCache.Remove(cacheKey);
     }
 
     private async ValueTask CreateAgentDividendsAsync(IEnumerable<CreateAgentDividendModel> models)

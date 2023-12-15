@@ -6,9 +6,10 @@ using Tgs.Agent.Dividend.Domain.Models;
 
 namespace Tgs.Agent.Dividend.Core.Workers;
 
-public class AgentDividendBackground(IAgentDividendTaskQueue taskQueue,
-        ILogger<AgentDividendBackground> logger,
-        IServiceProvider serviceProvider)
+public class AgentDividendBackground(
+    IAgentDividendTaskQueue taskQueue,
+    ILogger<AgentDividendBackground> logger,
+    IServiceProvider serviceProvider)
     : BackgroundService
 {
     public IAgentDividendTaskQueue TaskQueue = taskQueue;

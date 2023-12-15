@@ -7,7 +7,9 @@ public interface IRepository
 {
     IAsyncEnumerable<AgentModel> GetAgentsCacheAsyncEnumerable(Guid brandId, CancellationToken cancellationToken);
 
-    IAsyncEnumerable<AgentModel> GetAgentsByPathCacheAsyncEnumerable(Guid brandId,LTree path, CancellationToken cancellationToken);
+    IAsyncEnumerable<AgentModel> GetAgentsByPathCacheAsyncEnumerable(Guid brandId,
+        LTree path,
+        CancellationToken cancellationToken);
 
     IAsyncEnumerable<Guid> GetNonArchivedBrandIdsAsyncEnumerable(Guid? brandId);
 
@@ -60,5 +62,4 @@ public interface IRepository
         CancellationToken cancellationToken);
 
     void RemoveAllMemoryCacheAsync(CancellationToken cancellationToken);
-
 }

@@ -5,8 +5,9 @@ using Tgs.Agent.Dividend.Domain.Models;
 
 namespace Tgs.Agent.Dividend.Core;
 
-internal class GenerateAgentDividendQueueHandler(IAgentDividendTaskQueue queue,
-        IRepository repository)
+internal class GenerateAgentDividendQueueHandler(
+    IAgentDividendTaskQueue queue,
+    IRepository repository)
     : IRequestHandler<GenerateAgentDividendRequest>
 {
     public Task Handle(GenerateAgentDividendRequest request, CancellationToken cancellationToken)

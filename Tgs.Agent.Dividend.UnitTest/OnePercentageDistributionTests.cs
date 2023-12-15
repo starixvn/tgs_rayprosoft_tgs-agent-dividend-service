@@ -1,7 +1,6 @@
 using AutoFixture;
 using Microsoft.EntityFrameworkCore;
 using NSubstitute;
-using Tgs.Agent.Dividend.Core;
 using Tgs.Agent.Dividend.Domain.Enums;
 using Tgs.Agent.Dividend.Domain.Interfaces.Repositories;
 using Tgs.Agent.Dividend.Domain.Models;
@@ -18,10 +17,10 @@ public class OnePercentageDistributionTests
     [TestCase(-100, 20, 30, 30, -14.4)]
     [TestCase(-100, 20, 30, 0, -18)]
     public async Task Generate_Agent_Dividend_With_Bonus(decimal winLossAmount,
-    decimal bonusAmount,
-    decimal bonusAdjustAmount,
-    decimal noIncludeNetProfitBonusAdjustAmount,
-    decimal totalDividend)
+        decimal bonusAmount,
+        decimal bonusAdjustAmount,
+        decimal noIncludeNetProfitBonusAdjustAmount,
+        decimal totalDividend)
     {
         var fakeContractRepository = Substitute.For<IContractRepository>();
         var fakeRepository = Substitute.For<IRepository>();
@@ -64,7 +63,14 @@ public class OnePercentageDistributionTests
 
         var agentPlayerAggregates = new[]
         {
-            CreateAgentPlayerAggregateFixture(brandId, agentId, from, to, winLossAmount,bonusAmount,bonusAdjustAmount,noIncludeNetProfitBonusAdjustAmount)
+            CreateAgentPlayerAggregateFixture(brandId,
+                    agentId,
+                    from,
+                    to,
+                    winLossAmount,
+                    bonusAmount,
+                    bonusAdjustAmount,
+                    noIncludeNetProfitBonusAdjustAmount)
                 .Create<AgentPlayerAggregateModel>()
         };
 
@@ -332,16 +338,16 @@ public class OnePercentageDistributionTests
     [TestCase(100, 0, 0, 0, 4, 1, 1, 6, 2, 2, 0)]
     [TestCase(100, 2, 2, 2, 1, 1, 1, 4, 2, 2, 0)]
     public async Task Generate_Agent_Dividend_With_No_Round_Aggregate(decimal winLossAmount,
-    decimal contractValidBetAmount,
-    decimal contractDepositAmount,
-    int contractBetDays,
-    decimal player1ValidBetAmount,
-    decimal player1DepositAmount,
-    int player1BetDays,
-    decimal player2ValidBetAmount,
-    decimal player2DepositAmount,
-    int player2BetDays,
-    decimal totalDividend)
+        decimal contractValidBetAmount,
+        decimal contractDepositAmount,
+        int contractBetDays,
+        decimal player1ValidBetAmount,
+        decimal player1DepositAmount,
+        int player1BetDays,
+        decimal player2ValidBetAmount,
+        decimal player2DepositAmount,
+        int player2BetDays,
+        decimal totalDividend)
     {
         var fakeContractRepository = Substitute.For<IContractRepository>();
         var fakeRepository = Substitute.For<IRepository>();
