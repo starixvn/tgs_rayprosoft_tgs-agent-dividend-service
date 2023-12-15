@@ -9,14 +9,15 @@ using Tgs.Agent.Dividend.Repository.Entities;
 
 namespace Tgs.Agent.Dividend.Repository;
 
-internal class Repository(tgsContext context, IMemoryCache memoryCache, IEnumerable<string> cacheKeys) : IRepository
+internal class Repository(tgsContext context, IMemoryCache memoryCache) : IRepository
 {
+    private readonly HashSet<string> _cacheKeys = [];
     public async IAsyncEnumerable<AgentModel> GetAgentsCacheAsyncEnumerable(Guid brandId,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         var key = $"AgentCache{brandId}";
 
-        cacheKeys = cacheKeys.Append(key);
+        _cacheKeys.Add(key);
 
         var models = await memoryCache.GetOrCreateAsync(key,
             cacheEntry =>
@@ -64,7 +65,7 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IEnumera
     {
         var key = $"AgentPlayerAggregateCache{brandId}{from}{to}";
 
-        cacheKeys = cacheKeys.Append(key);
+        _cacheKeys.Add(key);
 
         var models = await memoryCache.GetOrCreateAsync(key,
             async cacheEntry =>
@@ -310,7 +311,7 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IEnumera
     {
         var key = $"AgentPlayerAggregatesForMultipleLayerCache{brandId}{from}{to}";
 
-        cacheKeys = cacheKeys.Append(key);
+        _cacheKeys.Add(key);
 
         var models = await memoryCache.GetOrCreateAsync(key,
             cacheEntry =>
@@ -422,7 +423,7 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IEnumera
     {
         var key = $"AgentPlayerDepositCache{brandId}{from}{to}";
 
-        cacheKeys = cacheKeys.Append(key);
+        _cacheKeys.Add(key);
 
         var models = await memoryCache.GetOrCreateAsync(key,
             cacheEntry =>
@@ -459,7 +460,7 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IEnumera
     {
         var key = $"AgentPlayerValidBetCache{brandId}{from}{to}";
 
-        cacheKeys = cacheKeys.Append(key);
+        _cacheKeys.Add(key);
 
         var models = await memoryCache.GetOrCreateAsync(key,
             cacheEntry =>
@@ -491,7 +492,7 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IEnumera
     {
         var key = $"AgentPlayerBetCountCache{brandId}{from}{to}";
 
-        cacheKeys = cacheKeys.Append(key);
+        _cacheKeys.Add(key);
 
         var models = await memoryCache.GetOrCreateAsync(key,
             cacheEntry =>
@@ -630,7 +631,7 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IEnumera
 
     public void RemoveAllMemoryCache(CancellationToken cancellationToken)
     {
-        foreach (var cacheKey in cacheKeys) memoryCache.Remove(cacheKey);
+        foreach (var cacheKey in _cacheKeys) memoryCache.Remove(cacheKey);
     }
 
     private async ValueTask CreateAgentDividendsAsync(IEnumerable<CreateAgentDividendModel> models)
