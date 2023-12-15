@@ -136,7 +136,7 @@ public class AgentDividendHandlerTests
                 Arg.Any<IDictionary<int, int>>(),
                 Arg.Any<CancellationToken>());
 
-        fakeRepository.Received(1).RemoveAllMemoryCacheAsync(Arg.Any<CancellationToken>());
+        fakeRepository.Received(1).RemoveAllMemoryCache(Arg.Any<CancellationToken>());
     }
 
     [Test]

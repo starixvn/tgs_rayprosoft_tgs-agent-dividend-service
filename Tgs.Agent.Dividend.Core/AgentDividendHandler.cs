@@ -32,8 +32,8 @@ internal class AgentDividendHandler(
         var agentPlayerAggregates = agents.SelectManyAwait(async (x, i) =>
         {
             var agentContract = contracts.FirstOrDefault(a =>
-                a.AgentId == x.Id && a.ContractStatus == (short)ContractStatus.Enabled);
-
+                                    a.AgentId == x.Id && a.ContractStatus == (short)ContractStatus.Enabled) ??
+                                throw new Exception($"Can't find contract agentId: {x.Id}");
             var distributionService =
                 serviceProvider.GetRequiredKeyedService<IDistribution>(
                     ((ContractDividendType)agentContract.ContractDividendType).ToString());
@@ -51,7 +51,8 @@ internal class AgentDividendHandler(
         var multipleLayers = agentPlayerAggregates.SelectMany(x =>
         {
             var agentContract = contracts.FirstOrDefault(a =>
-                a.AgentId == x.AgentId && a.ContractStatus == (short)ContractStatus.Enabled);
+                a.AgentId == x.AgentId && a.ContractStatus == (short)ContractStatus.Enabled) ??
+                                throw new Exception($"Can't find contract agentId: {x.AgentId}"); ;
 
             var distributionService =
                 serviceProvider.GetRequiredKeyedService<IDistribution>(
@@ -67,7 +68,8 @@ internal class AgentDividendHandler(
         var additional = multipleLayers.SelectMany(x =>
         {
             var agentContract = contracts.FirstOrDefault(a =>
-                a.AgentId == x.DividendProviderAgentId && a.ContractStatus == (short)ContractStatus.Enabled);
+                a.AgentId == x.DividendProviderAgentId && a.ContractStatus == (short)ContractStatus.Enabled) ??
+                                throw new Exception($"Can't find contract agentId: {x.AgentId}"); ;
 
             var distributionService =
                 serviceProvider.GetRequiredKeyedService<IDistribution>(
@@ -84,7 +86,8 @@ internal class AgentDividendHandler(
             .SelectAwait(async x =>
             {
                 var agentContract = contracts.FirstOrDefault(a =>
-                    a.AgentId == x.AgentId && a.ContractStatus == (short)ContractStatus.Enabled);
+                    a.AgentId == x.AgentId && a.ContractStatus == (short)ContractStatus.Enabled) ??
+                                    throw new Exception($"Can't find contract agentId: {x.AgentId}"); ;
 
                 var distributionService =
                     serviceProvider.GetRequiredKeyedService<IDistribution>(
@@ -171,7 +174,7 @@ internal class AgentDividendHandler(
                     createAgentDividendModel.Id),
                 cancellationToken);
 
-        repository.RemoveAllMemoryCacheAsync(cancellationToken);
+        repository.RemoveAllMemoryCache(cancellationToken);
     }
 
     private static (DateTimeOffset, DateTimeOffset) GetInterval(SettlementIntervalType type,

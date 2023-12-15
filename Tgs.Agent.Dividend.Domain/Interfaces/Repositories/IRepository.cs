@@ -61,5 +61,5 @@ public interface IRepository
         decimal agentDividendAmount,
         CancellationToken cancellationToken);
 
-    void RemoveAllMemoryCacheAsync(CancellationToken cancellationToken);
+    void RemoveAllMemoryCache(CancellationToken cancellationToken);
 }

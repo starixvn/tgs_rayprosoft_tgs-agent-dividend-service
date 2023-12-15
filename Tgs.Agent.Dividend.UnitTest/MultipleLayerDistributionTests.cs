@@ -1,6 +1,7 @@
 using AutoFixture;
 using Microsoft.EntityFrameworkCore;
 using NSubstitute;
+using Tgs.Agent.Dividend.Core.Distributions;
 using Tgs.Agent.Dividend.Domain.Enums;
 using Tgs.Agent.Dividend.Domain.Interfaces.Repositories;
 using Tgs.Agent.Dividend.Domain.Models;

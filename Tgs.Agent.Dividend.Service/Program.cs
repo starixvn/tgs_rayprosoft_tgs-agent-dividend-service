@@ -1,7 +1,9 @@
+using Microsoft.EntityFrameworkCore;
 using OpenTelemetry.Exporter;
 using OpenTelemetry.Instrumentation.AspNetCore;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
+using Tgs.Agent.Dividend.Core.DependencyInjection;
 using Tgs.Agent.Dividend.Core.Workers;
 
 var builder = WebApplication.CreateBuilder(args);

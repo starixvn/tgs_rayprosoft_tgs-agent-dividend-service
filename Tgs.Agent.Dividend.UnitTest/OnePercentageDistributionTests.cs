@@ -1,6 +1,7 @@
 using AutoFixture;
 using Microsoft.EntityFrameworkCore;
 using NSubstitute;
+using Tgs.Agent.Dividend.Core.Distributions;
 using Tgs.Agent.Dividend.Domain.Enums;
 using Tgs.Agent.Dividend.Domain.Interfaces.Repositories;
 using Tgs.Agent.Dividend.Domain.Models;
@@ -34,8 +35,6 @@ public class OnePercentageDistributionTests
         var to = DateTime.Parse("2023/12/06 00:00:00+8");
         var player1 = "player1";
         var player2 = "player2";
-        var player3 = "player3";
-        var player4 = "player4";
 
         var contract = CreateContractFixture(brandId,
                 agentId,
@@ -203,8 +202,6 @@ public class OnePercentageDistributionTests
         var to = DateTime.Parse("2023/12/06 00:00:00+8");
         var player1 = "player1";
         var player2 = "player2";
-        var player3 = "player3";
-        var player4 = "player4";
 
         var contract = CreateContractFixture(brandId,
                 agentId,
@@ -361,8 +358,6 @@ public class OnePercentageDistributionTests
         var to = DateTime.Parse("2023/12/06 00:00:00+8");
         var player1 = "player1";
         var player2 = "player2";
-        var player3 = "player3";
-        var player4 = "player4";
 
         var contract = CreateContractFixture(brandId,
                 agentId,

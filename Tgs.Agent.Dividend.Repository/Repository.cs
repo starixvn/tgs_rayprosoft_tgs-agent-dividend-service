@@ -34,7 +34,7 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IEnumera
                         DividendPercentage = x.DividendPercentage
                     })
                     .ToArrayAsync(cancellationToken);
-            });
+            }) ?? Array.Empty<AgentModel>();
 
         foreach (var model in models) yield return model;
     }
@@ -297,7 +297,7 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IEnumera
                             VirtualSportsWinLoss = list.Sum(x => x.VirtualSportsWinLoss)
                         })
                     .ToArray();
-            });
+            }) ?? Array.Empty<AgentPlayerAggregateModel>();
 
         foreach (var model in models) yield return model;
     }
@@ -354,7 +354,7 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IEnumera
                             x.Sum(p => p.NoIncludeNetProfitBonusAdjustAmount)
                     })
                     .ToArrayAsync(cancellationToken);
-            });
+            }) ?? Array.Empty<AgentPlayerAggregateModel>();
 
         foreach (var model in models) yield return model;
     }
@@ -447,7 +447,7 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IEnumera
                         DepositAmount = x.Sum(s => s.DailyDepositAmount ?? 0M)
                     })
                     .ToArrayAsync(cancellationToken);
-            });
+            }) ?? Array.Empty<AgentPlayerDepositModel>();
 
         foreach (var model in models) yield return model;
     }
@@ -479,7 +479,7 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IEnumera
                         ValidBetAmount = x.Sum(s => s.Turnover)
                     })
                     .ToArrayAsync(cancellationToken);
-            });
+            }) ?? Array.Empty<AgentPlayerValidBetModel>();
 
         foreach (var model in models) yield return model;
     }
@@ -512,7 +512,7 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IEnumera
                         DayCount = x.Select(s => s.ReportDate).Distinct().Count()
                     })
                     .ToArrayAsync(cancellationToken);
-            });
+            }) ?? Array.Empty<AgentPlayerBetDaysModel>();
 
         foreach (var model in models) yield return model;
     }
@@ -628,7 +628,7 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IEnumera
         await context.SaveChangesAsync(cancellationToken);
     }
 
-    public void RemoveAllMemoryCacheAsync(CancellationToken cancellationToken)
+    public void RemoveAllMemoryCache(CancellationToken cancellationToken)
     {
         foreach (var cacheKey in cacheKeys) memoryCache.Remove(cacheKey);
     }
