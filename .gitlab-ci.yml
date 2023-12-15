@@ -36,7 +36,7 @@ push-nuget:
 push-docker-image:
   extends: .push-docker-image-template
   script:
-    - push_docker "Tgs.Agent.Dividend" $ImageName $Tag
+    - push_docker "Tgs.Agent.Dividend.Service" $ImageName $Tag
 
 push-k8s-template:
   extends: .push-k8s-template
