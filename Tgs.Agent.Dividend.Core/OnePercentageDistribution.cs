@@ -117,6 +117,8 @@ internal class OnePercentageDistribution
             new AgentConditionModel
             {
                 ValidNumber = validPlayerCount,
+                BonusAmount = agentPlayerAggregate.BonusAmount,
+                BonusAdjustAmount = agentPlayerAggregate.BonusAdjustAmount,
                 WinLossAmount = agentPlayerAggregate.WinLossAmount,
                 NetProfit = agentPlayerAggregate.NetProfit(brand.PlatformCharge)
             },
@@ -205,6 +207,8 @@ internal class OnePercentageDistribution
                     DividendProviderId = id,
                     AgentDividendPercentage = 0M,
                     ActualDividendPercentage = 0M,
+                    AgentCoveredBonus = 0,
+                    AgentCoveredBonusAdjust = 0,
                     Layer = layer,
                     Dividend = 0M
                 };
@@ -227,6 +231,8 @@ internal class OnePercentageDistribution
                     DividendProviderId = id,
                     AgentDividendPercentage = percentage,
                     ActualDividendPercentage = percentage,
+                    AgentCoveredBonus = (agentCurrentCondition.BonusAmount * percentage / 100M).Truncate(2),
+                    AgentCoveredBonusAdjust = (agentCurrentCondition.BonusAdjustAmount * percentage / 100M).Truncate(2),
                     Layer = layer,
                     Dividend = (agentCurrentCondition.NetProfit * percentage / 100M).Truncate(2)
                 };
@@ -240,6 +246,8 @@ internal class OnePercentageDistribution
                     DividendProviderId = id,
                     AgentDividendPercentage = 10,
                     ActualDividendPercentage = 10,
+                    AgentCoveredBonus = (agentCurrentCondition.BonusAmount * 0.1M).Truncate(2),
+                    AgentCoveredBonusAdjust = (agentCurrentCondition.BonusAdjustAmount * 0.1M).Truncate(2),
                     Layer = layer,
                     Dividend = (agentCurrentCondition.NetProfit * 0.1M).Truncate(2)
                 };
@@ -252,6 +260,8 @@ internal class OnePercentageDistribution
                 DividendProviderId = id,
                 AgentDividendPercentage = 1,
                 ActualDividendPercentage = 1,
+                AgentCoveredBonus = (agentCurrentCondition.BonusAmount * 0.01M).Truncate(2),
+                AgentCoveredBonusAdjust = (agentCurrentCondition.BonusAdjustAmount * 0.01M).Truncate(2),
                 Layer = layer,
                 Dividend = (agentCurrentCondition.NetProfit * 0.01M).Truncate(2)
             };

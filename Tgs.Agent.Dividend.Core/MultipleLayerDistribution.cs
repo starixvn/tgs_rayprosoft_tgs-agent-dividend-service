@@ -131,6 +131,8 @@ internal class MultipleLayerDistribution(IContractRepository contractRepository,
             DividendProviderId = id,
             AgentDividendPercentage = agentDividendPercentage,
             ActualDividendPercentage = agentDividendPercentage,
+            AgentCoveredBonus = (agentCurrentCondition.BonusAmount * agentDividendPercentage / 100M).Truncate(2),
+            AgentCoveredBonusAdjust = (agentCurrentCondition.BonusAdjustAmount * agentDividendPercentage / 100M).Truncate(2),
             Layer = layer,
             Dividend = (agentCurrentCondition.NetProfit * agentDividendPercentage / 100M).Truncate(2)
         };
