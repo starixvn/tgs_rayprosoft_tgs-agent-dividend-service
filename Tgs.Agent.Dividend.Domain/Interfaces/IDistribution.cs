@@ -4,11 +4,24 @@ namespace Tgs.Agent.Dividend.Domain.Interfaces;
 
 public interface IDistribution
 {
-    IAsyncEnumerable<(AgentPlayerAggregateModel agentPlayerAggregate, AgentDividendMultipleLayerModel[] multipleLayer)>
-        AgentDividendGenerationAsync(int idNumber,
+    IAsyncEnumerable<AgentPlayerAggregateModel>
+        GetAgentPlayerAggregateAsync(int idNumber,
             BrandModel brand,
             AgentDividendContractModel contract,
             CancellationToken cancellationToken);
+
+    IAsyncEnumerable<AgentDividendMultipleLayerModel>
+        GenerateMultipleLayerAsync(
+            BrandModel brand,
+            AgentDividendContractModel contract,
+            AgentPlayerAggregateModel agentPlayerAggregate,
+            CancellationToken cancellationToken);
+
+    IAsyncEnumerable<AgentPlayerAggregateModel> GenerateAdditionalAgentPlayerAsync(int idNumber,
+        BrandModel brand,
+        AgentDividendMultipleLayerModel childLayer,
+        IAsyncEnumerable<AgentPlayerAggregateModel> currentAllAgentPlayerAggregates,
+        CancellationToken cancellationToken);
 
     decimal GetAgentDividendAmount(AgentPlayerAggregateModel agentPlayerAggregate,
         IEnumerable<AgentDividendMultipleLayerModel> multipleLayer,

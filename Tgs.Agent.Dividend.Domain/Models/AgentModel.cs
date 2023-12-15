@@ -9,4 +9,5 @@ public class AgentModel
     public string Username { get; set; } = null!;
     public Guid? ParentAgentId { get; set; }
     public LTree Path { get; set; }
+    public decimal DividendPercentage { get; set; }
 }

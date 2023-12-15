@@ -1,4 +1,6 @@
-﻿using System.Text.Json;
+﻿using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Text.Json;
 using Tgs.Agent.Dividend.Domain;
 using Tgs.Agent.Dividend.Domain.Interfaces;
 using Tgs.Agent.Dividend.Domain.Interfaces.Repositories;
@@ -6,13 +8,12 @@ using Tgs.Agent.Dividend.Domain.Models;
 
 namespace Tgs.Agent.Dividend.Core;
 
-internal class OneLayerDistribution(IContractRepository contractRepository, IRepository repository) : IDistribution
+internal class OneLayerDistribution(IRepository repository) : IDistribution
 {
-    public IAsyncEnumerable<(AgentPlayerAggregateModel, AgentDividendMultipleLayerModel[])>
-        AgentDividendGenerationAsync(int idNumber,
-            BrandModel brand,
-            AgentDividendContractModel contract,
-            CancellationToken cancellationToken)
+    public IAsyncEnumerable<AgentPlayerAggregateModel> GetAgentPlayerAggregateAsync(int idNumber,
+        BrandModel brand,
+        AgentDividendContractModel contract,
+        CancellationToken cancellationToken)
     {
         var agentAggregates = repository
             .GetAgentPlayerAggregatesCacheAsync(brand.Id,
@@ -23,23 +24,48 @@ internal class OneLayerDistribution(IContractRepository contractRepository, IRep
 
         return agentAggregates.Select((x, i) =>
         {
-            var agentDividendPercentage =
-                JsonSerializer.Deserialize<AgentDividendPercentageData[]>(x.AgentDividendPercentageTreeData!);
+            x.Id = idNumber + i + 1;
 
-            var bonusAdjustAmount = x.BonusAdjustAmount - x.NoIncludeNetProfitBonusAdjustAmount;
-
-            x.Id = idNumber + i;
-
-            return (x, GetAgentDividends(
-                    x.Id,
-                    contract.Id,
-                    agentDividendPercentage!,
-                    x.AgentId,
-                    x.BonusAmount,
-                    bonusAdjustAmount,
-                    x.NetProfit(brand.PlatformCharge))
-                .ToArray());
+            return x;
         });
+    }
+
+    public IAsyncEnumerable<AgentDividendMultipleLayerModel> GenerateMultipleLayerAsync(
+        BrandModel brand,
+        AgentDividendContractModel contract,
+        AgentPlayerAggregateModel agentPlayerAggregate,
+        CancellationToken cancellationToken)
+    {
+        var agentDividendPercentage =
+            JsonSerializer.Deserialize<AgentDividendPercentageData[]>(agentPlayerAggregate.AgentDividendPercentageTreeData!);
+
+        var bonusAdjustAmount = agentPlayerAggregate.BonusAdjustAmount - agentPlayerAggregate.NoIncludeNetProfitBonusAdjustAmount;
+
+        return GetAgentDividends(
+            agentPlayerAggregate.Id,
+            contract.Id,
+            agentDividendPercentage!,
+            agentPlayerAggregate.AgentId,
+            agentPlayerAggregate.BonusAmount,
+            bonusAdjustAmount,
+            agentPlayerAggregate.NetProfit(brand.PlatformCharge)).ToAsyncEnumerable();
+    }
+
+    public async IAsyncEnumerable<AgentPlayerAggregateModel> GenerateAdditionalAgentPlayerAsync(int idNumber,
+        BrandModel brand,
+        AgentDividendMultipleLayerModel layer,
+        IAsyncEnumerable<AgentPlayerAggregateModel> currentAllAgentPlayerAggregates,
+        [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        var exists = await currentAllAgentPlayerAggregates.AnyAsync(a =>
+            a.AgentId == layer.AgentId && a.AgentDividendPercentage == layer.AgentDividendPercentage,
+            cancellationToken: cancellationToken);
+
+        if (exists) yield break;
+
+        var model = GetDefaultAggregate(idNumber + 1, brand, layer.AgentId, layer.AgentDividendPercentage);
+
+        yield return model;
     }
 
     public decimal GetAgentDividendAmount(AgentPlayerAggregateModel agentPlayerAggregate,
@@ -111,5 +137,18 @@ internal class OneLayerDistribution(IContractRepository contractRepository, IRep
 
             agent = parentAgent;
         } while (hasParentAgentId);
+    }
+
+    private static AgentPlayerAggregateModel GetDefaultAggregate(int id, BrandModel brand, Guid agentId, decimal agentDividendPercentage)
+    {
+        return new AgentPlayerAggregateModel
+        {
+            Id = id,
+            BrandId = brand.Id,
+            AgentId = agentId,
+            AgentDividendPercentage = agentDividendPercentage,
+            From = brand.CurrentSettlementFrom,
+            To = brand.CurrentSettlementTo
+        };
     }
 }

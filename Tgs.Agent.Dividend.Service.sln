@@ -11,9 +11,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tgs.Agent.Dividend.Domain",
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tgs.Agent.Dividend.Repository", "Tgs.Agent.Dividend.Repository\Tgs.Agent.Dividend.Repository.csproj", "{94AE05EC-D8E3-4480-BA93-E5640BAFD71A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tgs.Agent.Dividend.UnitTest", "Tgs.Agent.Dividend.UnitTest\Tgs.Agent.Dividend.UnitTest.csproj", "{D4B35DF6-1997-4C70-B436-EFBB6B29E9FC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tgs.Agent.Dividend.UnitTest", "Tgs.Agent.Dividend.UnitTest\Tgs.Agent.Dividend.UnitTest.csproj", "{D4B35DF6-1997-4C70-B436-EFBB6B29E9FC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tgs.Agent.Dividend.IntegrationTest", "Tgs.AgentDividend.IntegrationTest\Tgs.Agent.Dividend.IntegrationTest.csproj", "{760FBE15-CFC3-4550-91F8-8D4BDB5DAC2C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tgs.Agent.Dividend.IntegrationTest", "Tgs.AgentDividend.IntegrationTest\Tgs.Agent.Dividend.IntegrationTest.csproj", "{760FBE15-CFC3-4550-91F8-8D4BDB5DAC2C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tgs.Agent.Dividend.Client", "Tgs.Agent.Dividend.Client\Tgs.Agent.Dividend.Client.csproj", "{D14ECD4E-7D4C-4DA2-AE81-84623D9AAF85}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -45,6 +47,10 @@ Global
 		{760FBE15-CFC3-4550-91F8-8D4BDB5DAC2C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{760FBE15-CFC3-4550-91F8-8D4BDB5DAC2C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{760FBE15-CFC3-4550-91F8-8D4BDB5DAC2C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D14ECD4E-7D4C-4DA2-AE81-84623D9AAF85}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D14ECD4E-7D4C-4DA2-AE81-84623D9AAF85}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D14ECD4E-7D4C-4DA2-AE81-84623D9AAF85}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D14ECD4E-7D4C-4DA2-AE81-84623D9AAF85}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

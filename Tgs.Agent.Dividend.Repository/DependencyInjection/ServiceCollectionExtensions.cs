@@ -1,6 +1,8 @@
 ﻿// ReSharper disable CheckNamespace
 
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
+using Tgs.Agent.Dividend.Domain.Interfaces;
 using Tgs.Agent.Dividend.Domain.Interfaces.Repositories;
 using Tgs.Agent.Dividend.Repository;
 using Tgs.Agent.Dividend.Repository.Entities;

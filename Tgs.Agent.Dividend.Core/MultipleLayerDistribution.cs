@@ -9,11 +9,10 @@ namespace Tgs.Agent.Dividend.Core;
 internal class MultipleLayerDistribution(IContractRepository contractRepository, IRepository repository)
     : IDistribution
 {
-    public async IAsyncEnumerable<(AgentPlayerAggregateModel, AgentDividendMultipleLayerModel[])>
-        AgentDividendGenerationAsync(int idNumber,
-            BrandModel brand,
-            AgentDividendContractModel contract,
-            [EnumeratorCancellation] CancellationToken cancellationToken)
+    public async IAsyncEnumerable<AgentPlayerAggregateModel> GetAgentPlayerAggregateAsync(int idNumber,
+        BrandModel brand,
+        AgentDividendContractModel contract,
+        [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         var agentAggregate = await repository
             .GetAgentPlayerAggregatesForMultipleLayerCacheAsync(brand.Id,
@@ -42,32 +41,16 @@ internal class MultipleLayerDistribution(IContractRepository contractRepository,
         agentAggregate.ESportsWinLoss = agentPlayerGameAggregate?.ESportsWinLoss ?? 0M;
         agentAggregate.VirtualSportsWinLoss = agentPlayerGameAggregate?.VirtualSportsWinLoss ?? 0M;
 
-        agentAggregate.Id = idNumber;
+        agentAggregate.Id = idNumber + 1;
 
-        var from = new DateTimeOffset(brand.CurrentSettlementFrom.Year,
-            brand.CurrentSettlementFrom.Month,
-            brand.CurrentSettlementFrom.Day,
-            0,
-            0,
-            0,
-            TimeSpan.Zero).ToOffset(TimeSpan.FromHours(8));
+        yield return agentAggregate;
+    }
 
-        var to = new DateTimeOffset(brand.CurrentSettlementTo.Year,
-            brand.CurrentSettlementTo.Month,
-            brand.CurrentSettlementTo.Day,
-            0,
-            0,
-            0,
-            TimeSpan.Zero).ToOffset(TimeSpan.FromHours(8));
-
-        var validBets = await repository
-            .GetAgentPlayerValidBetsCacheAsync(brand.Id,
-                brand.CurrentSettlementFrom,
-                brand.CurrentSettlementTo,
-                cancellationToken)
-            .Where(x => x.AgentId == contract.AgentId)
-            .ToArrayAsync(cancellationToken);
-
+    public async IAsyncEnumerable<AgentDividendMultipleLayerModel> GenerateMultipleLayerAsync(BrandModel brand,
+        AgentDividendContractModel contract,
+        AgentPlayerAggregateModel agentPlayerAggregate,
+        [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
         var betDays = await repository
             .GetAgentPlayerBetCountsCacheAsync(brand.Id,
                 brand.CurrentSettlementFrom,
@@ -76,39 +59,38 @@ internal class MultipleLayerDistribution(IContractRepository contractRepository,
             .Where(x => x.AgentId == contract.AgentId)
             .ToArrayAsync(cancellationToken);
 
-        var deposits = await repository
-            .GetAgentPlayerDepositsCacheAsync(brand.Id,
-                DateOnly.FromDateTime(from.DateTime),
-                DateOnly.FromDateTime(to.DateTime),
-                cancellationToken)
-            .Where(x => x.AgentId == contract.AgentId)
-            .ToArrayAsync(cancellationToken);
-
-        var playerCodes = validBets.Select(x => x.PlayerCode)
-            .Concat(betDays.Select(x => x.PlayerCode))
-            .Concat(deposits.Select(x => x.PlayerCode))
-            .Distinct();
+        var playerCodes = betDays.Select(x => x.PlayerCode);
 
         var conditions = await contractRepository
             .GetAgentDividendContractConditionsAsync(contract.Id, cancellationToken)
             .ToArrayAsync(cancellationToken);
 
-        var validPlayerCount = GetValidPlayerCount(playerCodes, deposits, validBets, betDays, contract);
+        var validPlayerCount = GetValidPlayerCount(playerCodes, betDays, contract);
 
-        var agentDividend = GetAgentDividendsByMultipleLayer(agentAggregate.Id,
+        var agentDividend = GetAgentDividendsByMultipleLayer(agentPlayerAggregate.Id,
             contract.AgentId,
+            contract.Id,
             brand.CheckDividendActiveCount,
             new AgentConditionModel
             {
-                ValidNumber = validPlayerCount, 
-                ValidBetAmount = validBets.Sum(s => s.ValidBetAmount),
-                NetProfit = agentAggregate.NetProfit(brand.PlatformCharge)
+                ValidNumber = validPlayerCount,
+                WinLossAmount = agentPlayerAggregate.WinLossAmount,
+                NetProfit = agentPlayerAggregate.NetProfit(brand.PlatformCharge)
             },
             conditions);
 
-        agentAggregate.AgentDividendPercentage = agentDividend.AgentDividendPercentage;
+        agentPlayerAggregate.AgentDividendPercentage = agentDividend.AgentDividendPercentage;
 
-        yield return (agentAggregate, new[] { agentDividend });
+        yield return agentDividend;
+    }
+
+    public IAsyncEnumerable<AgentPlayerAggregateModel> GenerateAdditionalAgentPlayerAsync(int idNumber,
+        BrandModel brand,
+        AgentDividendMultipleLayerModel multipleLayer,
+        IAsyncEnumerable<AgentPlayerAggregateModel> currentAllAgentPlayerAggregates,
+        CancellationToken cancellationToken)
+    {
+        return AsyncEnumerable.Empty<AgentPlayerAggregateModel>();
     }
 
     public decimal GetAgentDividendAmount(AgentPlayerAggregateModel agentPlayerAggregate,
@@ -130,6 +112,7 @@ internal class MultipleLayerDistribution(IContractRepository contractRepository,
     private static AgentDividendMultipleLayerModel GetAgentDividendsByMultipleLayer(
         int id,
         Guid agentId,
+        Guid contractId,
         bool checkDividendActiveCount,
         AgentConditionModel agentCurrentCondition,
         IEnumerable<AgentDividendContractPercentageModel> agentDividendConditions)
@@ -143,6 +126,7 @@ internal class MultipleLayerDistribution(IContractRepository contractRepository,
         return new AgentDividendMultipleLayerModel
         {
             AgentId = agentId,
+            ContractId = contractId,
             DividendProviderAgentId = agentId,
             DividendProviderId = id,
             AgentDividendPercentage = agentDividendPercentage,
@@ -159,33 +143,25 @@ internal class MultipleLayerDistribution(IContractRepository contractRepository,
     {
         return agentDividendCondition.OrderByDescending(x => x.Rank)
             .Where(!checkDividendActiveCount,
-                x => currentCondition.NetProfit >= x.NetProfit && currentCondition.ValidBetAmount >= x.WinLossAmount)
+                x => currentCondition.NetProfit >= x.NetProfit && currentCondition.WinLossAmount >= x.WinLossAmount)
             .Where(checkDividendActiveCount,
                 x => currentCondition.ValidNumber >= x.ValidNumber &&
                      currentCondition.NetProfit >= x.NetProfit &&
-                     currentCondition.ValidBetAmount >= x.WinLossAmount)
+                     currentCondition.WinLossAmount >= x.WinLossAmount)
             .Select(x => x.Percentage)
             .FirstOrDefault();
     }
 
     private static int GetValidPlayerCount(
         IEnumerable<string> playerCodes,
-        IEnumerable<AgentPlayerDepositModel> deposits,
-        IEnumerable<AgentPlayerValidBetModel> validBets,
         IEnumerable<AgentPlayerBetDaysModel> betDays,
         AgentDividendContractModel contract)
     {
         return playerCodes.Where(playerCode =>
             {
-                var deposit = deposits.FirstOrDefault(x => x.PlayerCode == playerCode)?.DepositAmount ??
-                              0M;
-                var validBet = validBets.FirstOrDefault(x => x.PlayerCode == playerCode)?.ValidBetAmount ??
-                               0M;
                 var betDay = betDays.FirstOrDefault(x => x.PlayerCode == playerCode)?.DayCount ?? 0;
 
-                return deposit >= contract.DepositAmount &&
-                       validBet >= contract.ValidBetAmount &&
-                       betDay >= contract.BetDays;
+                return betDay >= contract.BetDays;
             })
             .Count();
     }

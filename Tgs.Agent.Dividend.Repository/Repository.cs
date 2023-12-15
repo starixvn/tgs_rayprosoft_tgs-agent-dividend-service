@@ -9,14 +9,16 @@ using Tgs.Agent.Dividend.Repository.Entities;
 
 namespace Tgs.Agent.Dividend.Repository;
 
-internal class Repository(tgsContext context, IMemoryCache memoryCache) : IRepository
+internal class Repository(tgsContext context, IMemoryCache memoryCache, IEnumerable<string> cacheKeys) : IRepository
 {
     public async IAsyncEnumerable<AgentModel> GetAgentsCacheAsyncEnumerable(Guid brandId,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
-        const string prefixKey = "AgentCache";
+        var key = $"AgentCache{brandId}";
 
-        var models = await memoryCache.GetOrCreateAsync($"{prefixKey}{brandId}",
+        cacheKeys = cacheKeys.Append(key);
+
+        var models = await memoryCache.GetOrCreateAsync(key,
             cacheEntry =>
             {
                 cacheEntry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5);
@@ -28,7 +30,8 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache) : IRepos
                         BrandId = x.BrandId,
                         Username = x.Username,
                         ParentAgentId = x.ParentAgentId,
-                        Path = x.Path
+                        Path = x.Path,
+                        DividendPercentage = x.DividendPercentage
                     })
                     .ToArrayAsync(cancellationToken);
             });
@@ -57,9 +60,11 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache) : IRepos
         DateTime to,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
-        const string prefixKey = "AgentPlayerAggregateCache";
+        var key = $"AgentPlayerAggregateCache{brandId}{from}{to}";
 
-        var models = await memoryCache.GetOrCreateAsync($"{prefixKey}{brandId}{from}{to}",
+        cacheKeys = cacheKeys.Append(key);
+
+        var models = await memoryCache.GetOrCreateAsync(key,
             async cacheEntry =>
             {
                 cacheEntry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5);
@@ -299,9 +304,11 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache) : IRepos
         DateTime to,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
-        const string prefixKey = "AgentPlayerAggregatesForMultipleLayerCache";
+        var key = $"AgentPlayerAggregatesForMultipleLayerCache{brandId}{from}{to}";
 
-        var models = await memoryCache.GetOrCreateAsync($"{prefixKey}{brandId}{from}{to}",
+        cacheKeys = cacheKeys.Append(key);
+
+        var models = await memoryCache.GetOrCreateAsync(key,
             cacheEntry =>
             {
                 cacheEntry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5);
@@ -409,9 +416,11 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache) : IRepos
         DateOnly to,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
-        const string prefixKey = "AgentPlayerDepositCache";
+        var key = $"AgentPlayerDepositCache{brandId}{from}{to}";
 
-        var models = await memoryCache.GetOrCreateAsync($"{prefixKey}{brandId}{from}{to}",
+        cacheKeys = cacheKeys.Append(key);
+
+        var models = await memoryCache.GetOrCreateAsync(key,
             cacheEntry =>
             {
                 cacheEntry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5);
@@ -444,9 +453,11 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache) : IRepos
         DateTime to,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
-        const string prefixKey = "AgentPlayerValidBetCache";
+        var key = $"AgentPlayerValidBetCache{brandId}{from}{to}";
 
-        var models = await memoryCache.GetOrCreateAsync($"{prefixKey}{brandId}{from}{to}",
+        cacheKeys = cacheKeys.Append(key);
+
+        var models = await memoryCache.GetOrCreateAsync(key,
             cacheEntry =>
             {
                 cacheEntry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5);
@@ -474,9 +485,11 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache) : IRepos
         DateTime to,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
-        const string prefixKey = "AgentPlayerBetCountCache";
+        var key = $"AgentPlayerBetCountCache{brandId}{from}{to}";
 
-        var models = await memoryCache.GetOrCreateAsync($"{prefixKey}{brandId}{from}{to}",
+        cacheKeys = cacheKeys.Append(key);
+
+        var models = await memoryCache.GetOrCreateAsync(key,
             cacheEntry =>
             {
                 cacheEntry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5);
@@ -527,15 +540,15 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache) : IRepos
 
         context.AgentDividends.UpdateRange(negativeDividends);
 
-        //await context.Brands.Where(x => x.Id == brand.Id)
-        //    .ExecuteUpdateAsync(s =>
-        //            s.SetProperty(e => e.PreviousSettlementFrom, brand.PreviousSettlementFrom)
-        //                .SetProperty(e => e.PreviousSettlementTo, brand.PreviousSettlementTo)
-        //                .SetProperty(e => e.CurrentSettlementFrom, brand.CurrentSettlementFrom)
-        //                .SetProperty(e => e.CurrentSettlementTo, brand.CurrentSettlementTo)
-        //                .SetProperty(e => e.NextSettlementFrom, brand.NextSettlementFrom)
-        //                .SetProperty(e => e.NextSettlementTo, brand.NextSettlementTo),
-        //        cancellationToken);
+        await context.Brands.Where(x => x.Id == brand.Id)
+            .ExecuteUpdateAsync(s =>
+                    s.SetProperty(e => e.PreviousSettlementFrom, brand.PreviousSettlementFrom)
+                        .SetProperty(e => e.PreviousSettlementTo, brand.PreviousSettlementTo)
+                        .SetProperty(e => e.CurrentSettlementFrom, brand.CurrentSettlementFrom)
+                        .SetProperty(e => e.CurrentSettlementTo, brand.CurrentSettlementTo)
+                        .SetProperty(e => e.NextSettlementFrom, brand.NextSettlementFrom)
+                        .SetProperty(e => e.NextSettlementTo, brand.NextSettlementTo),
+                cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
 
         scope.Complete();
@@ -570,24 +583,52 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache) : IRepos
 
     public async Task UpdateSentOnAsync(int agentDividendId, CancellationToken cancellationToken)
     {
-        using var scope =
-            new TransactionScope(TransactionScopeOption.Required, TransactionScopeAsyncFlowOption.Enabled);
-
-        var negativeDividends = await context.AgentDividends.Where(x => x.ReferencedAgentDividendId == agentDividendId)
-            .ToArrayAsync(cancellationToken);
-
-        foreach (var negativeDividend in negativeDividends) negativeDividend.SentOn = DateTime.UtcNow;
-
-        context.AgentDividends.UpdateRange(negativeDividends);
+        await context.AgentDividends.Where(x => x.ReferencedAgentDividendId == agentDividendId)
+            .ExecuteUpdateAsync(s =>
+                    s.SetProperty(e => e.SentOn, DateTime.UtcNow),
+                cancellationToken);
 
         await context.AgentDividends.Where(x => x.Id == agentDividendId)
             .ExecuteUpdateAsync(s =>
                     s.SetProperty(e => e.SentOn, DateTime.UtcNow),
                 cancellationToken);
 
-        await context.SaveChangesAsync(cancellationToken);
+        await context.AgentDividendRecords.Where(x => x.AgentDividendId == agentDividendId)
+            .ExecuteUpdateAsync(s =>
+                    s.SetProperty(e => e.SentOn, DateTime.UtcNow),
+                cancellationToken);
 
-        scope.Complete();
+        await context.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task CreateAgentDividendRecordAsync(Guid brandId,
+        Guid agentId,
+        int agentDividendId,
+        decimal agentDividendAmount,
+        CancellationToken cancellationToken)
+    {
+        var negativeDividends = await context.AgentDividends.Where(x => x.ReferencedAgentDividendId == agentDividendId)
+            .ToArrayAsync(cancellationToken);
+
+        _ = await context.AgentDividendRecords.AddAsync(new AgentDividendRecord
+        {
+            BrandId = brandId,
+            AgentId = agentId,
+            AgentDividendId = agentDividendId,
+            NegativeDividendIds = negativeDividends.Select(x => x.Id.ToString()).ToList(),
+            AgentDividendAmount = agentDividendAmount,
+            CreatedOn = DateTime.UtcNow
+        }, cancellationToken);
+
+        await context.SaveChangesAsync(cancellationToken);
+    }
+
+    public void RemoveAllMemoryCacheAsync(CancellationToken cancellationToken)
+    {
+        foreach (var cacheKey in cacheKeys)
+        {
+            memoryCache.Remove(cacheKey);
+        }
     }
 
     private async ValueTask CreateAgentDividendsAsync(IEnumerable<CreateAgentDividendModel> models)

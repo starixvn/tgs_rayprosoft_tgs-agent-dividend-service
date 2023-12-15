@@ -13,15 +13,24 @@ internal class SendAgentDividendEventHandler(ICashServiceClient cashServiceClien
 {
     public async Task Handle(SendAgentDividendEvent @event, CancellationToken cancellationToken)
     {
-        await repository.UpdateSentOnAsync(@event.AgentDividendId, cancellationToken);
-
         try
         {
-            _ = await cashServiceClient.AgentDividendAsync(@event.WalletId,
+            await repository.CreateAgentDividendRecordAsync(@event.BrandId,
+                @event.AgentId,
+                @event.AgentDividendId,
                 @event.Amount,
-                "",
-                @event.AgentDividendId.ToString(),
                 cancellationToken);
+
+            if (@event.Amount != 0)
+            {
+                _ = await cashServiceClient.AgentDividendAsync(@event.WalletId,
+                    @event.Amount,
+                    "",
+                    @event.AgentDividendId.ToString(),
+                    cancellationToken);
+            }
+
+            await repository.UpdateSentOnAsync(@event.AgentDividendId, cancellationToken);
         }
         catch (Exception e)
         {

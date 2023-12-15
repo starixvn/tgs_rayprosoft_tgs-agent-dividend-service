@@ -28,6 +28,10 @@
          "ObjectType": 0
       },
       {
+         "Name": "dbo.agent_dividend_records",
+         "ObjectType": 0
+      },
+      {
          "Name": "dbo.agent_dividends",
          "ObjectType": 0
       },

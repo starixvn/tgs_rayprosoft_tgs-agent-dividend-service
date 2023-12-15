@@ -9,7 +9,6 @@ public interface IRepository
 
     IAsyncEnumerable<AgentModel> GetAgentsByPathCacheAsyncEnumerable(Guid brandId,LTree path, CancellationToken cancellationToken);
 
-    //IAsyncEnumerable<AgentParentModel> GetAgentParentsAsyncEnumerable(Guid brandId);
     IAsyncEnumerable<Guid> GetNonArchivedBrandIdsAsyncEnumerable(Guid? brandId);
 
     IAsyncEnumerable<AgentPlayerAggregateModel> GetAgentPlayerAggregatesCacheAsync(Guid brandId,
@@ -49,6 +48,17 @@ public interface IRepository
         CancellationToken cancellationToken);
 
     Task<BrandModel> GetBrandAsync(Guid brandId, CancellationToken cancellationToken);
+
     Task<int> GetMaxAgentDividendIdAsync(CancellationToken cancellationToken);
+
     Task UpdateSentOnAsync(int agentDividendId, CancellationToken cancellationToken);
+
+    Task CreateAgentDividendRecordAsync(Guid brandId,
+        Guid agentId,
+        int agentDividendId,
+        decimal agentDividendAmount,
+        CancellationToken cancellationToken);
+
+    void RemoveAllMemoryCacheAsync(CancellationToken cancellationToken);
+
 }

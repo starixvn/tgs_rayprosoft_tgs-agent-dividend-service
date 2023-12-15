@@ -13,10 +13,4 @@ public class AgentDividendController : ControllerBase
     {
         await mediator.Send(new GenerateAgentDividendRequest());
     }
-
-    //[HttpPost("2")]
-    //public async Task AgentDividendGenerationAsync2([FromKeyedServices("two")] IDistribution distribution)
-    //{
-    //    await distribution.CalculateBonusAmountAsync(HttpContext.RequestAborted);
-    //}
 }

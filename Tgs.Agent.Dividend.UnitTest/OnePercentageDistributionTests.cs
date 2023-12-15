@@ -15,13 +15,165 @@ public class OnePercentageDistributionTests
     {
     }
 
-    [TestCase(-100, 0, 0, 0, 20, 1, 1, 6, 2, 2, -24.0)]
-    [TestCase(-100, 0, 0, 0, 4, 1, 1, 6, 2, 2, -22.0)]
-    [TestCase(-100, 2, 2, 2, 1, 1, 1, 4, 2, 2, 0)]
-    [TestCase(100, 0, 0, 0, 20, 1, 1, 6, 2, 2, 24.0)]
-    [TestCase(100, 0, 0, 0, 4, 1, 1, 6, 2, 2, 22.0)]
+    [TestCase(-100, 20, 30, 30, -14.4)]
+    [TestCase(-100, 20, 30, 0, -18)]
+    public async Task Generate_Agent_Dividend_With_Bonus(decimal winLossAmount,
+    decimal bonusAmount,
+    decimal bonusAdjustAmount,
+    decimal noIncludeNetProfitBonusAdjustAmount,
+    decimal totalDividend)
+    {
+        var fakeContractRepository = Substitute.For<IContractRepository>();
+        var fakeRepository = Substitute.For<IRepository>();
+
+        var brandId = Guid.NewGuid();
+        var agentId = Guid.NewGuid();
+        var agentId2 = Guid.NewGuid();
+        var agentId3 = Guid.NewGuid();
+        var agentId4 = Guid.NewGuid();
+        var from = DateTime.Parse("2023/12/06 00:00:00+8");
+        var to = DateTime.Parse("2023/12/06 00:00:00+8");
+        var player1 = "player1";
+        var player2 = "player2";
+        var player3 = "player3";
+        var player4 = "player4";
+
+        var contract = CreateContractFixture(brandId,
+                agentId,
+                ContractDividendType.MultipleLayer,
+                2,
+                2,
+                2)
+            .Create<AgentDividendContractModel>();
+
+        var brand = CreateBrandFixture(brandId, from, to, 0, AgentDividendType.OnePercentage).Create<BrandModel>();
+
+        var agents = new[]
+        {
+            CreateAgentFixture(brandId,
+                    agentId4,
+                    agentId3,
+                    new LTree($"{agentId2:N}.{agentId:N}.{agentId3:N}.{agentId4:N}"))
+                .Create<AgentModel>(),
+            CreateAgentFixture(brandId, agentId3, agentId, new LTree($"{agentId2:N}.{agentId:N}.{agentId3:N}"))
+                .Create<AgentModel>(),
+            CreateAgentFixture(brandId, agentId, agentId2, new LTree($"{agentId2:N}.{agentId:N}"))
+                .Create<AgentModel>(),
+            CreateAgentFixture(brandId, agentId2, null, new LTree($"{agentId2:N}")).Create<AgentModel>()
+        };
+
+        var agentPlayerAggregates = new[]
+        {
+            CreateAgentPlayerAggregateFixture(brandId, agentId, from, to, winLossAmount,bonusAmount,bonusAdjustAmount,noIncludeNetProfitBonusAdjustAmount)
+                .Create<AgentPlayerAggregateModel>()
+        };
+
+        var agentPlayerGameAggregates = new[]
+        {
+            CreateAgentPlayerGameAggregateFixture(brandId, agentId, from, to)
+                .Create<AgentPlayerGameAggregateModel>()
+        };
+
+        var playerValidBets = new[]
+        {
+            CreateAgentPlayerValidBetFixture(brandId, agentId, player1, from, to, 5)
+                .Create<AgentPlayerValidBetModel>(),
+            CreateAgentPlayerValidBetFixture(brandId, agentId, player2, from, to, 1)
+                .Create<AgentPlayerValidBetModel>()
+        };
+
+        var playerBetDays = new[]
+        {
+            CreateAgentPlayerBetCountFixture(brandId, agentId, player1, from, to, 2)
+                .Create<AgentPlayerBetDaysModel>(),
+            CreateAgentPlayerBetCountFixture(brandId, agentId, player2, from, to, 2)
+                .Create<AgentPlayerBetDaysModel>()
+        };
+
+        var playerDeposits = new[]
+        {
+            CreateAgentPlayerDepositFixture(brandId,
+                    agentId,
+                    player1,
+                    DateOnly.FromDateTime(from),
+                    DateOnly.FromDateTime(to),
+                    2)
+                .Create<AgentPlayerDepositModel>(),
+            CreateAgentPlayerDepositFixture(brandId,
+                    agentId,
+                    player2,
+                    DateOnly.FromDateTime(from),
+                    DateOnly.FromDateTime(to),
+                    1)
+                .Create<AgentPlayerDepositModel>()
+        };
+
+        var conditions = new[]
+        {
+            CreateAgentContractConditionFixture(1, contract.Id, 2, 10, 0, 5)
+                .Create<AgentDividendContractPercentageModel>(),
+            CreateAgentContractConditionFixture(2, contract.Id, 2, 100, 0, 10)
+                .Create<AgentDividendContractPercentageModel>(),
+            CreateAgentContractConditionFixture(3, contract.Id, 2, 110, 0, 12)
+                .Create<AgentDividendContractPercentageModel>()
+        };
+
+        fakeRepository.GetBrandAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(brand);
+        fakeRepository.GetAgentsCacheAsyncEnumerable(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(agents.ToAsyncEnumerable());
+        fakeRepository
+            .GetAgentsByPathCacheAsyncEnumerable(Arg.Any<Guid>(), Arg.Any<LTree>(), Arg.Any<CancellationToken>())
+            .Returns(agents.ToAsyncEnumerable());
+
+        fakeRepository
+            .GetAgentPlayerAggregatesForMultipleLayerCacheAsync(brandId, from, to, Arg.Any<CancellationToken>())
+            .Returns(agentPlayerAggregates.ToAsyncEnumerable());
+
+        fakeRepository
+            .GetAgentPlayerGameAggregatesCacheAsync(brandId, from, to)
+            .Returns(agentPlayerGameAggregates.ToAsyncEnumerable());
+
+        fakeRepository.GetAgentPlayerValidBetsCacheAsync(brandId, from, to, Arg.Any<CancellationToken>())
+            .Returns(playerValidBets.ToAsyncEnumerable());
+
+        fakeRepository.GetAgentPlayerBetCountsCacheAsync(brandId, from, to, Arg.Any<CancellationToken>())
+            .Returns(playerBetDays.ToAsyncEnumerable());
+
+        fakeRepository.GetAgentPlayerDepositsCacheAsync(brandId,
+                DateOnly.FromDateTime(from),
+                DateOnly.FromDateTime(to),
+                Arg.Any<CancellationToken>())
+            .Returns(playerDeposits.ToAsyncEnumerable());
+
+        fakeContractRepository.GetAgentDividendContractConditionsAsync(contract.Id, Arg.Any<CancellationToken>())
+            .Returns(conditions.ToAsyncEnumerable());
+
+        var multipleLayers = new List<AgentDividendMultipleLayerModel>();
+        foreach (var agentPlayerAggregateModel in agentPlayerAggregates)
+        {
+            var sut = new OnePercentageDistribution(
+                fakeContractRepository,
+                fakeRepository);
+
+            multipleLayers.AddRange(await sut
+                .GenerateMultipleLayerAsync(brand, contract, agentPlayerAggregateModel, default)
+                .ToArrayAsync());
+        }
+
+        Assert.That(multipleLayers, Has.Count.EqualTo(4));
+
+        Assert.That(multipleLayers.Sum(x => x.Dividend), Is.EqualTo(totalDividend));
+    }
+
+    [TestCase(-110, 1, 0, 0, 20, 1, 1, 6, 2, 2, -26.4)]
+    [TestCase(-100, 1, 0, 0, 4, 1, 1, 6, 2, 2, -22.0)]
+    [TestCase(-50, 1, 1, 1, 4, 1, 1, 6, 2, 2, -8.5)]
+    [TestCase(-100, 2, 2, 2, 1, 1, 1, 4, 2, 2, -12.0)]
+    [TestCase(110, 1, 0, 0, 20, 1, 1, 6, 2, 2, 26.4)]
+    [TestCase(100, 1, 0, 0, 4, 1, 1, 6, 2, 2, 22.0)]
+    [TestCase(50, 1, 1, 1, 4, 1, 1, 6, 2, 2, 8.5)]
     [TestCase(100, 2, 2, 2, 1, 1, 1, 4, 2, 2, 0)]
-    public async Task Generate_Agent_Dividend(decimal winLossAmount,
+    public async Task Generate_Agent_Dividend_For_One_Percentage_Type(decimal winLossAmount,
         decimal contractValidBetAmount,
         decimal contractDepositAmount,
         int contractBetDays,
@@ -35,10 +187,6 @@ public class OnePercentageDistributionTests
     {
         var fakeContractRepository = Substitute.For<IContractRepository>();
         var fakeRepository = Substitute.For<IRepository>();
-
-        var sut = new OnePercentageDistribution(
-            fakeContractRepository,
-            fakeRepository);
 
         var brandId = Guid.NewGuid();
         var agentId = Guid.NewGuid();
@@ -60,7 +208,7 @@ public class OnePercentageDistributionTests
                 contractBetDays)
             .Create<AgentDividendContractModel>();
 
-        var brand = CreateBrandFixture(brandId, from, to, 0, AgentDividendType.OneLayer).Create<BrandModel>();
+        var brand = CreateBrandFixture(brandId, from, to, 0, AgentDividendType.OnePercentage).Create<BrandModel>();
 
         var agents = new[]
         {
@@ -124,9 +272,11 @@ public class OnePercentageDistributionTests
 
         var conditions = new[]
         {
-            CreateAgentContractConditionFixture(1, contract.Id, 2, 10, 10, 10)
+            CreateAgentContractConditionFixture(1, contract.Id, 2, 10, 0, 5)
                 .Create<AgentDividendContractPercentageModel>(),
-            CreateAgentContractConditionFixture(2, contract.Id, 2, 11, 11, 12)
+            CreateAgentContractConditionFixture(2, contract.Id, 2, 100, 0, 10)
+                .Create<AgentDividendContractPercentageModel>(),
+            CreateAgentContractConditionFixture(3, contract.Id, 2, 110, 0, 12)
                 .Create<AgentDividendContractPercentageModel>()
         };
 
@@ -161,12 +311,21 @@ public class OnePercentageDistributionTests
         fakeContractRepository.GetAgentDividendContractConditionsAsync(contract.Id, Arg.Any<CancellationToken>())
             .Returns(conditions.ToAsyncEnumerable());
 
-        var response = await sut.AgentDividendGenerationAsync(11, brand, contract, default).ToArrayAsync();
+        var multipleLayers = new List<AgentDividendMultipleLayerModel>();
+        foreach (var agentPlayerAggregateModel in agentPlayerAggregates)
+        {
+            var sut = new OnePercentageDistribution(
+                fakeContractRepository,
+                fakeRepository);
 
-        Assert.That(response, Has.Length.EqualTo(1));
-        Assert.That(response.First().Item2, Has.Length.EqualTo(4));
+            multipleLayers.AddRange(await sut
+                .GenerateMultipleLayerAsync(brand, contract, agentPlayerAggregateModel, default)
+                .ToArrayAsync());
+        }
 
-        Assert.That(response.First().Item2.Sum(x => x.Dividend), Is.EqualTo(totalDividend));
+        Assert.That(multipleLayers, Has.Count.EqualTo(4));
+
+        Assert.That(multipleLayers.Sum(x => x.Dividend), Is.EqualTo(totalDividend));
     }
 
     [TestCase(100, 0, 0, 0, 20, 1, 1, 6, 2, 2, 0)]
@@ -186,10 +345,6 @@ public class OnePercentageDistributionTests
     {
         var fakeContractRepository = Substitute.For<IContractRepository>();
         var fakeRepository = Substitute.For<IRepository>();
-
-        var sut = new OnePercentageDistribution(
-            fakeContractRepository,
-            fakeRepository);
 
         var brandId = Guid.NewGuid();
         var agentId = Guid.NewGuid();
@@ -211,7 +366,7 @@ public class OnePercentageDistributionTests
                 contractBetDays)
             .Create<AgentDividendContractModel>();
 
-        var brand = CreateBrandFixture(brandId, from, to, 0, AgentDividendType.OneLayer).Create<BrandModel>();
+        var brand = CreateBrandFixture(brandId, from, to, 0, AgentDividendType.OnePercentage).Create<BrandModel>();
 
         var agents = new[]
         {
@@ -308,12 +463,21 @@ public class OnePercentageDistributionTests
         fakeContractRepository.GetAgentDividendContractConditionsAsync(contract.Id, Arg.Any<CancellationToken>())
             .Returns(conditions.ToAsyncEnumerable());
 
-        var response = await sut.AgentDividendGenerationAsync(11, brand, contract, default).ToArrayAsync();
+        var multipleLayers = new List<AgentDividendMultipleLayerModel>();
+        foreach (var agentPlayerAggregateModel in agentPlayerAggregates)
+        {
+            var sut = new OnePercentageDistribution(
+                fakeContractRepository,
+                fakeRepository);
 
-        Assert.That(response, Has.Length.EqualTo(1));
-        Assert.That(response.First().Item2, Has.Length.EqualTo(4));
+            multipleLayers.AddRange(await sut
+                .GenerateMultipleLayerAsync(brand, contract, agentPlayerAggregateModel, default)
+                .ToArrayAsync());
+        }
 
-        Assert.That(response.First().Item2.Sum(x => x.Dividend), Is.EqualTo(totalDividend));
+        Assert.That(multipleLayers, Has.Count.EqualTo(0));
+
+        Assert.That(multipleLayers.Sum(x => x.Dividend), Is.EqualTo(totalDividend));
     }
 
     private static Fixture CreateContractFixture(Guid brandId,
@@ -370,7 +534,10 @@ public class OnePercentageDistributionTests
         Guid agentId,
         DateTime from,
         DateTime to,
-        decimal winLoss)
+        decimal winLoss,
+        decimal? bonusAmount = 0,
+        decimal? bonusAdjustAmount = 0,
+        decimal? noIncludeNetProfitBonusAdjustAmount = 0)
     {
         var fixture = new Fixture();
         fixture.Customize<AgentPlayerAggregateModel>(u => u
@@ -379,9 +546,9 @@ public class OnePercentageDistributionTests
             .With(s => s.From, from)
             .With(s => s.To, to)
             .With(s => s.WinLossAmount, winLoss)
-            .With(s => s.BonusAmount, 0)
-            .With(s => s.BonusAdjustAmount, 0)
-            .With(s => s.NoIncludeNetProfitBonusAdjustAmount, 0));
+            .With(s => s.BonusAmount, bonusAmount)
+            .With(s => s.BonusAdjustAmount, bonusAdjustAmount)
+            .With(s => s.NoIncludeNetProfitBonusAdjustAmount, noIncludeNetProfitBonusAdjustAmount));
         fixture.Behaviors.Add(new OmitOnRecursionBehavior());
         return fixture;
     }
@@ -458,14 +625,14 @@ public class OnePercentageDistributionTests
     private static Fixture CreateAgentContractConditionFixture(int rank,
         Guid agentDividendContractId,
         int validNumber,
-        decimal validBetAmount,
+        decimal winLossAmount,
         decimal netProfit,
         decimal percentage)
     {
         var fixture = new Fixture();
         fixture.Customize<AgentDividendContractPercentageModel>(u => u
             .With(s => s.Rank, rank)
-            .With(s => s.WinLossAmount, validBetAmount)
+            .With(s => s.WinLossAmount, winLossAmount)
             .With(s => s.ValidNumber, validNumber)
             .With(s => s.NetProfit, netProfit)
             .With(s => s.Percentage, percentage)

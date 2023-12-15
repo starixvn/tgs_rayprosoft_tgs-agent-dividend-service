@@ -22,21 +22,13 @@ internal class AgentDividendHandler(IRepository repository,
 
         var brand = await repository.GetBrandAsync(request.BrandId, cancellationToken).ConfigureAwait(false);
 
-        var from = brand.CurrentSettlementFrom;
-
-        var to = brand.CurrentSettlementTo;
-
         var maxId = await repository.GetMaxAgentDividendIdAsync(cancellationToken).ConfigureAwait(false);
 
-        var agents = await repository.GetAgentsCacheAsyncEnumerable(request.BrandId, cancellationToken)
-            .ToArrayAsync(cancellationToken);
+        var agents = repository.GetAgentsCacheAsyncEnumerable(request.BrandId, cancellationToken);
 
-        var allLayers =
-            new List<(AgentPlayerAggregateModel agentData, AgentDividendMultipleLayerModel[] multipleLayer)>();
+        var currentNumber = maxId;
 
-        var i = 1;
-
-        foreach (var x in agents)
+        var agentPlayerAggregates = agents.SelectManyAwait(async (x, i) =>
         {
             var agentContract = contracts.FirstOrDefault(a =>
                 a.AgentId == x.Id && a.ContractStatus == (short)ContractStatus.Enabled);
@@ -45,65 +37,89 @@ internal class AgentDividendHandler(IRepository repository,
                 serviceProvider.GetRequiredKeyedService<IDistribution>(
                     ((ContractDividendType)agentContract.ContractDividendType).ToString());
 
-            var dividends = await distributionService.AgentDividendGenerationAsync(maxId + i,
+            var data = distributionService.GetAgentPlayerAggregateAsync(currentNumber + i,
                     brand,
                     agentContract,
-                    cancellationToken)
-                .ToArrayAsync(cancellationToken);
+                    cancellationToken);
 
-            i = dividends.Length + i;
+            currentNumber += await data.CountAsync(cancellationToken);
 
-            allLayers.AddRange(
-                dividends.Select(dividend => (dividend.agentPlayerAggregate, dividend.multipleLayer)));
-        }
+            return data;
+        });
 
-        var all = allLayers.SelectMany(x => x.multipleLayer);
-
-        var agentDividends = allLayers.Select(x =>
+        var multipleLayers = agentPlayerAggregates.SelectMany(x =>
         {
             var agentContract = contracts.FirstOrDefault(a =>
-                a.AgentId == x.agentData.AgentId && a.ContractStatus == (short)ContractStatus.Enabled);
+                a.AgentId == x.AgentId && a.ContractStatus == (short)ContractStatus.Enabled);
 
             var distributionService =
                 serviceProvider.GetRequiredKeyedService<IDistribution>(
                     ((ContractDividendType)agentContract.ContractDividendType).ToString());
 
-            var parentAgentDividends = distributionService.GetMultipleLayer(x.agentData, all, cancellationToken);
+            return distributionService.GenerateMultipleLayerAsync(
+                    brand,
+                    agentContract,
+                    x,
+                    cancellationToken);
+        });
 
-            x.agentData.AgentDividendAmount =
-                distributionService.GetAgentDividendAmount(x.agentData, x.multipleLayer, cancellationToken);
+        var additional = multipleLayers.SelectMany(x =>
+        {
+            var agentContract = contracts.FirstOrDefault(a =>
+                a.AgentId == x.DividendProviderAgentId && a.ContractStatus == (short)ContractStatus.Enabled);
+
+            var distributionService =
+                serviceProvider.GetRequiredKeyedService<IDistribution>(
+                    ((ContractDividendType)agentContract.ContractDividendType).ToString());
+
+            return distributionService.GenerateAdditionalAgentPlayerAsync(currentNumber, brand, x, agentPlayerAggregates, cancellationToken);
+        });
+
+        var agentDividends = agentPlayerAggregates.Concat(additional).SelectAwait(async x =>
+        {
+            var agentContract = contracts.FirstOrDefault(a =>
+                a.AgentId == x.AgentId && a.ContractStatus == (short)ContractStatus.Enabled);
+
+            var distributionService =
+                serviceProvider.GetRequiredKeyedService<IDistribution>(
+                    ((ContractDividendType)agentContract.ContractDividendType).ToString());
+
+            var parentAgentDividends = distributionService.GetMultipleLayer(x, await multipleLayers.ToArrayAsync(cancellationToken), cancellationToken);
+
+            x.AgentDividendAmount =
+                distributionService.GetAgentDividendAmount(x, await multipleLayers.Where(m => m.DividendProviderId == x.Id).ToArrayAsync(cancellationToken), cancellationToken);
 
             return new CreateAgentDividendModel
             {
-                Id = x.agentData.Id,
-                BrandId = x.agentData.BrandId,
-                AgentId = x.agentData.AgentId,
-                From = x.agentData.From.UtcDateTime,
-                To = x.agentData.To.UtcDateTime,
-                AgentDividendPercentage = x.agentData.AgentDividendPercentage,
-                PromotionAmount = x.agentData.PromotionAmount,
-                RebateAmount = x.agentData.RebateAmount,
-                DepositAmount = x.agentData.DepositAmount,
-                WithdrawalAmount = x.agentData.WithdrawalAmount,
-                CompanyAdjustAmount = x.agentData.CompanyAdjustAmount,
-                AgentAdjustAmount = x.agentData.AgentAdjustAmount,
-                BonusAdjustAmount = x.agentData.BonusAdjustAmount,
-                BonusAmount = x.agentData.BonusAmount,
-                BetAmount = x.agentData.BetAmount,
-                ValidBetAmount = x.agentData.ValidBetAmount,
-                OriginalTurnover = x.agentData.OriginalTurnover,
-                Turnover = x.agentData.Turnover,
-                WinLossAmount = x.agentData.WinLossAmount,
-                NoIncludeNetProfitCompanyAdjustAmount = x.agentData.NoIncludeNetProfitCompanyAdjustAmount,
-                NoIncludeNetProfitAgentAdjustAmount = x.agentData.NoIncludeNetProfitAgentAdjustAmount,
-                NoIncludeNetProfitBonusAdjustAmount = x.agentData.NoIncludeNetProfitBonusAdjustAmount,
-                NetProfit = x.agentData.NetProfit(brand.PlatformCharge),
-                AgentDividendAmount = x.agentData.AgentDividendAmount,
+                Id = x.Id,
+                BrandId = x.BrandId,
+                AgentId = x.AgentId,
+                From = x.From.UtcDateTime,
+                To = x.To.UtcDateTime,
+                AgentDividendPercentage = x.AgentDividendPercentage,
+                PromotionAmount = x.PromotionAmount,
+                RebateAmount = x.RebateAmount,
+                DepositAmount = x.DepositAmount,
+                WithdrawalAmount = x.WithdrawalAmount,
+                CompanyAdjustAmount = x.CompanyAdjustAmount,
+                AgentAdjustAmount = x.AgentAdjustAmount,
+                BonusAdjustAmount = x.BonusAdjustAmount,
+                BonusAmount = x.BonusAmount,
+                BetAmount = x.BetAmount,
+                ValidBetAmount = x.ValidBetAmount,
+                OriginalTurnover = x.OriginalTurnover,
+                Turnover = x.Turnover,
+                WinLossAmount = x.WinLossAmount,
+                NoIncludeNetProfitCompanyAdjustAmount = x.NoIncludeNetProfitCompanyAdjustAmount,
+                NoIncludeNetProfitAgentAdjustAmount = x.NoIncludeNetProfitAgentAdjustAmount,
+                NoIncludeNetProfitBonusAdjustAmount = x.NoIncludeNetProfitBonusAdjustAmount,
+                NetProfit = x.NetProfit(brand.PlatformCharge),
+                AgentDividendAmount = x.AgentDividendAmount,
                 AgentDividendMultipleLayerModels = parentAgentDividends.Select(s
                         => new AgentDividendMultipleLayerModel
                         {
                             AgentId = s.AgentId,
-                            AgentDividendId = x.agentData.Id,
+                            AgentDividendId = x.Id,
                             AgentDividendPercentage = s.AgentDividendPercentage,
                             ActualDividendPercentage = s.ActualDividendPercentage,
                             AgentCoveredBonus = s.AgentCoveredBonus,
@@ -117,30 +133,7 @@ internal class AgentDividendHandler(IRepository repository,
             };
         });
 
-        var agentPlayerGameAggregates =
-            repository.GetAgentPlayerGameAggregatesCacheAsync(brand.Id,
-                from,
-                to);
-
-        foreach (var agentDividend in agentDividends)
-        {
-            var gameAggregates =
-                await agentPlayerGameAggregates.FirstOrDefaultAsync(x => x.AgentId == agentDividend.AgentId,
-                    cancellationToken);
-
-            agentDividend.LiveDealerWinLoss = gameAggregates?.LiveDealerWinLoss ?? 0M;
-            agentDividend.SlotWinLoss = gameAggregates?.SlotWinLoss ?? 0M;
-            agentDividend.FishingWinLoss = gameAggregates?.FishingWinLoss ?? 0M;
-            agentDividend.ArcadeWinLoss = gameAggregates?.ArcadeWinLoss ?? 0M;
-            agentDividend.TableGameWinLoss = gameAggregates?.TableGameWinLoss ?? 0M;
-            agentDividend.LotteryWinLoss = gameAggregates?.LotteryWinLoss ?? 0M;
-            agentDividend.CardGameWinLoss = gameAggregates?.CardGameWinLoss ?? 0M;
-            agentDividend.SportsWinLoss = gameAggregates?.SportsWinLoss ?? 0M;
-            agentDividend.ESportsWinLoss = gameAggregates?.ESportsWinLoss ?? 0M;
-            agentDividend.VirtualSportsWinLoss = gameAggregates?.VirtualSportsWinLoss ?? 0M;
-        }
-
-        var sendDividend = await mediator.Send(new GetNoSendDividendRequest(agentDividends), cancellationToken);
+        var sendDividend = await mediator.Send(new GetNoSendDividendRequest(agentDividends.ToEnumerable()), cancellationToken);
 
         var (nextFrom, nextTo) = GetInterval(
             (SettlementIntervalType)brand.SettlementIntervalType,
@@ -159,13 +152,17 @@ internal class AgentDividendHandler(IRepository repository,
             sendDividend.NegativeDividendsIds,
             cancellationToken);
 
-        foreach (var x in agentDividends)
+        foreach (var createAgentDividendModel in sendDividend.Model.Where(x => x.AutoSend))
+        {
             await mediator.Publish(new SendAgentDividendEvent(brand.Id,
-                    x.AgentId,
-                    x.WalletId,
-                    x.AgentDividendAmount,
-                    x.Id),
+                    createAgentDividendModel.AgentId,
+                    createAgentDividendModel.WalletId,
+                    createAgentDividendModel.AgentDividendAmount,
+                    createAgentDividendModel.Id),
                 cancellationToken);
+        }
+
+        repository.RemoveAllMemoryCacheAsync(cancellationToken);
     }
 
     private static (DateTimeOffset, DateTimeOffset) GetInterval(SettlementIntervalType type,

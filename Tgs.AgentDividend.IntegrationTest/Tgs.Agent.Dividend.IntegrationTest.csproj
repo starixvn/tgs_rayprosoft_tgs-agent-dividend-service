@@ -25,6 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Tgs.Agent.Dividend.Client\Tgs.Agent.Dividend.Client.csproj" />
     <ProjectReference Include="..\Tgs.Agent.Dividend.Service\Tgs.Agent.Dividend.Service.csproj">
       <Aliases>AgentDividend</Aliases>
     </ProjectReference>

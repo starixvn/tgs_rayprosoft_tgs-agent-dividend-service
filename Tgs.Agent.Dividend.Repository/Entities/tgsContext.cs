@@ -15,6 +15,9 @@ public partial class tgsContext : DbContext
     {
     }
 
+    public tgsContext()
+    {
+    }
     public virtual DbSet<Agent> Agents { get; set; }
 
     public virtual DbSet<AgentDividend> AgentDividends { get; set; }
@@ -24,6 +27,8 @@ public partial class tgsContext : DbContext
     public virtual DbSet<AgentDividendContract> AgentDividendContracts { get; set; }
 
     public virtual DbSet<AgentDividendMultipleLayer> AgentDividendMultipleLayers { get; set; }
+
+    public virtual DbSet<AgentDividendRecord> AgentDividendRecords { get; set; }
 
     public virtual DbSet<Brand> Brands { get; set; }
 
@@ -47,6 +52,7 @@ public partial class tgsContext : DbContext
         modelBuilder.ApplyConfiguration(new Configurations.AgentDividendConditionConfiguration());
         modelBuilder.ApplyConfiguration(new Configurations.AgentDividendContractConfiguration());
         modelBuilder.ApplyConfiguration(new Configurations.AgentDividendMultipleLayerConfiguration());
+        modelBuilder.ApplyConfiguration(new Configurations.AgentDividendRecordConfiguration());
         modelBuilder.ApplyConfiguration(new Configurations.BrandConfiguration());
         modelBuilder.ApplyConfiguration(new Configurations.PlayerConfiguration());
         modelBuilder.ApplyConfiguration(new Configurations.PlayerAggregateConfiguration());

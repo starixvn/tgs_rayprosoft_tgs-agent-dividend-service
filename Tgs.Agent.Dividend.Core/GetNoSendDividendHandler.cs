@@ -14,13 +14,11 @@ internal class GetNoSendDividendHandler
 
         var noSendDividendIds = new Dictionary<int, int>();
 
-        foreach (var dividend in request.Model)
+        foreach (var dividend in request.AgentDividends)
         {
-            var noSendDividends = await repository.GetNegativeAgentDividendsAsync(dividend.AgentId)
+            var agentNoSendDividends = await repository.GetNegativeAgentDividendsAsync(dividend.AgentId)
                 .ToArrayAsync(cancellationToken)
                 .ConfigureAwait(false);
-
-            var agentNoSendDividends = noSendDividends.Where(x => x.AgentId == dividend.AgentId).ToArray();
 
             var haveDeductedNegativeDividend =
                 deductedNegativeDividends.TryGetValue(dividend.AgentId, out var deductedNegativeDividend);
@@ -31,7 +29,7 @@ internal class GetNoSendDividendHandler
 
             if (agentNoSendDividend < 0)
             {
-                var agentDividendAmount = request.Model.Where(x => x.AgentId == dividend.AgentId)
+                var agentDividendAmount = request.AgentDividends.Where(x => x.AgentId == dividend.AgentId)
                     .Sum(x => x.AgentDividendAmount);
 
                 if (agentDividendAmount + agentNoSendDividend > 0M)
@@ -46,7 +44,12 @@ internal class GetNoSendDividendHandler
                         dividend.AgentDividendAmount += agentNoSendDividend;
 
                     foreach (var negativeDividend in agentNoSendDividends)
-                        noSendDividendIds.Add(negativeDividend.Id, dividend.Id);
+                    {
+                        if (!noSendDividendIds.ContainsKey(negativeDividend.Id))
+                        {
+                            noSendDividendIds.Add(negativeDividend.Id, dividend.Id);
+                        }
+                    }
                 }
                 else
                 {
@@ -55,6 +58,6 @@ internal class GetNoSendDividendHandler
             }
         }
 
-        return new NoSendDividendResponse { Model = request.Model, NegativeDividendsIds = noSendDividendIds };
+        return new NoSendDividendResponse { Model = request.AgentDividends, NegativeDividendsIds = noSendDividendIds };
     }
 }

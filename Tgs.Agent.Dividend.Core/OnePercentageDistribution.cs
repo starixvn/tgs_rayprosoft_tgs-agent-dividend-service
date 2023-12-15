@@ -9,12 +9,10 @@ namespace Tgs.Agent.Dividend.Core;
 internal class OnePercentageDistribution
     (IContractRepository contractRepository, IRepository repository) : IDistribution
 {
-    public async
-        IAsyncEnumerable<(AgentPlayerAggregateModel agentPlayerAggregate, AgentDividendMultipleLayerModel[]
-            multipleLayer)> AgentDividendGenerationAsync(int idNumber,
-            BrandModel brand,
-            AgentDividendContractModel contract,
-            [EnumeratorCancellation] CancellationToken cancellationToken)
+    public async IAsyncEnumerable<AgentPlayerAggregateModel> GetAgentPlayerAggregateAsync(int idNumber,
+        BrandModel brand,
+        AgentDividendContractModel contract,
+        [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         var agentAggregate = await repository
             .GetAgentPlayerAggregatesForMultipleLayerCacheAsync(brand.Id,
@@ -43,12 +41,20 @@ internal class OnePercentageDistribution
         agentAggregate.ESportsWinLoss = agentPlayerGameAggregate?.ESportsWinLoss ?? 0M;
         agentAggregate.VirtualSportsWinLoss = agentPlayerGameAggregate?.VirtualSportsWinLoss ?? 0M;
 
-        agentAggregate.Id = idNumber;
+        agentAggregate.Id = idNumber + 1;
 
+        yield return agentAggregate;
+    }
+
+    public async IAsyncEnumerable<AgentDividendMultipleLayerModel> GenerateMultipleLayerAsync(BrandModel brand,
+        AgentDividendContractModel contract,
+        AgentPlayerAggregateModel agentPlayerAggregate,
+        [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
         var agent = await repository.GetAgentsCacheAsyncEnumerable(brand.Id, cancellationToken)
             .FirstAsync(x => x.Id == contract.AgentId, cancellationToken);
 
-        var agentLineIds = await repository.GetAgentsByPathCacheAsyncEnumerable(brand.Id, agent.Path, cancellationToken)
+        var agents = await repository.GetAgentsByPathCacheAsyncEnumerable(brand.Id, agent.Path, cancellationToken)
             .ToArrayAsync(cancellationToken);
 
         var from = new DateTimeOffset(brand.CurrentSettlementFrom.Year,
@@ -103,19 +109,32 @@ internal class OnePercentageDistribution
         var validPlayerCount = GetValidPlayerCount(playerCodes, deposits, validBets, betDays, contract);
 
         var agentDividends = GetAgentDividendsByMultipleLayer(
-            agentAggregate.Id,
+            agentPlayerAggregate.Id,
             contract.Id,
             agent,
             brand.CheckDividendActiveCount,
-            agentLineIds,
+            agents,
             new AgentConditionModel
             {
-                ValidNumber = validPlayerCount, ValidBetAmount = validBets.Sum(s => s.ValidBetAmount),
-                NetProfit = agentAggregate.NetProfit(brand.PlatformCharge)
+                ValidNumber = validPlayerCount,
+                WinLossAmount = agentPlayerAggregate.WinLossAmount,
+                NetProfit = agentPlayerAggregate.NetProfit(brand.PlatformCharge)
             },
             conditions);
 
-        yield return (agentAggregate, agentDividends.ToArray());
+        foreach (var agentDividendMultipleLayerModel in agentDividends)
+        {
+            yield return agentDividendMultipleLayerModel;
+        }
+    }
+
+    public IAsyncEnumerable<AgentPlayerAggregateModel> GenerateAdditionalAgentPlayerAsync(int idNumber,
+        BrandModel brand,
+        AgentDividendMultipleLayerModel multipleLayer,
+        IAsyncEnumerable<AgentPlayerAggregateModel> contract,
+        CancellationToken cancellationToken)
+    {
+        return AsyncEnumerable.Empty<AgentPlayerAggregateModel>();
     }
 
     public decimal GetAgentDividendAmount(AgentPlayerAggregateModel agentPlayerAggregate,
@@ -176,7 +195,7 @@ internal class OnePercentageDistribution
 
                 var pathList = path.Split(".");
 
-                var layer = pathList.Aggregate((result, x) => $"{result},{x}");
+                var layer = pathList.Aggregate((result, x) => $"{result},{Guid.Parse(x)}");
 
                 return new AgentDividendMultipleLayerModel
                 {
@@ -197,7 +216,7 @@ internal class OnePercentageDistribution
 
             var pathList = path.Split(".");
 
-            var layer = pathList.Aggregate((result, x) => $"{result},{x}");
+            var layer = pathList.Aggregate((result, x) => $"{result},{Guid.Parse(x)}");
 
             if (agent.Id == lineAgent.Id)
                 return new AgentDividendMultipleLayerModel
@@ -246,11 +265,10 @@ internal class OnePercentageDistribution
     {
         var condition = agentDividendCondition.OrderByDescending(x => x.Rank)
             .Where(!checkDividendActiveCount,
-                x => currentCondition.NetProfit >= x.NetProfit && currentCondition.ValidBetAmount >= x.WinLossAmount)
+                x => Math.Abs(currentCondition.WinLossAmount) >= x.WinLossAmount)
             .Where(checkDividendActiveCount,
                 x => currentCondition.ValidNumber >= x.ValidNumber &&
-                     currentCondition.NetProfit >= x.NetProfit &&
-                     currentCondition.ValidBetAmount >= x.WinLossAmount)
+                     Math.Abs(currentCondition.WinLossAmount) >= x.WinLossAmount)
             .FirstOrDefault();
 
         return (condition != null, condition?.Percentage ?? 0M);

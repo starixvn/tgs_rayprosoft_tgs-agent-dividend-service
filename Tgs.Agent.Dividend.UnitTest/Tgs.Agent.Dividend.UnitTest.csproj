@@ -10,7 +10,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AutoFixture" Version="5.0.0-preview0006" />
+    <PackageReference Include="JunitXml.TestLogger" Version="3.0.124" />
+    <PackageReference Include="AutoFixture" Version="4.18.1" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
     <PackageReference Include="NSubstitute" Version="5.1.0" />
     <PackageReference Include="NUnit" Version="4.0.1" />
@@ -24,6 +25,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Tgs.Agent.Dividend.Core\Tgs.Agent.Dividend.Core.csproj" />
+    <ProjectReference Include="..\Tgs.Agent.Dividend.Repository\Tgs.Agent.Dividend.Repository.csproj" />
   </ItemGroup>
 
 </Project>

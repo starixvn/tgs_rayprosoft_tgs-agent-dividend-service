@@ -42,10 +42,10 @@ public class AgentDividendBackground(IAgentDividendTaskQueue taskQueue,
             try
             {
                 using var scope = serviceProvider.CreateScope();
-
                 var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
 
                 await mediator.Send(new AgentDividendRequest(model.BrandId), stoppingToken);
+
                 //await workItem(stoppingToken);
             }
             catch (Exception ex)
