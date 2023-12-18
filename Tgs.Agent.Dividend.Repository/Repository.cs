@@ -53,7 +53,7 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache) : IRepos
         return context.Brands
             .Where(x => brandId == null || x.Id == brandId)
             .Where(x => x.Status != (short)BrandStatus.Archived)
-            .Where(x => DateTime.UtcNow > x.CurrentSettlementTo.AddDays(1))
+            .Where(x => DateTime.UtcNow.AddDays(-1) > x.CurrentSettlementTo)
             .Select(x => x.Id)
             .ToAsyncEnumerable();
     }

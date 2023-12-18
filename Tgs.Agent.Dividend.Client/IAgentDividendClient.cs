@@ -3,4 +3,6 @@
 public interface IAgentDividendClient
 {
     Task GenerateAgentDividend();
+    Task GenerateAgentDividend(Guid brandId);
+
 }

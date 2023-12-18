@@ -12,4 +12,13 @@ internal class AgentDividendClient(HttpClient client) : IAgentDividendClient
 
         _ = response.EnsureSuccessStatusCode();
     }
+
+    public async Task GenerateAgentDividend(Guid brandId)
+    {
+        var response = await client
+            .PostAsync($"/api/agentDividend/{brandId}", new StringContent("", Encoding.UTF8, "application/json"))
+            .ConfigureAwait(false);
+
+        _ = response.EnsureSuccessStatusCode();
+    }
 }
