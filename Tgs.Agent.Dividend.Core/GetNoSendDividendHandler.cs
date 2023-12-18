@@ -4,8 +4,8 @@ using Tgs.Agent.Dividend.Domain.Models;
 
 namespace Tgs.Agent.Dividend.Core;
 
-internal class GetNoSendDividendHandler
-    (IRepository repository) : IRequestHandler<GetNoSendDividendRequest, NoSendDividendResponse>
+internal class GetNoSendDividendHandler(IRepository repository)
+    : IRequestHandler<GetNoSendDividendRequest, NoSendDividendResponse>
 {
     public async Task<NoSendDividendResponse> Handle(GetNoSendDividendRequest request,
         CancellationToken cancellationToken)
@@ -44,12 +44,8 @@ internal class GetNoSendDividendHandler
                         dividend.AgentDividendAmount += agentNoSendDividend;
 
                     foreach (var negativeDividend in agentNoSendDividends)
-                    {
                         if (!noSendDividendIds.ContainsKey(negativeDividend.Id))
-                        {
                             noSendDividendIds.Add(negativeDividend.Id, dividend.Id);
-                        }
-                    }
                 }
                 else
                 {

@@ -6,9 +6,10 @@ using Tgs.Agent.Dividend.Domain.Models;
 
 namespace Tgs.Agent.Dividend.Core.Workers;
 
-public class AgentDividendBackground(IAgentDividendTaskQueue taskQueue,
-        ILogger<AgentDividendBackground> logger,
-        IServiceProvider serviceProvider)
+public class AgentDividendBackground(
+    IAgentDividendTaskQueue taskQueue,
+    ILogger<AgentDividendBackground> logger,
+    IServiceProvider serviceProvider)
     : BackgroundService
 {
     public IAgentDividendTaskQueue TaskQueue = taskQueue;
@@ -42,11 +43,10 @@ public class AgentDividendBackground(IAgentDividendTaskQueue taskQueue,
             try
             {
                 using var scope = serviceProvider.CreateScope();
+
                 var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
 
                 await mediator.Send(new AgentDividendRequest(model.BrandId), stoppingToken);
-
-                //await workItem(stoppingToken);
             }
             catch (Exception ex)
             {

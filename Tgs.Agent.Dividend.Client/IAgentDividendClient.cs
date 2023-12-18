@@ -1,7 +1,8 @@
-﻿namespace Tgs.Agent.Dividend.Client
+﻿namespace Tgs.Agent.Dividend.Client;
+
+public interface IAgentDividendClient
 {
-    public interface IAgentDividendClient
-    {
-        Task GenerateAgentDividend();
-    }
+    Task GenerateAgentDividend();
+    Task GenerateAgentDividend(Guid brandId);
+
 }

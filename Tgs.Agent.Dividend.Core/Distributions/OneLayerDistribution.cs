@@ -1,12 +1,11 @@
-﻿using System.Linq;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using System.Text.Json;
 using Tgs.Agent.Dividend.Domain;
 using Tgs.Agent.Dividend.Domain.Interfaces;
 using Tgs.Agent.Dividend.Domain.Interfaces.Repositories;
 using Tgs.Agent.Dividend.Domain.Models;
 
-namespace Tgs.Agent.Dividend.Core;
+namespace Tgs.Agent.Dividend.Core.Distributions;
 
 internal class OneLayerDistribution(IRepository repository) : IDistribution
 {
@@ -37,18 +36,21 @@ internal class OneLayerDistribution(IRepository repository) : IDistribution
         CancellationToken cancellationToken)
     {
         var agentDividendPercentage =
-            JsonSerializer.Deserialize<AgentDividendPercentageData[]>(agentPlayerAggregate.AgentDividendPercentageTreeData!);
+            JsonSerializer.Deserialize<AgentDividendPercentageData[]>(agentPlayerAggregate
+                .AgentDividendPercentageTreeData!);
 
-        var bonusAdjustAmount = agentPlayerAggregate.BonusAdjustAmount - agentPlayerAggregate.NoIncludeNetProfitBonusAdjustAmount;
+        var bonusAdjustAmount = agentPlayerAggregate.BonusAdjustAmount -
+                                agentPlayerAggregate.NoIncludeNetProfitBonusAdjustAmount;
 
         return GetAgentDividends(
-            agentPlayerAggregate.Id,
-            contract.Id,
-            agentDividendPercentage!,
-            agentPlayerAggregate.AgentId,
-            agentPlayerAggregate.BonusAmount,
-            bonusAdjustAmount,
-            agentPlayerAggregate.NetProfit(brand.PlatformCharge)).ToAsyncEnumerable();
+                agentPlayerAggregate.Id,
+                contract.Id,
+                agentDividendPercentage!,
+                agentPlayerAggregate.AgentId,
+                agentPlayerAggregate.BonusAmount,
+                bonusAdjustAmount,
+                agentPlayerAggregate.NetProfit(brand.PlatformCharge))
+            .ToAsyncEnumerable();
     }
 
     public async IAsyncEnumerable<AgentPlayerAggregateModel> GenerateAdditionalAgentPlayerAsync(int idNumber,
@@ -58,8 +60,8 @@ internal class OneLayerDistribution(IRepository repository) : IDistribution
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         var exists = await currentAllAgentPlayerAggregates.AnyAsync(a =>
-            a.AgentId == layer.AgentId && a.AgentDividendPercentage == layer.AgentDividendPercentage,
-            cancellationToken: cancellationToken);
+                a.AgentId == layer.AgentId && a.AgentDividendPercentage == layer.AgentDividendPercentage,
+            cancellationToken);
 
         if (exists) yield break;
 
@@ -139,7 +141,10 @@ internal class OneLayerDistribution(IRepository repository) : IDistribution
         } while (hasParentAgentId);
     }
 
-    private static AgentPlayerAggregateModel GetDefaultAggregate(int id, BrandModel brand, Guid agentId, decimal agentDividendPercentage)
+    private static AgentPlayerAggregateModel GetDefaultAggregate(int id,
+        BrandModel brand,
+        Guid agentId,
+        decimal agentDividendPercentage)
     {
         return new AgentPlayerAggregateModel
         {

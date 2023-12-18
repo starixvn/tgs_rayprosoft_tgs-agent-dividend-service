@@ -1,7 +1,7 @@
 using AutoFixture;
 using Microsoft.EntityFrameworkCore;
 using NSubstitute;
-using Tgs.Agent.Dividend.Core;
+using Tgs.Agent.Dividend.Core.Distributions;
 using Tgs.Agent.Dividend.Domain.Enums;
 using Tgs.Agent.Dividend.Domain.Interfaces.Repositories;
 using Tgs.Agent.Dividend.Domain.Models;
@@ -126,12 +126,12 @@ public class MultipleLayerDistributionTests
     [TestCase(100, 0, 0, 0, 1, 2, 10.0)]
     [TestCase(100, 2, 2, 2, 1, 2, 0)]
     public async Task Generate_Agent_Dividend2(decimal winLossAmount,
-    decimal contractValidBetAmount,
-    decimal contractDepositAmount,
-    int contractBetDays,
-    int player1BetDays,
-    int player2BetDays,
-    decimal dividend)
+        decimal contractValidBetAmount,
+        decimal contractDepositAmount,
+        int contractBetDays,
+        int player1BetDays,
+        int player2BetDays,
+        decimal dividend)
     {
         var fakeContractRepository = Substitute.For<IContractRepository>();
         var fakeRepository = Substitute.For<IRepository>();
@@ -197,7 +197,7 @@ public class MultipleLayerDistributionTests
 
         fakeRepository
             .GetAgentPlayerAggregatesForMultipleLayerCacheAsync(brandId, from, to, Arg.Any<CancellationToken>())
-            .Returns(new[]{ agentPlayerAggregate }.ToAsyncEnumerable());
+            .Returns(new[] { agentPlayerAggregate }.ToAsyncEnumerable());
 
         fakeRepository
             .GetAgentPlayerGameAggregatesCacheAsync(brandId, from, to)
@@ -209,7 +209,8 @@ public class MultipleLayerDistributionTests
         fakeContractRepository.GetAgentDividendContractConditionsAsync(contract.Id, Arg.Any<CancellationToken>())
             .Returns(conditions.ToAsyncEnumerable());
 
-        var response = await sut.GenerateMultipleLayerAsync(brand, contract, agentPlayerAggregate, default).ToArrayAsync();
+        var response = await sut.GenerateMultipleLayerAsync(brand, contract, agentPlayerAggregate, default)
+            .ToArrayAsync();
 
         Assert.That(response, Has.Length.EqualTo(1));
 

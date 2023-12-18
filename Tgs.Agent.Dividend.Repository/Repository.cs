@@ -9,14 +9,15 @@ using Tgs.Agent.Dividend.Repository.Entities;
 
 namespace Tgs.Agent.Dividend.Repository;
 
-internal class Repository(tgsContext context, IMemoryCache memoryCache, IEnumerable<string> cacheKeys) : IRepository
+internal class Repository(tgsContext context, IMemoryCache memoryCache) : IRepository
 {
+    private readonly HashSet<string> _cacheKeys = [];
     public async IAsyncEnumerable<AgentModel> GetAgentsCacheAsyncEnumerable(Guid brandId,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         var key = $"AgentCache{brandId}";
 
-        cacheKeys = cacheKeys.Append(key);
+        _cacheKeys.Add(key);
 
         var models = await memoryCache.GetOrCreateAsync(key,
             cacheEntry =>
@@ -34,12 +35,14 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IEnumera
                         DividendPercentage = x.DividendPercentage
                     })
                     .ToArrayAsync(cancellationToken);
-            });
+            }) ?? Array.Empty<AgentModel>();
 
         foreach (var model in models) yield return model;
     }
 
-    public IAsyncEnumerable<AgentModel> GetAgentsByPathCacheAsyncEnumerable(Guid brandId, LTree path, CancellationToken cancellationToken)
+    public IAsyncEnumerable<AgentModel> GetAgentsByPathCacheAsyncEnumerable(Guid brandId,
+        LTree path,
+        CancellationToken cancellationToken)
     {
         return GetAgentsCacheAsyncEnumerable(brandId, cancellationToken)
             .Where(x => path.IsDescendantOf(x.Path));
@@ -50,7 +53,7 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IEnumera
         return context.Brands
             .Where(x => brandId == null || x.Id == brandId)
             .Where(x => x.Status != (short)BrandStatus.Archived)
-            .Where(x => DateTime.UtcNow > x.CurrentSettlementTo.AddDays(1))
+            .Where(x => DateTime.UtcNow.AddDays(-1) > x.CurrentSettlementTo)
             .Select(x => x.Id)
             .ToAsyncEnumerable();
     }
@@ -62,7 +65,7 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IEnumera
     {
         var key = $"AgentPlayerAggregateCache{brandId}{from}{to}";
 
-        cacheKeys = cacheKeys.Append(key);
+        _cacheKeys.Add(key);
 
         var models = await memoryCache.GetOrCreateAsync(key,
             async cacheEntry =>
@@ -83,8 +86,8 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IEnumera
                         },
                         (agent, playerGames) => new
                         {
-                            ReportDate = agent.ReportDate,
-                            Hour = agent.Hour,
+                            agent.ReportDate,
+                            agent.Hour,
                             agent.AgentId,
                             agent.BrandId,
                             LiveDealerWinLoss =
@@ -129,7 +132,8 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IEnumera
                                     .Sum(l => l.WinLoss),
                             WinLoss = playerGames
                                 .Sum(l => l.WinLoss)
-                        }).ToArrayAsync(cancellationToken);
+                        })
+                    .ToArrayAsync(cancellationToken);
 
                 var playerAggregate = await context.PlayerAggregates
                     .Where(x => x.BrandId == brandId)
@@ -149,9 +153,9 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IEnumera
                         x.Key.ReportDate,
                         x.Key.Hour,
                         AgentId = x.Key.AgentId!.Value,
-                        BrandId = x.Key.BrandId,
+                        x.Key.BrandId,
                         AgentDividendPercentage = x.Key.AgentDividendPercentage ?? 0M,
-                        AgentDividendPercentageTreeData = x.Key.AgentDividendPercentageTreeData,
+                        x.Key.AgentDividendPercentageTreeData,
                         PromotionAmount = x.Sum(p => p.PromotionAmount),
                         RebateAmount = x.Sum(p => p.RebateAmount),
                         DepositAmount = x.Sum(p => p.DepositAmount),
@@ -291,9 +295,10 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IEnumera
                             CardGameWinLoss = list.Sum(x => x.CardGameWinLoss),
                             SportsWinLoss = list.Sum(x => x.SportsWinLoss),
                             ESportsWinLoss = list.Sum(x => x.ESportsWinLoss),
-                            VirtualSportsWinLoss = list.Sum(x => x.VirtualSportsWinLoss),
-                        }).ToArray();
-            });
+                            VirtualSportsWinLoss = list.Sum(x => x.VirtualSportsWinLoss)
+                        })
+                    .ToArray();
+            }) ?? Array.Empty<AgentPlayerAggregateModel>();
 
         foreach (var model in models) yield return model;
     }
@@ -306,7 +311,7 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IEnumera
     {
         var key = $"AgentPlayerAggregatesForMultipleLayerCache{brandId}{from}{to}";
 
-        cacheKeys = cacheKeys.Append(key);
+        _cacheKeys.Add(key);
 
         var models = await memoryCache.GetOrCreateAsync(key,
             cacheEntry =>
@@ -350,7 +355,7 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IEnumera
                             x.Sum(p => p.NoIncludeNetProfitBonusAdjustAmount)
                     })
                     .ToArrayAsync(cancellationToken);
-            });
+            }) ?? Array.Empty<AgentPlayerAggregateModel>();
 
         foreach (var model in models) yield return model;
     }
@@ -418,7 +423,7 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IEnumera
     {
         var key = $"AgentPlayerDepositCache{brandId}{from}{to}";
 
-        cacheKeys = cacheKeys.Append(key);
+        _cacheKeys.Add(key);
 
         var models = await memoryCache.GetOrCreateAsync(key,
             cacheEntry =>
@@ -443,7 +448,7 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IEnumera
                         DepositAmount = x.Sum(s => s.DailyDepositAmount ?? 0M)
                     })
                     .ToArrayAsync(cancellationToken);
-            });
+            }) ?? Array.Empty<AgentPlayerDepositModel>();
 
         foreach (var model in models) yield return model;
     }
@@ -455,7 +460,7 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IEnumera
     {
         var key = $"AgentPlayerValidBetCache{brandId}{from}{to}";
 
-        cacheKeys = cacheKeys.Append(key);
+        _cacheKeys.Add(key);
 
         var models = await memoryCache.GetOrCreateAsync(key,
             cacheEntry =>
@@ -475,7 +480,7 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IEnumera
                         ValidBetAmount = x.Sum(s => s.Turnover)
                     })
                     .ToArrayAsync(cancellationToken);
-            });
+            }) ?? Array.Empty<AgentPlayerValidBetModel>();
 
         foreach (var model in models) yield return model;
     }
@@ -487,7 +492,7 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IEnumera
     {
         var key = $"AgentPlayerBetCountCache{brandId}{from}{to}";
 
-        cacheKeys = cacheKeys.Append(key);
+        _cacheKeys.Add(key);
 
         var models = await memoryCache.GetOrCreateAsync(key,
             cacheEntry =>
@@ -508,7 +513,7 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IEnumera
                         DayCount = x.Select(s => s.ReportDate).Distinct().Count()
                     })
                     .ToArrayAsync(cancellationToken);
-            });
+            }) ?? Array.Empty<AgentPlayerBetDaysModel>();
 
         foreach (var model in models) yield return model;
     }
@@ -611,24 +616,22 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IEnumera
             .ToArrayAsync(cancellationToken);
 
         _ = await context.AgentDividendRecords.AddAsync(new AgentDividendRecord
-        {
-            BrandId = brandId,
-            AgentId = agentId,
-            AgentDividendId = agentDividendId,
-            NegativeDividendIds = negativeDividends.Select(x => x.Id.ToString()).ToList(),
-            AgentDividendAmount = agentDividendAmount,
-            CreatedOn = DateTime.UtcNow
-        }, cancellationToken);
+            {
+                BrandId = brandId,
+                AgentId = agentId,
+                AgentDividendId = agentDividendId,
+                NegativeDividendIds = negativeDividends.Select(x => x.Id.ToString()).ToList(),
+                AgentDividendAmount = agentDividendAmount,
+                CreatedOn = DateTime.UtcNow
+            },
+            cancellationToken);
 
         await context.SaveChangesAsync(cancellationToken);
     }
 
-    public void RemoveAllMemoryCacheAsync(CancellationToken cancellationToken)
+    public void RemoveAllMemoryCache(CancellationToken cancellationToken)
     {
-        foreach (var cacheKey in cacheKeys)
-        {
-            memoryCache.Remove(cacheKey);
-        }
+        foreach (var cacheKey in _cacheKeys) memoryCache.Remove(cacheKey);
     }
 
     private async ValueTask CreateAgentDividendsAsync(IEnumerable<CreateAgentDividendModel> models)

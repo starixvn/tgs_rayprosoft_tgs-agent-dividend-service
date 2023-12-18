@@ -2,7 +2,7 @@ using System.Text.Json;
 using AutoFixture;
 using Microsoft.EntityFrameworkCore;
 using NSubstitute;
-using Tgs.Agent.Dividend.Core;
+using Tgs.Agent.Dividend.Core.Distributions;
 using Tgs.Agent.Dividend.Domain.Enums;
 using Tgs.Agent.Dividend.Domain.Interfaces.Repositories;
 using Tgs.Agent.Dividend.Domain.Models;
@@ -16,9 +16,9 @@ public class OneLayerDistributionTests
     {
     }
 
-    [TestCase(100,77, 60, 33, 11, 77)]
-    [TestCase(100, 90, 60,33, 22, 90)]
-    [TestCase(100,90,80,70,60, 90)]
+    [TestCase(100, 77, 60, 33, 11, 77)]
+    [TestCase(100, 90, 60, 33, 22, 90)]
+    [TestCase(100, 90, 80, 70, 60, 90)]
     public async Task Generate_Agent_Dividend(
         decimal winLossAmount,
         decimal agentDividendPercentage,
@@ -87,7 +87,7 @@ public class OneLayerDistributionTests
             ParentAgentId = agentId2,
             DividendPercentage = agent3DividendPercentage
         });
-        
+
         var agent4Path = agent3Path.Append(new AgentDividendPercentageData
         {
             AgentId = agentId4,
@@ -95,7 +95,13 @@ public class OneLayerDistributionTests
             DividendPercentage = agent4DividendPercentage
         });
 
-        var agentPlayerAggregate = CreateAgentPlayerAggregateFixture(brandId, agentId4, from, to, winLossAmount, agent4DividendPercentage, JsonSerializer.Serialize(agent4Path))
+        var agentPlayerAggregate = CreateAgentPlayerAggregateFixture(brandId,
+                agentId4,
+                from,
+                to,
+                winLossAmount,
+                agent4DividendPercentage,
+                JsonSerializer.Serialize(agent4Path))
             .Create<AgentPlayerAggregateModel>();
 
         var agentPlayerGameAggregates = new[]
@@ -117,13 +123,14 @@ public class OneLayerDistributionTests
 
         fakeRepository
             .GetAgentPlayerAggregatesCacheAsync(brandId, from, to, Arg.Any<CancellationToken>())
-            .Returns(new[]{ agentPlayerAggregate }.ToAsyncEnumerable());
+            .Returns(new[] { agentPlayerAggregate }.ToAsyncEnumerable());
 
         fakeRepository
             .GetAgentPlayerGameAggregatesCacheAsync(brandId, from, to)
             .Returns(agentPlayerGameAggregates.ToAsyncEnumerable());
 
-        var response = await sut.GenerateMultipleLayerAsync(brand, contract, agentPlayerAggregate, default).ToArrayAsync();
+        var response = await sut.GenerateMultipleLayerAsync(brand, contract, agentPlayerAggregate, default)
+            .ToArrayAsync();
 
         Assert.Multiple(() =>
         {
@@ -139,18 +146,18 @@ public class OneLayerDistributionTests
 
     [TestCase(100, 77, 34, 60, 54, 33, 45, 11, 10, 21)]
     [TestCase(100, 90, 60, 60, 54, 33, 24, 22, 20, 42)]
-    [TestCase(100, 90, 20, 80, 20, 70, 25, 60,55, 115)]
+    [TestCase(100, 90, 20, 80, 20, 70, 25, 60, 55, 115)]
     public async Task Generate_Agent_Dividend_Difference_Percentage_With_Same_Interval(
-    decimal winLossAmount,
-    decimal agentDividendPercentage,
-    decimal agentDividendAmount,
-    decimal agent2DividendPercentage,
-    decimal agent2DividendAmount,
-    decimal agent3DividendPercentage,
-    decimal agent3DividendAmount,
-    decimal agent4FirstDividendPercentage,
-    decimal agent4SecondDividendPercentage,
-    decimal agent4DividendAmount)
+        decimal winLossAmount,
+        decimal agentDividendPercentage,
+        decimal agentDividendAmount,
+        decimal agent2DividendPercentage,
+        decimal agent2DividendAmount,
+        decimal agent3DividendPercentage,
+        decimal agent3DividendAmount,
+        decimal agent4FirstDividendPercentage,
+        decimal agent4SecondDividendPercentage,
+        decimal agent4DividendAmount)
     {
         var fakeRepository = Substitute.For<IRepository>();
 
@@ -226,9 +233,21 @@ public class OneLayerDistributionTests
 
         var agentPlayerAggregates = new[]
         {
-            CreateAgentPlayerAggregateFixture(brandId, agentId4, from, to, winLossAmount, agent4FirstDividendPercentage, JsonSerializer.Serialize(agent4FirstPath))
+            CreateAgentPlayerAggregateFixture(brandId,
+                    agentId4,
+                    from,
+                    to,
+                    winLossAmount,
+                    agent4FirstDividendPercentage,
+                    JsonSerializer.Serialize(agent4FirstPath))
                 .Create<AgentPlayerAggregateModel>(),
-            CreateAgentPlayerAggregateFixture(brandId, agentId4, from, to, winLossAmount, agent4SecondDividendPercentage, JsonSerializer.Serialize(agent4SecondPath))
+            CreateAgentPlayerAggregateFixture(brandId,
+                    agentId4,
+                    from,
+                    to,
+                    winLossAmount,
+                    agent4SecondDividendPercentage,
+                    JsonSerializer.Serialize(agent4SecondPath))
                 .Create<AgentPlayerAggregateModel>()
         };
 
@@ -275,10 +294,14 @@ public class OneLayerDistributionTests
             Assert.That(multipleLayers.Count(x => x.AgentId == agentId2), Is.EqualTo(2));
             Assert.That(multipleLayers.Count(x => x.AgentId == agentId3), Is.EqualTo(2));
             Assert.That(multipleLayers.Count(x => x.AgentId == agentId4), Is.EqualTo(2));
-            Assert.That(multipleLayers.Where(x => x.AgentId == agentId).Sum(x => x.Dividend), Is.EqualTo(agentDividendAmount));
-            Assert.That(multipleLayers.Where(x => x.AgentId == agentId2).Sum(x => x.Dividend), Is.EqualTo(agent2DividendAmount));
-            Assert.That(multipleLayers.Where(x => x.AgentId == agentId3).Sum(x => x.Dividend), Is.EqualTo(agent3DividendAmount));
-            Assert.That(multipleLayers.Where(x => x.AgentId == agentId4).Sum(x => x.Dividend), Is.EqualTo(agent4DividendAmount));
+            Assert.That(multipleLayers.Where(x => x.AgentId == agentId).Sum(x => x.Dividend),
+                Is.EqualTo(agentDividendAmount));
+            Assert.That(multipleLayers.Where(x => x.AgentId == agentId2).Sum(x => x.Dividend),
+                Is.EqualTo(agent2DividendAmount));
+            Assert.That(multipleLayers.Where(x => x.AgentId == agentId3).Sum(x => x.Dividend),
+                Is.EqualTo(agent3DividendAmount));
+            Assert.That(multipleLayers.Where(x => x.AgentId == agentId4).Sum(x => x.Dividend),
+                Is.EqualTo(agent4DividendAmount));
         });
     }
 

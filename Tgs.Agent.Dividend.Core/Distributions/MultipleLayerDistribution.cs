@@ -4,7 +4,7 @@ using Tgs.Agent.Dividend.Domain.Interfaces;
 using Tgs.Agent.Dividend.Domain.Interfaces.Repositories;
 using Tgs.Agent.Dividend.Domain.Models;
 
-namespace Tgs.Agent.Dividend.Core;
+namespace Tgs.Agent.Dividend.Core.Distributions;
 
 internal class MultipleLayerDistribution(IContractRepository contractRepository, IRepository repository)
     : IDistribution
@@ -131,6 +131,9 @@ internal class MultipleLayerDistribution(IContractRepository contractRepository,
             DividendProviderId = id,
             AgentDividendPercentage = agentDividendPercentage,
             ActualDividendPercentage = agentDividendPercentage,
+            AgentCoveredBonus = (agentCurrentCondition.BonusAmount * agentDividendPercentage / 100M).Truncate(2),
+            AgentCoveredBonusAdjust =
+                (agentCurrentCondition.BonusAdjustAmount * agentDividendPercentage / 100M).Truncate(2),
             Layer = layer,
             Dividend = (agentCurrentCondition.NetProfit * agentDividendPercentage / 100M).Truncate(2)
         };

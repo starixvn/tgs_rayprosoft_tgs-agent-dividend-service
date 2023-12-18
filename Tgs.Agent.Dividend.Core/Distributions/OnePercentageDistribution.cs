@@ -4,10 +4,9 @@ using Tgs.Agent.Dividend.Domain.Interfaces;
 using Tgs.Agent.Dividend.Domain.Interfaces.Repositories;
 using Tgs.Agent.Dividend.Domain.Models;
 
-namespace Tgs.Agent.Dividend.Core;
+namespace Tgs.Agent.Dividend.Core.Distributions;
 
-internal class OnePercentageDistribution
-    (IContractRepository contractRepository, IRepository repository) : IDistribution
+internal class OnePercentageDistribution(IContractRepository contractRepository, IRepository repository) : IDistribution
 {
     public async IAsyncEnumerable<AgentPlayerAggregateModel> GetAgentPlayerAggregateAsync(int idNumber,
         BrandModel brand,
@@ -117,15 +116,14 @@ internal class OnePercentageDistribution
             new AgentConditionModel
             {
                 ValidNumber = validPlayerCount,
+                BonusAmount = agentPlayerAggregate.BonusAmount,
+                BonusAdjustAmount = agentPlayerAggregate.BonusAdjustAmount,
                 WinLossAmount = agentPlayerAggregate.WinLossAmount,
                 NetProfit = agentPlayerAggregate.NetProfit(brand.PlatformCharge)
             },
             conditions);
 
-        foreach (var agentDividendMultipleLayerModel in agentDividends)
-        {
-            yield return agentDividendMultipleLayerModel;
-        }
+        foreach (var agentDividendMultipleLayerModel in agentDividends) yield return agentDividendMultipleLayerModel;
     }
 
     public IAsyncEnumerable<AgentPlayerAggregateModel> GenerateAdditionalAgentPlayerAsync(int idNumber,
@@ -205,6 +203,8 @@ internal class OnePercentageDistribution
                     DividendProviderId = id,
                     AgentDividendPercentage = 0M,
                     ActualDividendPercentage = 0M,
+                    AgentCoveredBonus = 0,
+                    AgentCoveredBonusAdjust = 0,
                     Layer = layer,
                     Dividend = 0M
                 };
@@ -227,6 +227,8 @@ internal class OnePercentageDistribution
                     DividendProviderId = id,
                     AgentDividendPercentage = percentage,
                     ActualDividendPercentage = percentage,
+                    AgentCoveredBonus = (agentCurrentCondition.BonusAmount * percentage / 100M).Truncate(2),
+                    AgentCoveredBonusAdjust = (agentCurrentCondition.BonusAdjustAmount * percentage / 100M).Truncate(2),
                     Layer = layer,
                     Dividend = (agentCurrentCondition.NetProfit * percentage / 100M).Truncate(2)
                 };
@@ -240,6 +242,8 @@ internal class OnePercentageDistribution
                     DividendProviderId = id,
                     AgentDividendPercentage = 10,
                     ActualDividendPercentage = 10,
+                    AgentCoveredBonus = (agentCurrentCondition.BonusAmount * 0.1M).Truncate(2),
+                    AgentCoveredBonusAdjust = (agentCurrentCondition.BonusAdjustAmount * 0.1M).Truncate(2),
                     Layer = layer,
                     Dividend = (agentCurrentCondition.NetProfit * 0.1M).Truncate(2)
                 };
@@ -252,6 +256,8 @@ internal class OnePercentageDistribution
                 DividendProviderId = id,
                 AgentDividendPercentage = 1,
                 ActualDividendPercentage = 1,
+                AgentCoveredBonus = (agentCurrentCondition.BonusAmount * 0.01M).Truncate(2),
+                AgentCoveredBonusAdjust = (agentCurrentCondition.BonusAdjustAmount * 0.01M).Truncate(2),
                 Layer = layer,
                 Dividend = (agentCurrentCondition.NetProfit * 0.01M).Truncate(2)
             };

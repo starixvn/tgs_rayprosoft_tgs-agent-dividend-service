@@ -9,8 +9,14 @@ namespace Tgs.Agent.Dividend.Service.Controllers;
 public class AgentDividendController : ControllerBase
 {
     [HttpPost]
-    public async Task AgentDividendGenerationAsync([FromServices] IMediator mediator)
+    public Task AgentDividendGenerationAsync([FromServices] IMediator mediator)
     {
-        await mediator.Send(new GenerateAgentDividendRequest());
+        return mediator.Send(new GenerateAgentDividendRequest());
+    }
+
+    [HttpPost("{brandId:guid}")]
+    public Task AgentDividendGenerationAsync([FromServices] IMediator mediator, Guid brandId)
+    {
+        return mediator.Send(new GenerateAgentDividendRequest(brandId));
     }
 }

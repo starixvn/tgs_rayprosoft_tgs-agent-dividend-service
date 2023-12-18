@@ -2,7 +2,8 @@
 
 namespace Tgs.Agent.Dividend.Domain.Models;
 
-public record GetAgentDividendWithContractRequest(int Id,
+public record GetAgentDividendWithContractRequest(
+    int Id,
     BrandModel Brand,
     AgentModel Agent,
     IAsyncEnumerable<AgentPlayerAggregateModel> Aggregate,
