@@ -4,6 +4,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging.Abstractions;
 using NSubstitute;
 using Tgs.Agent.Dividend.Core;
 using Tgs.Agent.Dividend.Core.Distributions;
@@ -61,7 +62,7 @@ public class AgentDividendHandlerTests
                 .Create<AgentDividendContractModel>()
         };
 
-        var brand = CreateBrandFixture(brandId, from, to, 0, AgentDividendType.OneLayer).Create<BrandModel>();
+        var brand = CreateBrandFixture(brandId, from, to, 0, true, AgentDividendType.OneLayer).Create<BrandModel>();
 
         var agents = new[]
         {
@@ -123,7 +124,8 @@ public class AgentDividendHandlerTests
         var sut = new AgentDividendHandler(fakeRepository,
             fakeContractRepository,
             fakeMediator,
-            sp);
+            sp,
+            new NullLogger<AgentDividendHandler>());
 
         await sut.Handle(@event, default);
 
@@ -179,7 +181,8 @@ public class AgentDividendHandlerTests
                 .Create<AgentDividendContractModel>()
         };
 
-        var brand = CreateBrandFixture(brandId, from, to, 0, AgentDividendType.MultipleLayer).Create<BrandModel>();
+        var brand = CreateBrandFixture(brandId, from, to, 0, true, AgentDividendType.MultipleLayer)
+            .Create<BrandModel>();
 
         var agents = new[]
         {
@@ -240,7 +243,8 @@ public class AgentDividendHandlerTests
         var sut = new AgentDividendHandler(fakeRepository,
             fakeContractRepository,
             fakeMediator,
-            sp);
+            sp,
+            new NullLogger<AgentDividendHandler>());
 
         await sut.Handle(@event, default);
 
@@ -253,8 +257,10 @@ public class AgentDividendHandlerTests
                 Arg.Any<CancellationToken>());
     }
 
+    [TestCase(false)]
+    [TestCase(true)]
     [Test]
-    public async Task Create_Agent_Player_Dividends_For_One_Percentage()
+    public async Task Create_Agent_Player_Dividends_For_One_Percentage(bool checkDividendActiveCount)
     {
         var fakeMediator = Substitute.For<IMediator>();
         var fakeRepository = Substitute.For<IRepository>();
@@ -264,7 +270,7 @@ public class AgentDividendHandlerTests
         var fakeDistribution = Substitute.For<IDistribution>();
 
         var services = new ServiceCollection();
-        services.AddKeyedSingleton<IDistribution, MultipleLayerDistribution>(
+        services.AddKeyedSingleton<IDistribution, OnePercentageDistribution>(
             ContractDividendType.OnePercentage.ToString());
         services.AddSingleton(fakeDistribution)
             .AddSingleton(fakeRepository)
@@ -276,8 +282,8 @@ public class AgentDividendHandlerTests
         var sp = services.BuildServiceProvider();
 
         var brandId = Guid.NewGuid();
-        var agentId = Guid.NewGuid();
-        var agentId2 = Guid.NewGuid();
+        var agentId = Guid.Parse("50f5147a-4ddb-40f7-92e8-5610444d9843");
+        var agentId2 = Guid.Parse("a98e1bd1-8101-0000-0001-000007f21587");
 
         var from = DateTime.Parse("2023/12/06 00:00:00+8");
         var to = DateTime.Parse("2023/12/06 00:00:00+8");
@@ -289,17 +295,18 @@ public class AgentDividendHandlerTests
         {
             CreateContractFixture(brandId, agentId, ContractDividendType.OnePercentage, 0, 0, 0)
                 .Create<AgentDividendContractModel>(),
-            CreateContractFixture(brandId, agentId2, ContractDividendType.OnePercentage, 0, 0, 0)
+            CreateContractFixture(brandId, agentId2, ContractDividendType.OnePercentage, 1, 1, 1)
                 .Create<AgentDividendContractModel>()
         };
 
-        var brand = CreateBrandFixture(brandId, from, to, 0, AgentDividendType.OnePercentage).Create<BrandModel>();
+        var brand = CreateBrandFixture(brandId, from, to, 0, checkDividendActiveCount, AgentDividendType.OnePercentage)
+            .Create<BrandModel>();
 
         var agents = new[]
         {
-            CreateAgentFixture(brandId, agentId2, agentId, 10, new LTree($"{agentId:N}.{agentId2:N}"))
+            CreateAgentFixture(brandId, agentId2, agentId, 0, new LTree($"{agentId:N}.{agentId2:N}"))
                 .Create<AgentModel>(),
-            CreateAgentFixture(brandId, agentId, null, 50, new LTree($"{agentId:N}")).Create<AgentModel>()
+            CreateAgentFixture(brandId, agentId, null, 0, new LTree($"{agentId:N}")).Create<AgentModel>()
         };
 
         var agentPath = new[]
@@ -326,7 +333,7 @@ public class AgentDividendHandlerTests
                     from,
                     to,
                     100,
-                    10,
+                    0,
                     JsonSerializer.Serialize(agent2Path))
                 .Create<AgentPlayerAggregateModel>()
         };
@@ -338,11 +345,76 @@ public class AgentDividendHandlerTests
         fakeRepository.GetMaxAgentDividendIdAsync(Arg.Any<CancellationToken>()).Returns(99);
         fakeRepository.GetAgentsCacheAsyncEnumerable(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(agents.ToAsyncEnumerable());
-
         fakeRepository
-            .GetAgentPlayerAggregatesCacheAsync(brandId, from, to, Arg.Any<CancellationToken>())
+            .GetAgentsByPathCacheAsyncEnumerable(Arg.Any<Guid>(), Arg.Any<LTree>(), Arg.Any<CancellationToken>())
+            .Returns(agents.ToAsyncEnumerable());
+        fakeRepository.GetAgentPlayerValidBetsCacheAsync(Arg.Any<Guid>(),
+                Arg.Any<DateTime>(),
+                Arg.Any<DateTime>(),
+                Arg.Any<CancellationToken>())
+            .Returns(new[]
+            {
+                new AgentPlayerValidBetModel
+                {
+                    AgentId = agentId2,
+                    PlayerCode = "playerCode",
+                    ValidBetAmount = 1
+                }
+            }.ToAsyncEnumerable());
+        fakeRepository.GetAgentPlayerBetCountsCacheAsync(Arg.Any<Guid>(),
+                Arg.Any<DateTime>(),
+                Arg.Any<DateTime>(),
+                Arg.Any<CancellationToken>())
+            .Returns(new[]
+            {
+                new AgentPlayerBetDaysModel
+                {
+                    AgentId = agentId2,
+                    PlayerCode = "playerCode",
+                    DayCount = 1
+                }
+            }.ToAsyncEnumerable());
+        fakeRepository.GetAgentPlayerDepositsCacheAsync(Arg.Any<Guid>(),
+                Arg.Any<DateOnly>(),
+                Arg.Any<DateOnly>(),
+                Arg.Any<CancellationToken>())
+            .Returns(new[]
+            {
+                new AgentPlayerDepositModel
+                {
+                    AgentId = agentId2,
+                    PlayerCode = "playerCode",
+                    DepositAmount = 1
+                }
+            }.ToAsyncEnumerable());
+        fakeContractRepository.GetAgentDividendContractConditionsAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(new[]
+            {
+                new AgentDividendContractPercentageModel
+                {
+                    Rank = 1,
+                    ValidNumber = 1,
+                    WinLossAmount = 10,
+                    NetProfit = 0,
+                    Percentage = 50
+                },
+                new AgentDividendContractPercentageModel
+                {
+                    Rank = 2,
+                    ValidNumber = 2,
+                    WinLossAmount = 20,
+                    NetProfit = 0,
+                    Percentage = 45
+                }
+            }.ToAsyncEnumerable());
+        fakeRepository
+            .GetAgentPlayerAggregatesForMultipleLayerCacheAsync(Arg.Any<Guid>(),
+                Arg.Any<DateTime>(),
+                Arg.Any<DateTime>(),
+                Arg.Any<CancellationToken>())
             .Returns(agentPlayerAggregates.ToAsyncEnumerable());
-
+        fakeRepository.GetAgentPlayerGameAggregatesCacheAsync(Arg.Any<Guid>(), Arg.Any<DateTime>(), Arg.Any<DateTime>())
+            .Returns(AsyncEnumerable.Empty<AgentPlayerGameAggregateModel>());
         fakeMediator.Send(Arg.Any<GetNoSendDividendRequest>())
             .Returns(new NoSendDividendResponse
             {
@@ -354,12 +426,30 @@ public class AgentDividendHandlerTests
         var sut = new AgentDividendHandler(fakeRepository,
             fakeContractRepository,
             fakeMediator,
-            sp);
+            sp,
+            new NullLogger<AgentDividendHandler>());
 
         await sut.Handle(@event, default);
 
         _ = fakeRepository.ReceivedWithAnyArgs(1).CreateAgentDividendsAsync(null!, null!, null!, default);
-        _ = fakeMediator.Received(1).Send(Arg.Any<GetNoSendDividendRequest>(), Arg.Any<CancellationToken>());
+
+        if (checkDividendActiveCount)
+            _ = fakeMediator.Received(1)
+                .Send(Arg.Is<GetNoSendDividendRequest>(x =>
+                        x.AgentDividends.Any(a => a.AgentId == agentId2 && a.AgentDividendAmount == 50)),
+                    Arg.Any<CancellationToken>());
+
+        if (!checkDividendActiveCount)
+            _ = fakeMediator.Received(1)
+                .Send(Arg.Is<GetNoSendDividendRequest>(x =>
+                        x.AgentDividends.Any(a => a.AgentId == agentId2 && a.AgentDividendAmount == 45)),
+                    Arg.Any<CancellationToken>());
+
+        _ = fakeMediator.Received(1)
+            .Send(Arg.Is<GetNoSendDividendRequest>(x =>
+                    x.AgentDividends.Count() == 2),
+                Arg.Any<CancellationToken>());
+
         _ = fakeRepository.Received(1)
             .CreateAgentDividendsAsync(Arg.Any<BrandModel>(),
                 Arg.Any<IEnumerable<CreateAgentDividendModel>>(),
@@ -391,6 +481,7 @@ public class AgentDividendHandlerTests
         DateTime from,
         DateTime to,
         decimal platformCharge,
+        bool checkDividendActiveCount,
         AgentDividendType agentDividendType)
     {
         var fixture = new Fixture();
@@ -400,6 +491,7 @@ public class AgentDividendHandlerTests
             .With(s => s.CurrentSettlementFrom, from)
             .With(s => s.CurrentSettlementTo, to)
             .With(s => s.PlatformCharge, platformCharge)
+            .With(s => s.CheckDividendActiveCount, checkDividendActiveCount)
             .With(s => s.AgentDividendType, (short)agentDividendType));
         fixture.Behaviors.Add(new OmitOnRecursionBehavior());
         return fixture;
@@ -438,6 +530,8 @@ public class AgentDividendHandlerTests
             .With(s => s.To, to)
             .With(s => s.WinLossAmount, winLoss)
             .With(s => s.BonusAmount, 0)
+            .With(s => s.AgentAdjustAmount, 0)
+            .With(s => s.NoIncludeNetProfitAgentAdjustAmount, 0)
             .With(s => s.BonusAdjustAmount, 0)
             .With(s => s.NoIncludeNetProfitBonusAdjustAmount, 0)
             .With(s => s.AgentDividendPercentage, agentDividendPercentage)

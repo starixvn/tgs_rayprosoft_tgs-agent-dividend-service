@@ -84,13 +84,13 @@ internal class MultipleLayerDistribution(IContractRepository contractRepository,
         yield return agentDividend;
     }
 
-    public IAsyncEnumerable<AgentPlayerAggregateModel> GenerateAdditionalAgentPlayerAsync(int idNumber,
+    public IEnumerable<AgentPlayerAggregateModel> GenerateAdditionalAgentPlayerAggregates(int idNumber,
         BrandModel brand,
         AgentDividendMultipleLayerModel multipleLayer,
-        IAsyncEnumerable<AgentPlayerAggregateModel> currentAllAgentPlayerAggregates,
+        IEnumerable<AgentPlayerAggregateModel> currentAllAgentPlayerAggregates,
         CancellationToken cancellationToken)
     {
-        return AsyncEnumerable.Empty<AgentPlayerAggregateModel>();
+        return Enumerable.Empty<AgentPlayerAggregateModel>();
     }
 
     public decimal GetAgentDividendAmount(AgentPlayerAggregateModel agentPlayerAggregate,

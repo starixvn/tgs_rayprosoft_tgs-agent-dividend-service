@@ -4,6 +4,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging.Abstractions;
 using NSubstitute;
 using Tgs.Agent.Dividend.Core;
 using Tgs.Agent.Dividend.Core.Distributions;
@@ -95,6 +96,7 @@ public class OneLayerDistributionTests
                     from,
                     to,
                     100,
+                    0,
                     10,
                     JsonSerializer.Serialize(agent2Path))
                 .Create<AgentPlayerAggregateModel>()
@@ -124,17 +126,22 @@ public class OneLayerDistributionTests
         var sut = new AgentDividendHandler(_fakeRepository,
             _fakeContractRepository,
             _fakeMediator,
-            sp);
+            sp,
+            new NullLogger<AgentDividendHandler>());
 
         await sut.Handle(@event, default);
 
         _ = _fakeRepository.ReceivedWithAnyArgs(1).CreateAgentDividendsAsync(null!, null!, null!, default);
         _ = _fakeMediator.Received(1).Send(Arg.Any<GetNoSendDividendRequest>(), Arg.Any<CancellationToken>());
 
+        _ = _fakeMediator.Received(1)
+            .Send(Arg.Any<BrandModel>(),
+                Arg.Any<CancellationToken>());
+
         _ = _fakeRepository.Received(1)
             .CreateAgentDividendsAsync(Arg.Any<BrandModel>(),
-                Arg.Any<IEnumerable<CreateAgentDividendModel>>(),
-                Arg.Any<IDictionary<int, int>>(),
+                Arg.Is<IEnumerable<CreateAgentDividendModel>>(s => !s.Any()),
+                Arg.Is<IDictionary<int, int>>(s => s.Count == 1),
                 Arg.Any<CancellationToken>());
     }
 
@@ -198,6 +205,7 @@ public class OneLayerDistributionTests
         DateTime from,
         DateTime to,
         decimal winLoss,
+        decimal agentAdjustAmount,
         decimal agentDividendPercentage,
         string path)
     {
@@ -211,6 +219,7 @@ public class OneLayerDistributionTests
             .With(s => s.BonusAmount, 0)
             .With(s => s.BonusAdjustAmount, 0)
             .With(s => s.NoIncludeNetProfitBonusAdjustAmount, 0)
+            .With(s => s.AgentAdjustAmount, agentAdjustAmount)
             .With(s => s.AgentDividendPercentage, agentDividendPercentage)
             .With(s => s.AgentDividendPercentageTreeData, path));
         fixture.Behaviors.Add(new OmitOnRecursionBehavior());
