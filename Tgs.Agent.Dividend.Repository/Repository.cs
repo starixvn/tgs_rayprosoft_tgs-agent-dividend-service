@@ -35,7 +35,7 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache) : IRepos
                         DividendPercentage = x.DividendPercentage
                     })
                     .ToArrayAsync(cancellationToken);
-            }) ?? Array.Empty<AgentModel>();
+            }) ?? [];
 
         foreach (var model in models) yield return model;
     }
@@ -81,8 +81,8 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache) : IRepos
                         {
                             x.ReportDate,
                             x.Hour,
-                            x.BrandId,
-                            AgentId = x.AgentId!.Value
+                            AgentId = x.AgentId!.Value,
+                            x.BrandId
                         },
                         (agent, playerGames) => new
                         {
@@ -148,12 +148,12 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache) : IRepos
                         x.AgentDividendPercentage,
                         x.AgentDividendPercentageTreeData
                     })
-                    .Select(x => new //AgentPlayerAggregateModel
+                    .Select(x => new
                     {
                         x.Key.ReportDate,
                         x.Key.Hour,
-                        AgentId = x.Key.AgentId!.Value,
                         x.Key.BrandId,
+                        AgentId = x.Key.AgentId!.Value,
                         AgentDividendPercentage = x.Key.AgentDividendPercentage ?? 0M,
                         x.Key.AgentDividendPercentageTreeData,
                         PromotionAmount = x.Sum(p => p.PromotionAmount),
@@ -298,7 +298,7 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache) : IRepos
                             VirtualSportsWinLoss = list.Sum(x => x.VirtualSportsWinLoss)
                         })
                     .ToArray();
-            }) ?? Array.Empty<AgentPlayerAggregateModel>();
+            }) ?? [];
 
         foreach (var model in models) yield return model;
     }
@@ -355,7 +355,7 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache) : IRepos
                             x.Sum(p => p.NoIncludeNetProfitBonusAdjustAmount)
                     })
                     .ToArrayAsync(cancellationToken);
-            }) ?? Array.Empty<AgentPlayerAggregateModel>();
+            }) ?? [];
 
         foreach (var model in models) yield return model;
     }
@@ -448,7 +448,7 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache) : IRepos
                         DepositAmount = x.Sum(s => s.DailyDepositAmount ?? 0M)
                     })
                     .ToArrayAsync(cancellationToken);
-            }) ?? Array.Empty<AgentPlayerDepositModel>();
+            }) ?? [];
 
         foreach (var model in models) yield return model;
     }
@@ -480,7 +480,7 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache) : IRepos
                         ValidBetAmount = x.Sum(s => s.Turnover)
                     })
                     .ToArrayAsync(cancellationToken);
-            }) ?? Array.Empty<AgentPlayerValidBetModel>();
+            }) ?? [];
 
         foreach (var model in models) yield return model;
     }
@@ -513,7 +513,7 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache) : IRepos
                         DayCount = x.Select(s => s.ReportDate).Distinct().Count()
                     })
                     .ToArrayAsync(cancellationToken);
-            }) ?? Array.Empty<AgentPlayerBetDaysModel>();
+            }) ?? [];
 
         foreach (var model in models) yield return model;
     }

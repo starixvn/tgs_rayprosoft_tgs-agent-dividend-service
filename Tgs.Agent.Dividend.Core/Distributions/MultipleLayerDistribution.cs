@@ -51,7 +51,7 @@ internal class MultipleLayerDistribution(IContractRepository contractRepository,
         AgentPlayerAggregateModel agentPlayerAggregate,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
-        var betDays = await repository
+        var betPlayers = await repository
             .GetAgentPlayerBetCountsCacheAsync(brand.Id,
                 brand.CurrentSettlementFrom,
                 brand.CurrentSettlementTo,
@@ -59,13 +59,13 @@ internal class MultipleLayerDistribution(IContractRepository contractRepository,
             .Where(x => x.AgentId == contract.AgentId)
             .ToArrayAsync(cancellationToken);
 
-        var playerCodes = betDays.Select(x => x.PlayerCode);
+        var playerCodes = betPlayers.Select(x => x.PlayerCode);
 
         var conditions = await contractRepository
             .GetAgentDividendContractConditionsAsync(contract.Id, cancellationToken)
             .ToArrayAsync(cancellationToken);
 
-        var validPlayerCount = GetValidPlayerCount(playerCodes, betDays, contract);
+        var validPlayerCount = GetValidPlayerCount(playerCodes, betPlayers, contract);
 
         var agentDividend = GetAgentDividendsByMultipleLayer(agentPlayerAggregate.Id,
             contract.AgentId,

@@ -135,7 +135,7 @@ public class OneLayerDistributionTests
         _ = _fakeMediator.Received(1).Send(Arg.Any<GetNoSendDividendRequest>(), Arg.Any<CancellationToken>());
 
         _ = _fakeMediator.Received(1)
-            .Send(Arg.Any<BrandModel>(),
+            .Send(Arg.Any<GetNoSendDividendRequest>(),
                 Arg.Any<CancellationToken>());
 
         _ = _fakeRepository.Received(1)

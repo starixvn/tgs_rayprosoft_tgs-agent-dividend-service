@@ -18,11 +18,6 @@ namespace Tgs.Agent.Dividend.UnitTest;
 
 public class AgentDividendHandlerTests
 {
-    [SetUp]
-    public void Setup()
-    {
-    }
-
     [Test]
     public async Task Create_Agent_Player_Dividends()
     {
@@ -141,8 +136,10 @@ public class AgentDividendHandlerTests
         fakeRepository.Received(1).RemoveAllMemoryCache(Arg.Any<CancellationToken>());
     }
 
+    [TestCase(false)]
+    [TestCase(true)]
     [Test]
-    public async Task Create_Agent_Player_Dividends_For_Multiple_Layer()
+    public async Task Create_Agent_Player_Dividends_For_Multiple_Layer(bool checkDividendActiveCount)
     {
         var fakeMediator = Substitute.For<IMediator>();
         var fakeRepository = Substitute.For<IRepository>();
@@ -181,7 +178,7 @@ public class AgentDividendHandlerTests
                 .Create<AgentDividendContractModel>()
         };
 
-        var brand = CreateBrandFixture(brandId, from, to, 0, true, AgentDividendType.MultipleLayer)
+        var brand = CreateBrandFixture(brandId, from, to, 0, checkDividendActiveCount, AgentDividendType.MultipleLayer)
             .Create<BrandModel>();
 
         var agents = new[]
@@ -227,9 +224,42 @@ public class AgentDividendHandlerTests
         fakeRepository.GetMaxAgentDividendIdAsync(Arg.Any<CancellationToken>()).Returns(99);
         fakeRepository.GetAgentsCacheAsyncEnumerable(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(agents.ToAsyncEnumerable());
+        fakeContractRepository.GetAgentDividendContractConditionsAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(new[]
+            {
+                new AgentDividendContractPercentageModel
+                {
+                    Rank = 1,
+                    ValidNumber = 1,
+                    WinLossAmount = 0,
+                    NetProfit = 10,
+                    Percentage = 50
+                },
+                new AgentDividendContractPercentageModel
+                {
+                    Rank = 2,
+                    ValidNumber = 2,
+                    WinLossAmount = 0,
+                    NetProfit = 20,
+                    Percentage = 45
+                }
+            }.ToAsyncEnumerable());
+        fakeRepository.GetAgentPlayerBetCountsCacheAsync(Arg.Any<Guid>(),
+                Arg.Any<DateTime>(),
+                Arg.Any<DateTime>(),
+                Arg.Any<CancellationToken>())
+            .Returns(new[]
+            {
+                new AgentPlayerBetDaysModel
+                {
+                    AgentId = agentId2,
+                    PlayerCode = "playerCode",
+                    DayCount = 1
+                }
+            }.ToAsyncEnumerable());
 
         fakeRepository
-            .GetAgentPlayerAggregatesCacheAsync(brandId, from, to, Arg.Any<CancellationToken>())
+            .GetAgentPlayerAggregatesForMultipleLayerCacheAsync(brandId, from, to, Arg.Any<CancellationToken>())
             .Returns(agentPlayerAggregates.ToAsyncEnumerable());
 
         fakeMediator.Send(Arg.Any<GetNoSendDividendRequest>())
@@ -255,6 +285,19 @@ public class AgentDividendHandlerTests
                 Arg.Any<IEnumerable<CreateAgentDividendModel>>(),
                 Arg.Any<IDictionary<int, int>>(),
                 Arg.Any<CancellationToken>());
+
+        if (checkDividendActiveCount)
+            _ = fakeMediator.Received(1)
+                .Send(Arg.Is<GetNoSendDividendRequest>(x =>
+                        x.AgentDividends.Any(a => a.AgentId == agentId2 && a.AgentDividendAmount == 50)),
+                    Arg.Any<CancellationToken>());
+
+        if (!checkDividendActiveCount)
+            _ = fakeMediator.Received(1)
+                .Send(Arg.Is<GetNoSendDividendRequest>(x =>
+                        x.AgentDividends.Any(a => a.AgentId == agentId2 && a.AgentDividendAmount == 45)),
+                    Arg.Any<CancellationToken>());
+
     }
 
     [TestCase(false)]
@@ -476,6 +519,123 @@ public class AgentDividendHandlerTests
         fixture.Behaviors.Add(new OmitOnRecursionBehavior());
         return fixture;
     }
+
+    [Test]
+    public async Task Create_Agent_Player_Dividends_For_One_Layer()
+    {
+        var fakeMediator = Substitute.For<IMediator>();
+        var fakeRepository = Substitute.For<IRepository>();
+        var fakeContractRepository = Substitute.For<IContractRepository>();
+        var fakeTgsContext = Substitute.For<tgsContext>();
+        var fakeMemoryCache = Substitute.For<IMemoryCache>();
+        var fakeDistribution = Substitute.For<IDistribution>();
+
+        var services = new ServiceCollection();
+        services.AddKeyedSingleton<IDistribution, MultipleLayerDistribution>(
+            ContractDividendType.MultipleLayer.ToString());
+        services.AddSingleton(fakeDistribution)
+            .AddSingleton(fakeRepository)
+            .AddSingleton(fakeContractRepository)
+            .AddSingleton(fakeTgsContext)
+            .AddSingleton(fakeMemoryCache)
+            .AddSingleton(fakeMediator);
+
+        var sp = services.BuildServiceProvider();
+
+        var brandId = Guid.NewGuid();
+        var agentId = Guid.NewGuid();
+        var agentId2 = Guid.NewGuid();
+
+        var from = DateTime.Parse("2023/12/06 00:00:00+8");
+        var to = DateTime.Parse("2023/12/06 00:00:00+8");
+
+        fakeRepository.GetNonArchivedBrandIdsAsyncEnumerable(Arg.Any<Guid?>())
+            .Returns(new[] { Guid.NewGuid() }.ToAsyncEnumerable());
+
+        var contracts = new[]
+        {
+            CreateContractFixture(brandId, agentId, ContractDividendType.MultipleLayer, 0, 0, 0)
+                .Create<AgentDividendContractModel>(),
+            CreateContractFixture(brandId, agentId2, ContractDividendType.MultipleLayer, 0, 0, 0)
+                .Create<AgentDividendContractModel>()
+        };
+
+        var brand = CreateBrandFixture(brandId, from, to, 0, true, AgentDividendType.MultipleLayer)
+            .Create<BrandModel>();
+
+        var agents = new[]
+        {
+            CreateAgentFixture(brandId, agentId2, agentId, 10, new LTree($"{agentId:N}.{agentId2:N}"))
+                .Create<AgentModel>(),
+            CreateAgentFixture(brandId, agentId, null, 50, new LTree($"{agentId:N}")).Create<AgentModel>()
+        };
+
+        var agentPath = new[]
+        {
+            new AgentDividendPercentageData
+            {
+                AgentId = agentId,
+                ParentAgentId = null,
+                DividendPercentage = 0
+            }
+        };
+
+        var agent2Path = agentPath.Append(new AgentDividendPercentageData
+        {
+            AgentId = agentId2,
+            ParentAgentId = agentId,
+            DividendPercentage = 0
+        });
+
+        var agentPlayerAggregates = new[]
+        {
+            CreateAgentPlayerAggregateFixture(brandId,
+                    agentId2,
+                    from,
+                    to,
+                    100,
+                    10,
+                    JsonSerializer.Serialize(agent2Path))
+                .Create<AgentPlayerAggregateModel>()
+        };
+
+        fakeContractRepository.GetAgentDividendContractsAsync(Arg.Any<Guid>())
+            .Returns(contracts.ToAsyncEnumerable());
+
+        fakeRepository.GetBrandAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(brand);
+        fakeRepository.GetMaxAgentDividendIdAsync(Arg.Any<CancellationToken>()).Returns(99);
+        fakeRepository.GetAgentsCacheAsyncEnumerable(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(agents.ToAsyncEnumerable());
+
+        fakeRepository
+            .GetAgentPlayerAggregatesCacheAsync(brandId, from, to, Arg.Any<CancellationToken>())
+            .Returns(agentPlayerAggregates.ToAsyncEnumerable());
+
+        fakeMediator.Send(Arg.Any<GetNoSendDividendRequest>())
+            .Returns(new NoSendDividendResponse
+            {
+                Model = Enumerable.Empty<CreateAgentDividendModel>(),
+                NegativeDividendsIds = new Dictionary<int, int> { { 1, 1 } }
+            });
+        var @event = new AgentDividendRequest(brandId);
+
+        var sut = new AgentDividendHandler(fakeRepository,
+            fakeContractRepository,
+            fakeMediator,
+            sp,
+            new NullLogger<AgentDividendHandler>());
+
+        await sut.Handle(@event, default);
+
+        _ = fakeRepository.ReceivedWithAnyArgs(1).CreateAgentDividendsAsync(null!, null!, null!, default);
+        _ = fakeMediator.Received(1).Send(Arg.Any<GetNoSendDividendRequest>(), Arg.Any<CancellationToken>());
+        _ = fakeRepository.Received(1)
+            .CreateAgentDividendsAsync(Arg.Any<BrandModel>(),
+                Arg.Any<IEnumerable<CreateAgentDividendModel>>(),
+                Arg.Any<IDictionary<int, int>>(),
+                Arg.Any<CancellationToken>());
+    }
+
 
     private Fixture CreateBrandFixture(Guid brandId,
         DateTime from,
