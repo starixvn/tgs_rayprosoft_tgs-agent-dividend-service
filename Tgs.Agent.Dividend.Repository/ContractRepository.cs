@@ -29,10 +29,10 @@ internal class ContractRepository(tgsContext context) : IContractRepository
         CancellationToken cancellationToken)
     {
         return context.AgentDividendConditions
-            .Where(x => x.AgentDividendContractId == agentDividendContractId)
+            .Where(x => x.ContractId == agentDividendContractId)
             .Select(x => new AgentDividendContractPercentageModel
             {
-                AgentDividendContractId = x.AgentDividendContractId,
+                AgentDividendContractId = x.ContractId,
                 Rank = x.Rank,
                 ValidNumber = x.ActiveNumber,
                 WinLossAmount = x.WinLossAmount,

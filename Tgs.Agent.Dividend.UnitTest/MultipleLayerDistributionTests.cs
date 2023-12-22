@@ -299,25 +299,6 @@ public class MultipleLayerDistributionTests
         return fixture;
     }
 
-    private static Fixture CreateAgentPlayerValidBetFixture(Guid brandId,
-        Guid agentId,
-        string playerCode,
-        DateTime from,
-        DateTime to,
-        decimal validBet)
-    {
-        var fixture = new Fixture();
-        fixture.Customize<AgentPlayerValidBetModel>(u => u
-            .With(s => s.BrandId, brandId)
-            .With(s => s.AgentId, agentId)
-            .With(s => s.PlayerCode, playerCode)
-            .With(s => s.From, from)
-            .With(s => s.To, to)
-            .With(s => s.ValidBetAmount, validBet));
-        fixture.Behaviors.Add(new OmitOnRecursionBehavior());
-        return fixture;
-    }
-
     private static Fixture CreateAgentPlayerBetCountFixture(Guid brandId,
         Guid agentId,
         string playerCode,
@@ -333,25 +314,6 @@ public class MultipleLayerDistributionTests
             .With(s => s.From, from)
             .With(s => s.To, to)
             .With(s => s.DayCount, count));
-        fixture.Behaviors.Add(new OmitOnRecursionBehavior());
-        return fixture;
-    }
-
-    private static Fixture CreateAgentPlayerDepositFixture(Guid brandId,
-        Guid agentId,
-        string playerCode,
-        DateOnly from,
-        DateOnly to,
-        decimal deposit)
-    {
-        var fixture = new Fixture();
-        fixture.Customize<AgentPlayerDepositModel>(u => u
-            .With(s => s.BrandId, brandId)
-            .With(s => s.AgentId, agentId)
-            .With(s => s.PlayerCode, playerCode)
-            .With(s => s.From, from)
-            .With(s => s.To, to)
-            .With(s => s.DepositAmount, deposit));
         fixture.Behaviors.Add(new OmitOnRecursionBehavior());
         return fixture;
     }

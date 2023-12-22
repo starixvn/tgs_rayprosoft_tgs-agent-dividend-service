@@ -23,7 +23,7 @@ namespace Tgs.Agent.Dividend.Repository.Entities.Configurations
             entity.Property(e => e.Rank).HasColumnName("rank");
             entity.Property(e => e.AgentId).HasColumnName("agent_id");
             entity.Property(e => e.ActiveNumber).HasColumnName("active_number");
-            entity.Property(e => e.AgentDividendContractId).HasColumnName("agent_dividend_contract_id");
+            entity.Property(e => e.ContractId).HasColumnName("contract_id");
             entity.Property(e => e.DividendPercentage)
             .HasPrecision(9, 6)
             .HasColumnName("dividend_percentage");

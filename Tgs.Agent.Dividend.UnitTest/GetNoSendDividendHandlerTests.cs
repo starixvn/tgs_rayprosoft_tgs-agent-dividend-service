@@ -8,6 +8,9 @@ namespace Tgs.Agent.Dividend.UnitTest;
 
 public class GetNoSendDividendHandlerTests
 {
+    private static readonly int[] Actual = [1, 2];
+    private static readonly int[] ActualArray = [1, 2];
+
     [Test]
     public async Task Get_No_Send_Dividends()
     {
@@ -52,8 +55,8 @@ public class GetNoSendDividendHandlerTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(new[] { 1, 2 }, Does.Contain(response.NegativeDividendsIds[11]));
-            Assert.That(new[] { 1, 2 }, Does.Contain(response.NegativeDividendsIds[33]));
+            Assert.That(Actual, Does.Contain(response.NegativeDividendsIds[11]));
+            Assert.That(ActualArray, Does.Contain(response.NegativeDividendsIds[33]));
             Assert.That(response.NegativeDividendsIds[34], Is.EqualTo(3));
             Assert.That(response.NegativeDividendsIds[35], Is.EqualTo(3));
             Assert.That(response.Model.Where(x => x.AgentId == agentId).Sum(s => s.AgentDividendAmount),
@@ -63,7 +66,7 @@ public class GetNoSendDividendHandlerTests
         });
     }
 
-    private Fixture CreateCreateAgentDividendModelFixture(int id,
+    private static Fixture CreateCreateAgentDividendModelFixture(int id,
         Guid brandId,
         Guid agentId,
         decimal agentDividendPercentage,
@@ -81,7 +84,7 @@ public class GetNoSendDividendHandlerTests
         return fixture;
     }
 
-    private Fixture CreateNegativeAgentDividendModelFixture(int id, Guid agentId, decimal agentDividendAmount)
+    private static Fixture CreateNegativeAgentDividendModelFixture(int id, Guid agentId, decimal agentDividendAmount)
     {
         var fixture = new Fixture();
         fixture.Customize<NegativeAgentDividendModel>(u => u

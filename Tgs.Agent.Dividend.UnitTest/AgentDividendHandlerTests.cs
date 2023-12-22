@@ -297,7 +297,6 @@ public class AgentDividendHandlerTests
                 .Send(Arg.Is<GetNoSendDividendRequest>(x =>
                         x.AgentDividends.Any(a => a.AgentId == agentId2 && a.AgentDividendAmount == 45)),
                     Arg.Any<CancellationToken>());
-
     }
 
     [TestCase(false)]
@@ -637,7 +636,7 @@ public class AgentDividendHandlerTests
     }
 
 
-    private Fixture CreateBrandFixture(Guid brandId,
+    private static Fixture CreateBrandFixture(Guid brandId,
         DateTime from,
         DateTime to,
         decimal platformCharge,
@@ -657,7 +656,7 @@ public class AgentDividendHandlerTests
         return fixture;
     }
 
-    private Fixture CreateAgentFixture(Guid brandId,
+    private static Fixture CreateAgentFixture(Guid brandId,
         Guid agentId,
         Guid? parentId,
         decimal dividendPercentage,
