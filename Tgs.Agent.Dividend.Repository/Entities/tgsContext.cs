@@ -18,6 +18,7 @@ public partial class tgsContext : DbContext
     public tgsContext()
     {
     }
+
     public virtual DbSet<Agent> Agents { get; set; }
 
     public virtual DbSet<AgentDividend> AgentDividends { get; set; }
@@ -33,6 +34,8 @@ public partial class tgsContext : DbContext
     public virtual DbSet<Brand> Brands { get; set; }
 
     public virtual DbSet<Player> Players { get; set; }
+
+    public virtual DbSet<PlayerAgentRelation> PlayerAgentRelations { get; set; }
 
     public virtual DbSet<PlayerAggregate> PlayerAggregates { get; set; }
 
@@ -55,6 +58,7 @@ public partial class tgsContext : DbContext
         modelBuilder.ApplyConfiguration(new Configurations.AgentDividendRecordConfiguration());
         modelBuilder.ApplyConfiguration(new Configurations.BrandConfiguration());
         modelBuilder.ApplyConfiguration(new Configurations.PlayerConfiguration());
+        modelBuilder.ApplyConfiguration(new Configurations.PlayerAgentRelationConfiguration());
         modelBuilder.ApplyConfiguration(new Configurations.PlayerAggregateConfiguration());
         modelBuilder.ApplyConfiguration(new Configurations.PlayerDailyPaymentStatisticConfiguration());
         modelBuilder.ApplyConfiguration(new Configurations.PlayerGameRebateAggregateConfiguration());

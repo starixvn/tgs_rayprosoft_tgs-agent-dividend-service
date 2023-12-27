@@ -53,15 +53,14 @@ internal class OneLayerDistribution(IRepository repository) : IDistribution
             .ToAsyncEnumerable();
     }
 
-    public async IAsyncEnumerable<AgentPlayerAggregateModel> GenerateAdditionalAgentPlayerAsync(int idNumber,
+    public IEnumerable<AgentPlayerAggregateModel> GenerateAdditionalAgentPlayerAggregates(int idNumber,
         BrandModel brand,
         AgentDividendMultipleLayerModel layer,
-        IAsyncEnumerable<AgentPlayerAggregateModel> currentAllAgentPlayerAggregates,
-        [EnumeratorCancellation] CancellationToken cancellationToken)
+        IEnumerable<AgentPlayerAggregateModel> currentAllAgentPlayerAggregates,
+        CancellationToken cancellationToken)
     {
-        var exists = await currentAllAgentPlayerAggregates.AnyAsync(a =>
-                a.AgentId == layer.AgentId && a.AgentDividendPercentage == layer.AgentDividendPercentage,
-            cancellationToken);
+        var exists = currentAllAgentPlayerAggregates.Any(a =>
+                a.AgentId == layer.AgentId && a.AgentDividendPercentage == layer.AgentDividendPercentage);
 
         if (exists) yield break;
 

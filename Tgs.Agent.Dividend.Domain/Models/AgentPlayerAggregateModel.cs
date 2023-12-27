@@ -7,6 +7,7 @@ public class AgentPlayerAggregateModel
     public Guid BrandId { get; set; }
     public DateTimeOffset From { get; set; }
     public DateTimeOffset To { get; set; }
+    public bool IsPlayerAgent { get; set; }
     public decimal PromotionAmount { get; set; }
     public decimal RebateAmount { get; set; }
     public decimal DepositAmount { get; set; }

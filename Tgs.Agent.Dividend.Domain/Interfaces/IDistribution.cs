@@ -17,10 +17,10 @@ public interface IDistribution
             AgentPlayerAggregateModel agentPlayerAggregate,
             CancellationToken cancellationToken);
 
-    IAsyncEnumerable<AgentPlayerAggregateModel> GenerateAdditionalAgentPlayerAsync(int idNumber,
+    IEnumerable<AgentPlayerAggregateModel> GenerateAdditionalAgentPlayerAggregates(int idNumber,
         BrandModel brand,
         AgentDividendMultipleLayerModel childLayer,
-        IAsyncEnumerable<AgentPlayerAggregateModel> currentAllAgentPlayerAggregates,
+        IEnumerable<AgentPlayerAggregateModel> currentAllAgentPlayerAggregates,
         CancellationToken cancellationToken);
 
     decimal GetAgentDividendAmount(AgentPlayerAggregateModel agentPlayerAggregate,

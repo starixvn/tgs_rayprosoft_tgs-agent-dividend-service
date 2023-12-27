@@ -44,6 +44,10 @@
          "ObjectType": 0
       },
       {
+         "Name": "dbo.player_agent_relations",
+         "ObjectType": 0
+      },
+      {
          "Name": "dbo.player_daily_payment_statistics",
          "ObjectType": 0
       },

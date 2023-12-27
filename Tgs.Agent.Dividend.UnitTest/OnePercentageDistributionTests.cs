@@ -131,7 +131,7 @@ public class OnePercentageDistributionTests
             .Returns(agents.ToAsyncEnumerable());
 
         fakeRepository
-            .GetAgentPlayerAggregatesForMultipleLayerCacheAsync(brandId, from, to, Arg.Any<CancellationToken>())
+            .GetAgentPlayerAggregatesForMultipleLayerCacheAsync(brandId, from, to, Arg.Any<CancellationToken>(), true)
             .Returns(agentPlayerAggregates.ToAsyncEnumerable());
 
         fakeRepository
@@ -292,7 +292,7 @@ public class OnePercentageDistributionTests
             .Returns(agents.ToAsyncEnumerable());
 
         fakeRepository
-            .GetAgentPlayerAggregatesForMultipleLayerCacheAsync(brandId, from, to, Arg.Any<CancellationToken>())
+            .GetAgentPlayerAggregatesForMultipleLayerCacheAsync(brandId, from, to, Arg.Any<CancellationToken>(), true)
             .Returns(agentPlayerAggregates.ToAsyncEnumerable());
 
         fakeRepository
@@ -442,7 +442,7 @@ public class OnePercentageDistributionTests
             .Returns(agents.ToAsyncEnumerable());
 
         fakeRepository
-            .GetAgentPlayerAggregatesForMultipleLayerCacheAsync(brandId, from, to, Arg.Any<CancellationToken>())
+            .GetAgentPlayerAggregatesForMultipleLayerCacheAsync(brandId, from, to, Arg.Any<CancellationToken>(), true)
             .Returns(agentPlayerAggregates.ToAsyncEnumerable());
 
         fakeRepository

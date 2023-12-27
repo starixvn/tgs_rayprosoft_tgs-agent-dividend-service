@@ -90,5 +90,7 @@ public partial class Agent
 
     public virtual Agent? ParentAgent { get; set; }
 
+    public virtual PlayerAgentRelation? PlayerAgentRelation { get; set; }
+
     public virtual ICollection<Player> Players { get; set; } = new List<Player>();
 }

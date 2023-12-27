@@ -17,7 +17,8 @@ internal class OnePercentageDistribution(IContractRepository contractRepository,
             .GetAgentPlayerAggregatesForMultipleLayerCacheAsync(brand.Id,
                 brand.CurrentSettlementFrom,
                 brand.CurrentSettlementTo,
-                cancellationToken)
+                cancellationToken,
+                false)
             .Where(x => x.AgentId == contract.AgentId)
             .FirstOrDefaultAsync(cancellationToken);
 
@@ -126,13 +127,13 @@ internal class OnePercentageDistribution(IContractRepository contractRepository,
         foreach (var agentDividendMultipleLayerModel in agentDividends) yield return agentDividendMultipleLayerModel;
     }
 
-    public IAsyncEnumerable<AgentPlayerAggregateModel> GenerateAdditionalAgentPlayerAsync(int idNumber,
+    public IEnumerable<AgentPlayerAggregateModel> GenerateAdditionalAgentPlayerAggregates(int idNumber,
         BrandModel brand,
         AgentDividendMultipleLayerModel multipleLayer,
-        IAsyncEnumerable<AgentPlayerAggregateModel> contract,
+        IEnumerable<AgentPlayerAggregateModel> contract,
         CancellationToken cancellationToken)
     {
-        return AsyncEnumerable.Empty<AgentPlayerAggregateModel>();
+        return Enumerable.Empty<AgentPlayerAggregateModel>();
     }
 
     public decimal GetAgentDividendAmount(AgentPlayerAggregateModel agentPlayerAggregate,
