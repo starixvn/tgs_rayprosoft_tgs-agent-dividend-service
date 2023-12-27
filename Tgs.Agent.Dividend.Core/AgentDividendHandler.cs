@@ -54,7 +54,7 @@ internal class AgentDividendHandler(
         {
             var agentContract = contracts.FirstOrDefault(a =>
                                     a.AgentId == agentPlayerAggregateModel.AgentId && a.ContractStatus == (short)ContractStatus.Enabled) ??
-                                throw new Exception($"Can't find contract agentId: {agentPlayerAggregateModel.AgentId}"); ;
+                                throw new Exception($"Can't find contract agentId: {agentPlayerAggregateModel.AgentId}");
 
             var distributionService =
                 serviceProvider.GetRequiredKeyedService<IDistribution>(
@@ -209,6 +209,7 @@ internal class AgentDividendHandler(
         var agentContract = contracts.FirstOrDefault(a =>
                                 a.AgentId == agent.Id && a.ContractStatus == (short)ContractStatus.Enabled) ??
                             throw new Exception($"Can't find contract agentId: {agent.Id}");
+
         var distributionService =
             serviceProvider.GetRequiredKeyedService<IDistribution>(
                 ((ContractDividendType)agentContract.ContractDividendType).ToString());

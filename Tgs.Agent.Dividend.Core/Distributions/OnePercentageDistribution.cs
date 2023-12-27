@@ -17,7 +17,8 @@ internal class OnePercentageDistribution(IContractRepository contractRepository,
             .GetAgentPlayerAggregatesForMultipleLayerCacheAsync(brand.Id,
                 brand.CurrentSettlementFrom,
                 brand.CurrentSettlementTo,
-                cancellationToken)
+                cancellationToken,
+                false)
             .Where(x => x.AgentId == contract.AgentId)
             .FirstOrDefaultAsync(cancellationToken);
 

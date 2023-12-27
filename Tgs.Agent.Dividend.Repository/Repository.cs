@@ -2,6 +2,7 @@
 using System.Transactions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
+using Tgs.Agent.Dividend.Domain;
 using Tgs.Agent.Dividend.Domain.Enums;
 using Tgs.Agent.Dividend.Domain.Interfaces.Repositories;
 using Tgs.Agent.Dividend.Domain.Models;
@@ -307,55 +308,76 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache) : IRepos
         Guid brandId,
         DateTime from,
         DateTime to,
-        [EnumeratorCancellation] CancellationToken cancellationToken)
+        [EnumeratorCancellation] CancellationToken cancellationToken,
+        bool includePlayerAgent = true)
     {
         var key = $"AgentPlayerAggregatesForMultipleLayerCache{brandId}{from}{to}";
 
         _cacheKeys.Add(key);
 
         var models = await memoryCache.GetOrCreateAsync(key,
-            cacheEntry =>
-            {
-                cacheEntry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5);
+                         cacheEntry =>
+                         {
+                             cacheEntry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5);
 
-                return context.PlayerAggregates
-                    .Where(x => x.BrandId == brandId)
-                    .Where(x => x.AgentId != null)
-                    .Where(x => x.ReportDate >= from && x.ReportDate <= to)
-                    .GroupBy(x => new
-                    {
-                        x.BrandId,
-                        x.AgentId
-                    })
-                    .Select(x => new AgentPlayerAggregateModel
-                    {
-                        AgentId = x.Key.AgentId!.Value,
-                        BrandId = x.Key.BrandId,
-                        From = from,
-                        To = to,
-                        PromotionAmount = x.Sum(p => p.PromotionAmount),
-                        RebateAmount = x.Sum(p => p.RebateAmount),
-                        DepositAmount = x.Sum(p => p.DepositAmount),
-                        WithdrawalAmount = x.Sum(p => p.WithdrawalAmount),
-                        CompanyAdjustAmount = x.Sum(p => p.CompanyAdjustAmount),
-                        AgentAdjustAmount = x.Sum(p => p.AgentAdjustAmount),
-                        BonusAdjustAmount = x.Sum(p => p.BonusAdjustAmount),
-                        BonusAmount = x.Sum(p =>
-                            p.RebateAmount + p.PromotionAmount + p.UpgradeAmount + p.SeasonAmount + p.BirthdayAmount),
-                        BetAmount = x.Sum(p => p.BetAmount),
-                        ValidBetAmount = x.Sum(p => p.ValidBetAmount),
-                        OriginalTurnover = x.Sum(p => p.OriginalTurnover),
-                        Turnover = x.Sum(p => p.Turnover),
-                        WinLossAmount = x.Sum(p => p.WinLossAmount),
-                        NoIncludeNetProfitCompanyAdjustAmount =
-                            x.Sum(p => p.NoIncludeNetProfitCompanyAdjustAmount),
-                        NoIncludeNetProfitAgentAdjustAmount =
-                            x.Sum(p => p.NoIncludeNetProfitAgentAdjustAmount),
-                        NoIncludeNetProfitBonusAdjustAmount =
-                            x.Sum(p => p.NoIncludeNetProfitBonusAdjustAmount)
-                    })
-                    .ToArrayAsync(cancellationToken);
-            }) ?? [];
+                             return context.PlayerAggregates
+                                 .Where(x => x.BrandId == brandId)
+                                 .Where(x => x.AgentId != null)
+                                 .Where(x => x.ReportDate >= from && x.ReportDate <= to)
+                                 .GroupJoin(context.PlayerAgentRelations,
+                                     pa => pa.PlayerCode,
+                                     par => par.PlayerCode,
+                                     (pa, par) => new
+                                     {
+                                         pa,
+                                         par = par.DefaultIfEmpty()
+                                     })
+                                 .SelectMany(x => x.par.DefaultIfEmpty(),
+                                     (x, playerAgentRelation) => new
+                                     {
+                                         x.pa,
+                                         playerAgentRelation
+                                     })
+                                 .Where(!includePlayerAgent, x => x.playerAgentRelation == null)
+                                 .GroupBy(x => new
+                                 {
+                                     x.pa.BrandId,
+                                     x.pa.AgentId
+                                 })
+                                 .Select(x => new AgentPlayerAggregateModel
+                                 {
+                                     AgentId = x.Key.AgentId!.Value,
+                                     BrandId = x.Key.BrandId,
+                                     From = from,
+                                     To = to,
+                                     PromotionAmount = x.Sum(p => p.pa.PromotionAmount),
+                                     RebateAmount = x.Sum(p => p.pa.RebateAmount),
+                                     DepositAmount = x.Sum(p => p.pa.DepositAmount),
+                                     WithdrawalAmount = x.Sum(p => p.pa.WithdrawalAmount),
+                                     CompanyAdjustAmount = x.Sum(p => p.pa.CompanyAdjustAmount),
+                                     AgentAdjustAmount = x.Sum(p => p.pa.AgentAdjustAmount),
+                                     BonusAdjustAmount = x.Sum(p => p.pa.BonusAdjustAmount),
+                                     BonusAmount = x.Sum(p =>
+                                         p.pa.RebateAmount +
+                                         p.pa.PromotionAmount +
+                                         p.pa.UpgradeAmount +
+                                         p.pa.SeasonAmount +
+                                         p.pa.BirthdayAmount),
+                                     BetAmount = x.Sum(p => p.pa.BetAmount),
+                                     ValidBetAmount = x.Sum(p => p.pa.ValidBetAmount),
+                                     OriginalTurnover = x.Sum(p => p.pa.OriginalTurnover),
+                                     Turnover = x.Sum(p => p.pa.Turnover),
+                                     WinLossAmount = x.Sum(p => p.pa.WinLossAmount),
+                                     NoIncludeNetProfitCompanyAdjustAmount =
+                                         x.Sum(p => p.pa.NoIncludeNetProfitCompanyAdjustAmount),
+                                     NoIncludeNetProfitAgentAdjustAmount =
+                                         x.Sum(p => p.pa.NoIncludeNetProfitAgentAdjustAmount),
+                                     NoIncludeNetProfitBonusAdjustAmount =
+                                         x.Sum(p => p.pa.NoIncludeNetProfitBonusAdjustAmount)
+                                 })
+                                 .ToArrayAsync(cancellationToken);
+                         }) ??
+                     [];
 
         foreach (var model in models) yield return model;
     }

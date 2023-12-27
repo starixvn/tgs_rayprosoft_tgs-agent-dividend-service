@@ -78,4 +78,6 @@ public partial class Player
     public virtual Agent? Agent { get; set; }
 
     public virtual Brand Brand { get; set; } = null!;
+
+    public virtual PlayerAgentRelation? PlayerAgentRelation { get; set; }
 }

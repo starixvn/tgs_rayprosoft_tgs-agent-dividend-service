@@ -97,5 +97,7 @@ public partial class Brand
 
     public virtual ICollection<Agent> Agents { get; set; } = new List<Agent>();
 
+    public virtual PlayerAgentRelation? PlayerAgentRelation { get; set; }
+
     public virtual ICollection<Player> Players { get; set; } = new List<Player>();
 }

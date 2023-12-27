@@ -453,7 +453,8 @@ public class AgentDividendHandlerTests
             .GetAgentPlayerAggregatesForMultipleLayerCacheAsync(Arg.Any<Guid>(),
                 Arg.Any<DateTime>(),
                 Arg.Any<DateTime>(),
-                Arg.Any<CancellationToken>())
+                Arg.Any<CancellationToken>(),
+                false)
             .Returns(agentPlayerAggregates.ToAsyncEnumerable());
         fakeRepository.GetAgentPlayerGameAggregatesCacheAsync(Arg.Any<Guid>(), Arg.Any<DateTime>(), Arg.Any<DateTime>())
             .Returns(AsyncEnumerable.Empty<AgentPlayerGameAggregateModel>());

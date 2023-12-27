@@ -8,4 +8,9 @@ public static class ServiceCollectionExtensions
     {
         return services.AddHttpClient<IAgentDividendClient, AgentDividendClient>();
     }
+
+    public static IHttpClientBuilder AddBrandContractClient(this IServiceCollection services)
+    {
+        return services.AddHttpClient<IBrandContractClient, BrandContractClient>();
+    }
 }

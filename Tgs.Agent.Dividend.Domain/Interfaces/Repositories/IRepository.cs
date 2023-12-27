@@ -21,7 +21,8 @@ public interface IRepository
     IAsyncEnumerable<AgentPlayerAggregateModel> GetAgentPlayerAggregatesForMultipleLayerCacheAsync(Guid brandId,
         DateTime from,
         DateTime to,
-        CancellationToken cancellationToken);
+        CancellationToken cancellationToken,
+        bool includePlayerAgent = true);
 
     IAsyncEnumerable<AgentPlayerGameAggregateModel> GetAgentPlayerGameAggregatesCacheAsync(Guid brandId,
         DateTime from,
