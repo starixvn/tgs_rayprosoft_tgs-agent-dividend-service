@@ -13,4 +13,10 @@ public static class ServiceCollectionExtensions
     {
         return services.AddHttpClient<IBrandContractClient, BrandContractClient>();
     }
+
+    public static IHttpClientBuilder AddAgentContractClient(this IServiceCollection services)
+    {
+        return services.AddHttpClient<IAgentContractClient, AgentContractClient>();
+    }
+
 }
