@@ -1,6 +1,6 @@
-﻿namespace Tgs.Agent.Dividend.Domain.Models
+﻿namespace Tgs.Agent.Dividend.Domain.Models.BrandContract
 {
-    public record BrandContractCondition(
+    public record BrandContractConditionModel(
         int Rank,
         int ActiveNumber,
         decimal DividendPercentage,

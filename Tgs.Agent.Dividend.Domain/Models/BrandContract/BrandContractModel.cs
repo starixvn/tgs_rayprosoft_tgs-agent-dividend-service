@@ -1,8 +1,8 @@
 ﻿using Tgs.Agent.Dividend.Domain.Enums;
 
-namespace Tgs.Agent.Dividend.Domain.Models
+namespace Tgs.Agent.Dividend.Domain.Models.BrandContract
 {
-    public record BrandContract(
+    public record BrandContractModel(
         Guid Id,
         Guid BrandId,
         string Name,
@@ -11,6 +11,6 @@ namespace Tgs.Agent.Dividend.Domain.Models
         decimal ValidBetAmount,
         decimal DepositAmount,
         int BetDays,
-        ContractGameType[] GameTypes,
-        IEnumerable<BrandContractCondition> Conditions);
+        int[] GameTypes,
+        IEnumerable<BrandContractConditionModel> Conditions);
 }

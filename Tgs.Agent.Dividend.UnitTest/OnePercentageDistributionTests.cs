@@ -116,11 +116,11 @@ public class OnePercentageDistributionTests
         var conditions = new[]
         {
             CreateAgentContractConditionFixture(1, contract.Id, 2, 10, 0, 5)
-                .Create<AgentDividendContractPercentageModel>(),
+                .Create<AgentDividendContractConditionModel>(),
             CreateAgentContractConditionFixture(2, contract.Id, 2, 100, 0, 10)
-                .Create<AgentDividendContractPercentageModel>(),
+                .Create<AgentDividendContractConditionModel>(),
             CreateAgentContractConditionFixture(3, contract.Id, 2, 110, 0, 12)
-                .Create<AgentDividendContractPercentageModel>()
+                .Create<AgentDividendContractConditionModel>()
         };
 
         fakeRepository.GetBrandAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(brand);
@@ -276,11 +276,11 @@ public class OnePercentageDistributionTests
         var conditions = new[]
         {
             CreateAgentContractConditionFixture(1, contract.Id, 2, 10, 0, 5)
-                .Create<AgentDividendContractPercentageModel>(),
+                .Create<AgentDividendContractConditionModel>(),
             CreateAgentContractConditionFixture(2, contract.Id, 2, 100, 0, 10)
-                .Create<AgentDividendContractPercentageModel>(),
+                .Create<AgentDividendContractConditionModel>(),
             CreateAgentContractConditionFixture(3, contract.Id, 2, 110, 0, 12)
-                .Create<AgentDividendContractPercentageModel>()
+                .Create<AgentDividendContractConditionModel>()
         };
 
         fakeRepository.GetBrandAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(brand);
@@ -428,9 +428,9 @@ public class OnePercentageDistributionTests
         var conditions = new[]
         {
             CreateAgentContractConditionFixture(1, contract.Id, 2, 10, 10, 10)
-                .Create<AgentDividendContractPercentageModel>(),
+                .Create<AgentDividendContractConditionModel>(),
             CreateAgentContractConditionFixture(2, contract.Id, 2, 11, 11, 12)
-                .Create<AgentDividendContractPercentageModel>()
+                .Create<AgentDividendContractConditionModel>()
         };
 
         fakeRepository.GetBrandAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(brand);
@@ -631,7 +631,7 @@ public class OnePercentageDistributionTests
         decimal percentage)
     {
         var fixture = new Fixture();
-        fixture.Customize<AgentDividendContractPercentageModel>(u => u
+        fixture.Customize<AgentDividendContractConditionModel>(u => u
             .With(s => s.Rank, rank)
             .With(s => s.WinLossAmount, winLossAmount)
             .With(s => s.ValidNumber, validNumber)

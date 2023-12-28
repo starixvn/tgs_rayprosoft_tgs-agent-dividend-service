@@ -1,12 +1,24 @@
 ﻿using Tgs.Agent.Dividend.Domain.Models;
+using Tgs.Agent.Dividend.Domain.Models.AgentContract;
+using Tgs.Agent.Dividend.Domain.Models.BrandContract;
 
 namespace Tgs.Agent.Dividend.Domain.Interfaces.Repositories;
 
 public interface IContractRepository
 {
     IAsyncEnumerable<AgentDividendContractModel> GetAgentDividendContractsAsync(Guid brandId);
-
-    IAsyncEnumerable<AgentDividendContractPercentageModel> GetAgentDividendContractConditionsAsync(
+    
+    IAsyncEnumerable<AgentDividendContractConditionModel> GetAgentDividendContractConditionsAsync(
         Guid agentDividendContractId,
+        CancellationToken cancellationToken);
+
+    IAsyncEnumerable<BrandContractModel> GetBrandContractsAsync(Guid brandId);
+
+    IAsyncEnumerable<AgentDividendContractViewModel> GetAgentDividendContractsAsync(Guid agentId, CancellationToken cancellationToken);
+    
+    Task CreateAgentContractAsync(CreateAgentContractRequest request,
+        CancellationToken cancellationToken);
+
+    Task CreateBrandContractAsync(CreateBrandContractRequest request,
         CancellationToken cancellationToken);
 }

@@ -1,7 +1,7 @@
 ﻿using MediatR;
 using Tgs.Agent.Dividend.Domain.Enums;
 
-namespace Tgs.Agent.Dividend.Domain.Models
+namespace Tgs.Agent.Dividend.Domain.Models.BrandContract
 {
     public record CreateBrandContractRequest(
         Guid BrandId,
@@ -11,6 +11,7 @@ namespace Tgs.Agent.Dividend.Domain.Models
         decimal ValidBetAmount,
         decimal DepositAmount,
         int BetDays,
+        string EditorUsername,
         ContractGameType[]? GameTypes,
         IEnumerable<CreateBrandContractCondition> Conditions) : IRequest;
 }

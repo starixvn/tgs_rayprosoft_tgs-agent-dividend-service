@@ -181,7 +181,7 @@ internal class OnePercentageDistribution(IContractRepository contractRepository,
         bool checkDividendActiveCount,
         IEnumerable<AgentModel> lineAgents,
         AgentConditionModel agentCurrentCondition,
-        IEnumerable<AgentDividendContractPercentageModel> agentDividendConditions)
+        IEnumerable<AgentDividendContractConditionModel> agentDividendConditions)
     {
         var (meetingTheRequirement, percentage) = GetAgentDividendPercentage(agentDividendConditions,
             agentCurrentCondition,
@@ -266,7 +266,7 @@ internal class OnePercentageDistribution(IContractRepository contractRepository,
     }
 
     private static (bool meetingTheRequirement, decimal percentage) GetAgentDividendPercentage(
-        IEnumerable<AgentDividendContractPercentageModel> agentDividendCondition,
+        IEnumerable<AgentDividendContractConditionModel> agentDividendCondition,
         AgentConditionModel currentCondition,
         bool checkDividendActiveCount)
     {

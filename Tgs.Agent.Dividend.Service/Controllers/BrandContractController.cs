@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Tgs.Agent.Dividend.Domain.Models;
+using Tgs.Agent.Dividend.Domain.Models.BrandContract;
 
 namespace Tgs.Agent.Dividend.Service.Controllers
 {
@@ -9,9 +10,9 @@ namespace Tgs.Agent.Dividend.Service.Controllers
     public class BrandContractController(ISender sender) : ControllerBase
     {
         [HttpGet("{brandId:guid}")]
-        public IAsyncEnumerable<BrandContract> GetBrandContractAsync(Guid brandId)
+        public IAsyncEnumerable<BrandContractModel> GetBrandContractAsync(Guid brandId)
         {
-            return sender.CreateStream(new GetBrandContractRequest(brandId));
+            return sender.CreateStream(new GetBrandContractsRequest(brandId));
         }
 
         [HttpPost]

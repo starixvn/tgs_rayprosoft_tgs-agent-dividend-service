@@ -32,11 +32,23 @@
          "ObjectType": 0
       },
       {
+         "Name": "dbo.agent_dividend_snapshots",
+         "ObjectType": 0
+      },
+      {
          "Name": "dbo.agent_dividends",
          "ObjectType": 0
       },
       {
          "Name": "dbo.agents",
+         "ObjectType": 0
+      },
+      {
+         "Name": "dbo.brand_contract_conditions",
+         "ObjectType": 0
+      },
+      {
+         "Name": "dbo.brand_contracts",
          "ObjectType": 0
       },
       {

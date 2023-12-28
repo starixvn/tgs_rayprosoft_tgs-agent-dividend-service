@@ -115,7 +115,7 @@ internal class MultipleLayerDistribution(IContractRepository contractRepository,
         Guid contractId,
         bool checkDividendActiveCount,
         AgentConditionModel agentCurrentCondition,
-        IEnumerable<AgentDividendContractPercentageModel> agentDividendConditions)
+        IEnumerable<AgentDividendContractConditionModel> agentDividendConditions)
     {
         var layer = agentId.ToString();
 
@@ -140,7 +140,7 @@ internal class MultipleLayerDistribution(IContractRepository contractRepository,
     }
 
     private static decimal GetAgentDividendPercentage(
-        IEnumerable<AgentDividendContractPercentageModel> agentDividendCondition,
+        IEnumerable<AgentDividendContractConditionModel> agentDividendCondition,
         AgentConditionModel currentCondition,
         bool checkDividendActiveCount)
     {
