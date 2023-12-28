@@ -1,5 +1,12 @@
-﻿using Tgs.Agent.Dividend.Domain.Interfaces.Repositories;
+﻿using System.Diagnostics.Contracts;
+using System.Runtime.CompilerServices;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Tgs.Agent.Dividend.Domain.Enums;
+using Tgs.Agent.Dividend.Domain.Interfaces.Repositories;
 using Tgs.Agent.Dividend.Domain.Models;
+using Tgs.Agent.Dividend.Domain.Models.AgentContract;
+using Tgs.Agent.Dividend.Domain.Models.BrandContract;
 using Tgs.Agent.Dividend.Repository.Entities;
 
 namespace Tgs.Agent.Dividend.Repository;
@@ -24,13 +31,13 @@ internal class ContractRepository(tgsContext context) : IContractRepository
             .ToAsyncEnumerable();
     }
 
-    public IAsyncEnumerable<AgentDividendContractPercentageModel> GetAgentDividendContractConditionsAsync(
+    public IAsyncEnumerable<AgentDividendContractConditionModel> GetAgentDividendContractConditionsAsync(
         Guid agentDividendContractId,
         CancellationToken cancellationToken)
     {
         return context.AgentDividendConditions
             .Where(x => x.ContractId == agentDividendContractId)
-            .Select(x => new AgentDividendContractPercentageModel
+            .Select(x => new AgentDividendContractConditionModel
             {
                 AgentDividendContractId = x.ContractId,
                 Rank = x.Rank,
@@ -40,5 +47,135 @@ internal class ContractRepository(tgsContext context) : IContractRepository
                 Percentage = x.DividendPercentage
             })
             .ToAsyncEnumerable();
+    }
+
+    public IAsyncEnumerable<BrandContractModel> GetBrandContractsAsync(Guid brandId)
+    {
+        return context.BrandContracts.Where(x => x.BrandId == brandId)
+            .Select(x => new BrandContractModel(
+                x.Id,
+                x.BrandId,
+                x.Name,
+                x.ContractDividendType,
+                x.GradeIntervalLimit,
+                x.ValidBetAmount,
+                x.DepositAmount,
+                x.BetDays,
+                x.GameTypes.Select(g => int.Parse(g)).ToArray(),
+                x.BrandContractConditions.Select(b =>
+                    new BrandContractConditionModel(
+                        b.Rank,
+                        b.ActiveNumber,
+                        b.DividendPercentage,
+                        b.NetProfit,
+                        b.WinLossAmount))))
+            .ToAsyncEnumerable();
+    }
+
+    public async IAsyncEnumerable<AgentDividendContractViewModel> GetAgentDividendContractsAsync(Guid agentId, [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        var contracts = await context.AgentDividendContracts.Where(x => x.AgentId == agentId).ToArrayAsync(cancellationToken);
+        var conditions = await context.AgentDividendConditions.Where(x => x.AgentId == agentId).ToArrayAsync(cancellationToken);
+
+        var models = contracts.Select(x => new AgentDividendContractViewModel
+            {
+                Id = x.Id,
+                BrandId = x.BrandId,
+                AgentId = x.AgentId,
+                Name = x.Name,
+                ContractDividendType = x.ContractDividendType,
+                ContractStatus = x.ContractStatus,
+                ValidBetAmount = x.ValidBetAmount,
+                DepositAmount = x.DepositAmount,
+                BetDays = x.BetDays,
+                Conditions = conditions.Where(c => c.ContractId == x.Id)
+                    .Select(s => new AgentDividendContractConditionViewModel
+                    {
+                        Rank = s.Rank,
+                        ValidNumber = s.ActiveNumber,
+                        WinLossAmount = s.WinLossAmount,
+                        NetProfit = s.NetProfit,
+                        Percentage = s.DividendPercentage,
+                        AgentDividendContractId = x.Id
+                    })
+            });
+
+        foreach (var agentDividendContractViewModel in models)
+        {
+            yield return agentDividendContractViewModel;
+        }
+    }
+
+    public async Task CreateAgentContractAsync(CreateAgentContractRequest request, CancellationToken cancellationToken)
+    {
+        var id = Guid.NewGuid();
+
+        var brandContract = await context.BrandContracts
+            .Include(x => x.BrandContractConditions)
+            .FirstAsync(x => x.Id == request.BrandContractId, cancellationToken)
+            .ConfigureAwait(false);
+
+        var contract = new AgentDividendContract
+        {
+            Id = id,
+            BrandId = request.BrandId,
+            AgentId = request.AgentId,
+            Name = request.Name,
+            GradeIntervalLimit = brandContract.GradeIntervalLimit,
+            ContractDividendType = brandContract.ContractDividendType,
+            ContractStatus = (short)ContractStatus.Enabled,
+            ValidBetAmount = brandContract.ValidBetAmount,
+            DepositAmount = brandContract.DepositAmount,
+            BetDays = brandContract.BetDays,
+        };
+
+        var conditions = brandContract.BrandContractConditions.Select(x => new AgentDividendCondition
+        {
+            ContractId = id,
+            Rank = x.Rank,
+            AgentId = request.AgentId,
+            NetProfit = x.NetProfit,
+            ActiveNumber = x.ActiveNumber,
+            WinLossAmount = x.WinLossAmount
+        });
+
+        _ = await context.AgentDividendContracts.AddAsync(contract, cancellationToken).ConfigureAwait(false);
+
+        await context.AgentDividendConditions.AddRangeAsync(conditions, cancellationToken).ConfigureAwait(false);
+
+        _ = await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+    }
+
+    public async Task CreateBrandContractAsync(CreateBrandContractRequest request, CancellationToken cancellationToken)
+    {
+        var id = Guid.NewGuid();
+
+        var contract = new BrandContract
+        {
+            Id = id,
+            BrandId = request.BrandId,
+            Name = request.Name,
+            GradeIntervalLimit = request.GradeIntervalLimit,
+            ContractDividendType = request.ContractDividendType,
+            ContractStatus = (short)ContractStatus.Enabled,
+            ValidBetAmount = request.ValidBetAmount,
+            DepositAmount = request.DepositAmount,
+            BetDays = request.BetDays,
+            GameTypes = request.GameTypes?.Select(x => ((int)x).ToString()).ToList() ?? [],
+            CreatedByUsername = request.EditorUsername,
+            BrandContractConditions = request.Conditions.Select(x => new BrandContractCondition
+                {
+                    BrandContractId = id,
+                    Rank = x.Rank,
+                    ActiveNumber = x.ActiveNumber,
+                    NetProfit = x.NetProfit,
+                    WinLossAmount = x.WinLossAmount,
+                    DividendPercentage = x.DividendPercentage
+                })
+                .ToHashSet()
+        };
+
+        _ = await context.BrandContracts.AddAsync(contract, cancellationToken).ConfigureAwait(false);
+        _ = await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
     }
 }

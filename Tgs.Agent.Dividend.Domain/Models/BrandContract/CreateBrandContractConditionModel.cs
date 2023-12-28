@@ -1,4 +1,4 @@
-﻿namespace Tgs.Agent.Dividend.Domain.Models
+﻿namespace Tgs.Agent.Dividend.Domain.Models.BrandContract
 {
     public record CreateBrandContractCondition(
         int Rank,

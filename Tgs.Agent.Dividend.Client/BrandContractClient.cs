@@ -23,6 +23,6 @@ public class BrandContractClient(HttpClient client) : IBrandContractClient
 
     public IAsyncEnumerable<BrandContract?> GetBrandContractAsync(Guid brandId, CancellationToken cancellationToken)
     {
-        return client.GetFromJsonAsAsyncEnumerable<BrandContract>("/api/brandContract", cancellationToken);
+        return client.GetFromJsonAsAsyncEnumerable<BrandContract>($"/api/brandContract/{brandId}", cancellationToken);
     }
 }

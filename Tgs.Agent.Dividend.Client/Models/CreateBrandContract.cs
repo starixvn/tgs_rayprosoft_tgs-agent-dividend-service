@@ -15,6 +15,7 @@ namespace Tgs.Agent.Dividend.Client.Models
         decimal ValidBetAmount,
         decimal DepositAmount,
         int BetDays,
+        string EditorUsername,
         ContractGameType[]? GameTypes,
         IEnumerable<CreateBrandContractCondition> Conditions);
 }

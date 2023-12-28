@@ -1,6 +1,6 @@
-﻿namespace Tgs.Agent.Dividend.Domain.Models;
+﻿namespace Tgs.Agent.Dividend.Client.Models;
 
-public class AgentDividendContractPercentageModel
+public class AgentDividendContractCondition
 {
     public int Rank { get; set; }
     public int ValidNumber { get; set; }

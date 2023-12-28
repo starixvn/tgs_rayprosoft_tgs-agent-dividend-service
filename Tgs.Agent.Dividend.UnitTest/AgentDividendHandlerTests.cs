@@ -12,6 +12,7 @@ using Tgs.Agent.Dividend.Domain.Enums;
 using Tgs.Agent.Dividend.Domain.Interfaces;
 using Tgs.Agent.Dividend.Domain.Interfaces.Repositories;
 using Tgs.Agent.Dividend.Domain.Models;
+using Tgs.Agent.Dividend.Domain.Models.AgentContract;
 using Tgs.Agent.Dividend.Repository.Entities;
 
 namespace Tgs.Agent.Dividend.UnitTest;
@@ -227,7 +228,7 @@ public class AgentDividendHandlerTests
         fakeContractRepository.GetAgentDividendContractConditionsAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(new[]
             {
-                new AgentDividendContractPercentageModel
+                new AgentDividendContractConditionModel
                 {
                     Rank = 1,
                     ValidNumber = 1,
@@ -235,7 +236,7 @@ public class AgentDividendHandlerTests
                     NetProfit = 10,
                     Percentage = 50
                 },
-                new AgentDividendContractPercentageModel
+                new AgentDividendContractConditionModel
                 {
                     Rank = 2,
                     ValidNumber = 2,
@@ -432,7 +433,7 @@ public class AgentDividendHandlerTests
         fakeContractRepository.GetAgentDividendContractConditionsAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(new[]
             {
-                new AgentDividendContractPercentageModel
+                new AgentDividendContractConditionModel
                 {
                     Rank = 1,
                     ValidNumber = 1,
@@ -440,7 +441,7 @@ public class AgentDividendHandlerTests
                     NetProfit = 0,
                     Percentage = 50
                 },
-                new AgentDividendContractPercentageModel
+                new AgentDividendContractConditionModel
                 {
                     Rank = 2,
                     ValidNumber = 2,

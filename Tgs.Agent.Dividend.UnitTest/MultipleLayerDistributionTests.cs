@@ -87,9 +87,9 @@ public class MultipleLayerDistributionTests
         var conditions = new[]
         {
             CreateAgentContractConditionFixture(1, contract.Id, 2, 0, 100, 10)
-                .Create<AgentDividendContractPercentageModel>(),
+                .Create<AgentDividendContractConditionModel>(),
             CreateAgentContractConditionFixture(2, contract.Id, 2, 0, 110, 12)
-                .Create<AgentDividendContractPercentageModel>()
+                .Create<AgentDividendContractConditionModel>()
         };
 
         fakeRepository.GetBrandAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(brand);
@@ -185,9 +185,9 @@ public class MultipleLayerDistributionTests
         var conditions = new[]
         {
             CreateAgentContractConditionFixture(1, contract.Id, 2, 0, 100, 10)
-                .Create<AgentDividendContractPercentageModel>(),
+                .Create<AgentDividendContractConditionModel>(),
             CreateAgentContractConditionFixture(2, contract.Id, 2, 0, 110, 12)
-                .Create<AgentDividendContractPercentageModel>()
+                .Create<AgentDividendContractConditionModel>()
         };
 
         fakeRepository.GetBrandAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(brand);
@@ -326,7 +326,7 @@ public class MultipleLayerDistributionTests
         decimal percentage)
     {
         var fixture = new Fixture();
-        fixture.Customize<AgentDividendContractPercentageModel>(u => u
+        fixture.Customize<AgentDividendContractConditionModel>(u => u
             .With(s => s.Rank, rank)
             .With(s => s.WinLossAmount, validBetAmount)
             .With(s => s.ValidNumber, validNumber)
