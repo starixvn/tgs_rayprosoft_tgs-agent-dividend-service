@@ -1,7 +1,7 @@
-﻿using System.Text.Json;
+﻿using System.Net.Http.Json;
 using System.Text;
+using System.Text.Json;
 using Tgs.Agent.Dividend.Client.Models;
-using System.Net.Http.Json;
 
 namespace Tgs.Agent.Dividend.Client;
 
@@ -24,6 +24,7 @@ public class AgentContractClient(HttpClient client) : IAgentContractClient
     public IAsyncEnumerable<AgentDividendContract?> GetAgentContractAsync(Guid agentId,
         CancellationToken cancellationToken)
     {
-        return client.GetFromJsonAsAsyncEnumerable<AgentDividendContract>($"/api/agentContract/{agentId}", cancellationToken);
+        return client.GetFromJsonAsAsyncEnumerable<AgentDividendContract>($"/api/agentContract/{agentId}",
+            cancellationToken);
     }
 }

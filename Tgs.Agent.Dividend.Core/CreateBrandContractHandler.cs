@@ -1,5 +1,4 @@
 ﻿using MediatR;
-using Tgs.Agent.Dividend.Core.Workers;
 using Tgs.Agent.Dividend.Domain.Interfaces.Repositories;
 using Tgs.Agent.Dividend.Domain.Models.BrandContract;
 

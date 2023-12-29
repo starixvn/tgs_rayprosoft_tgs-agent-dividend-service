@@ -1,5 +1,4 @@
-﻿using System.Runtime.CompilerServices;
-using System.Text.Json;
+﻿using System.Text.Json;
 using Tgs.Agent.Dividend.Domain;
 using Tgs.Agent.Dividend.Domain.Interfaces;
 using Tgs.Agent.Dividend.Domain.Interfaces.Repositories;
@@ -60,7 +59,7 @@ internal class OneLayerDistribution(IRepository repository) : IDistribution
         CancellationToken cancellationToken)
     {
         var exists = currentAllAgentPlayerAggregates.Any(a =>
-                a.AgentId == layer.AgentId && a.AgentDividendPercentage == layer.AgentDividendPercentage);
+            a.AgentId == layer.AgentId && a.AgentDividendPercentage == layer.AgentDividendPercentage);
 
         if (exists) yield break;
 

@@ -44,6 +44,10 @@
          "ObjectType": 0
       },
       {
+         "Name": "dbo.brand_agent_dividend_conditions",
+         "ObjectType": 0
+      },
+      {
          "Name": "dbo.brand_contract_conditions",
          "ObjectType": 0
       },

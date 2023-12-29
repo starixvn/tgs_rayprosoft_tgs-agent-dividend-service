@@ -1,5 +1,4 @@
 ﻿using MediatR;
-using Tgs.Agent.Dividend.Core.Workers;
 using Tgs.Agent.Dividend.Domain.Interfaces.Repositories;
 using Tgs.Agent.Dividend.Domain.Models.BrandContract;
 
@@ -9,7 +8,8 @@ internal class GetBrandContractsHandler(
     IContractRepository contractRepository)
     : IStreamRequestHandler<GetBrandContractsRequest, BrandContractModel>
 {
-    public IAsyncEnumerable<BrandContractModel> Handle(GetBrandContractsRequest request, CancellationToken cancellationToken)
+    public IAsyncEnumerable<BrandContractModel> Handle(GetBrandContractsRequest request,
+        CancellationToken cancellationToken)
     {
         return contractRepository.GetBrandContractsAsync(request.BrandId);
     }
