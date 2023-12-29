@@ -31,7 +31,7 @@ public class AgentContractTests
 
         var sut = new AgentContractClient(httpClient);
 
-        await sut.CreateAgentContractAsync(new CreateAgentContractRequest(brandId, agentId, brandContractId, "name"),
+        await sut.CreateAgentContractAsync(new CreateAgentContractRequest(brandId, agentId, brandContractId),
             default);
 
         _ = fakeContractRepository.ReceivedWithAnyArgs(1).CreateAgentContractAsync(null!, default);
