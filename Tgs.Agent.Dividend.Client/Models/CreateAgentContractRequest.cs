@@ -3,5 +3,4 @@
 public record CreateAgentContractRequest(
     Guid BrandId,
     Guid AgentId,
-    Guid BrandContractId,
-    string Name);
+    Guid BrandContractId);
