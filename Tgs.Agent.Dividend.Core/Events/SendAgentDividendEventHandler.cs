@@ -16,13 +16,7 @@ internal class SendAgentDividendEventHandler(
     {
         try
         {
-            await repository.CreateAgentDividendRecordAsync(@event.BrandId,
-                @event.AgentId,
-                @event.AgentDividendId,
-                @event.Amount,
-                cancellationToken);
-
-            if (@event.Amount != 0)
+            if (@event.Amount >= 0)
                 _ = await cashServiceClient.AgentDividendAsync(@event.WalletId,
                     @event.Amount,
                     "",

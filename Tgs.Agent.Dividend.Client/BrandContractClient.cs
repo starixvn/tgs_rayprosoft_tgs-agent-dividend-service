@@ -21,6 +21,22 @@ public class BrandContractClient(HttpClient client) : IBrandContractClient
         _ = response.EnsureSuccessStatusCode();
     }
 
+    public async Task UpdateBrandContractConditionsForMultipleLayerAsync(Guid brandId,
+        IEnumerable<BrandContractConditionForMultipleLayerModel> conditions,
+        CancellationToken cancellationToken)
+    {
+        using StringContent jsonContent = new(
+            JsonSerializer.Serialize(conditions),
+            Encoding.UTF8,
+            "application/json");
+
+        var response = await client
+            .PutAsync($"/api/brandContract/{brandId}", jsonContent, cancellationToken)
+            .ConfigureAwait(false);
+
+        _ = response.EnsureSuccessStatusCode();
+    }
+
     public IAsyncEnumerable<BrandContract?> GetBrandContractAsync(Guid brandId, CancellationToken cancellationToken)
     {
         return client.GetFromJsonAsAsyncEnumerable<BrandContract>($"/api/brandContract/{brandId}", cancellationToken);

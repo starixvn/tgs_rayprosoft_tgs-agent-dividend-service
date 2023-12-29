@@ -12,7 +12,6 @@ using Tgs.Agent.Dividend.Domain.Enums;
 using Tgs.Agent.Dividend.Domain.Interfaces;
 using Tgs.Agent.Dividend.Domain.Interfaces.Repositories;
 using Tgs.Agent.Dividend.Domain.Models;
-using Tgs.Agent.Dividend.Domain.Models.AgentContract;
 using Tgs.Agent.Dividend.Repository.Entities;
 
 namespace Tgs.Agent.Dividend.UnitTest;

@@ -1,7 +1,5 @@
-﻿using System.Diagnostics.Contracts;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using Tgs.Agent.Dividend.Domain.Enums;
 using Tgs.Agent.Dividend.Domain.Interfaces.Repositories;
 using Tgs.Agent.Dividend.Domain.Models;
@@ -72,38 +70,38 @@ internal class ContractRepository(tgsContext context) : IContractRepository
             .ToAsyncEnumerable();
     }
 
-    public async IAsyncEnumerable<AgentDividendContractViewModel> GetAgentDividendContractsAsync(Guid agentId, [EnumeratorCancellation] CancellationToken cancellationToken)
+    public async IAsyncEnumerable<AgentDividendContractViewModel> GetAgentDividendContractsAsync(Guid agentId,
+        [EnumeratorCancellation] CancellationToken cancellationToken)
     {
-        var contracts = await context.AgentDividendContracts.Where(x => x.AgentId == agentId).ToArrayAsync(cancellationToken);
-        var conditions = await context.AgentDividendConditions.Where(x => x.AgentId == agentId).ToArrayAsync(cancellationToken);
+        var contracts = await context.AgentDividendContracts.Where(x => x.AgentId == agentId)
+            .ToArrayAsync(cancellationToken);
+        var conditions = await context.AgentDividendConditions.Where(x => x.AgentId == agentId)
+            .ToArrayAsync(cancellationToken);
 
         var models = contracts.Select(x => new AgentDividendContractViewModel
-            {
-                Id = x.Id,
-                BrandId = x.BrandId,
-                AgentId = x.AgentId,
-                Name = x.Name,
-                ContractDividendType = x.ContractDividendType,
-                ContractStatus = x.ContractStatus,
-                ValidBetAmount = x.ValidBetAmount,
-                DepositAmount = x.DepositAmount,
-                BetDays = x.BetDays,
-                Conditions = conditions.Where(c => c.ContractId == x.Id)
-                    .Select(s => new AgentDividendContractConditionViewModel
-                    {
-                        Rank = s.Rank,
-                        ValidNumber = s.ActiveNumber,
-                        WinLossAmount = s.WinLossAmount,
-                        NetProfit = s.NetProfit,
-                        Percentage = s.DividendPercentage,
-                        AgentDividendContractId = x.Id
-                    })
-            });
-
-        foreach (var agentDividendContractViewModel in models)
         {
-            yield return agentDividendContractViewModel;
-        }
+            Id = x.Id,
+            BrandId = x.BrandId,
+            AgentId = x.AgentId,
+            Name = x.Name,
+            ContractDividendType = x.ContractDividendType,
+            ContractStatus = x.ContractStatus,
+            ValidBetAmount = x.ValidBetAmount,
+            DepositAmount = x.DepositAmount,
+            BetDays = x.BetDays,
+            Conditions = conditions.Where(c => c.ContractId == x.Id)
+                .Select(s => new AgentDividendContractConditionViewModel
+                {
+                    Rank = s.Rank,
+                    ValidNumber = s.ActiveNumber,
+                    WinLossAmount = s.WinLossAmount,
+                    NetProfit = s.NetProfit,
+                    Percentage = s.DividendPercentage,
+                    AgentDividendContractId = x.Id
+                })
+        });
+
+        foreach (var agentDividendContractViewModel in models) yield return agentDividendContractViewModel;
     }
 
     public async Task CreateAgentContractAsync(CreateAgentContractRequest request, CancellationToken cancellationToken)
@@ -126,7 +124,7 @@ internal class ContractRepository(tgsContext context) : IContractRepository
             ContractStatus = (short)ContractStatus.Enabled,
             ValidBetAmount = brandContract.ValidBetAmount,
             DepositAmount = brandContract.DepositAmount,
-            BetDays = brandContract.BetDays,
+            BetDays = brandContract.BetDays
         };
 
         var conditions = brandContract.BrandContractConditions.Select(x => new AgentDividendCondition
@@ -177,5 +175,50 @@ internal class ContractRepository(tgsContext context) : IContractRepository
 
         _ = await context.BrandContracts.AddAsync(contract, cancellationToken).ConfigureAwait(false);
         _ = await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+    }
+
+    public async Task UpdateBrandContractConditionsForMultipleLayerAsync(
+        UpdateBrandContractConditionForMultipleLayerRequest request,
+        CancellationToken cancellationToken)
+    {
+        var brandContract = await context.BrandContracts
+            .FirstAsync(x => x.BrandId == request.BrandId, cancellationToken)
+            .ConfigureAwait(false);
+
+        var brandAgentDividendConditions = request.Conditions.Select(x
+            => new BrandAgentDividendCondition
+            {
+                BrandId = request.BrandId,
+                Rank = x.Rank,
+                ActiveNumber = x.ActiveNumber,
+                NetProfit = x.NetProfit,
+                DividendPercentage = x.DividendPercentage
+            });
+
+        var brandContractConditions = request.Conditions.Select(x
+            => new BrandContractCondition
+            {
+                BrandContractId = brandContract.Id,
+                Rank = x.Rank,
+                ActiveNumber = x.ActiveNumber,
+                NetProfit = x.NetProfit,
+                DividendPercentage = x.DividendPercentage
+            });
+
+        await context.BrandContractConditions.Where(x => x.BrandContract.BrandId == request.BrandId)
+            .ExecuteDeleteAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        await context.BrandAgentDividendConditions.Where(x => x.BrandId == request.BrandId)
+            .ExecuteDeleteAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        await context.BrandAgentDividendConditions.AddRangeAsync(brandAgentDividendConditions, cancellationToken)
+            .ConfigureAwait(false);
+
+        await context.BrandContractConditions.AddRangeAsync(brandContractConditions, cancellationToken)
+            .ConfigureAwait(false);
+
+        await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
     }
 }

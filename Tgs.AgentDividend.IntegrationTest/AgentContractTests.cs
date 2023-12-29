@@ -3,7 +3,6 @@ using NSubstitute;
 using Tgs.Agent.Dividend.Client;
 using Tgs.Agent.Dividend.Domain.Enums;
 using Tgs.Agent.Dividend.Domain.Interfaces.Repositories;
-using Tgs.Agent.Dividend.Domain.Models;
 using Tgs.Agent.Dividend.Domain.Models.AgentContract;
 using Tgs.Agent.Dividend.Repository.Entities;
 using CreateAgentContractRequest = Tgs.Agent.Dividend.Client.Models.CreateAgentContractRequest;
@@ -32,7 +31,8 @@ public class AgentContractTests
 
         var sut = new AgentContractClient(httpClient);
 
-        await sut.CreateAgentContractAsync(new CreateAgentContractRequest(brandId, agentId, brandContractId, "name"), default);
+        await sut.CreateAgentContractAsync(new CreateAgentContractRequest(brandId, agentId, brandContractId, "name"),
+            default);
 
         _ = fakeContractRepository.ReceivedWithAnyArgs(1).CreateAgentContractAsync(null!, default);
     }
@@ -50,7 +50,7 @@ public class AgentContractTests
         fakeContractRepository.GetAgentDividendContractsAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(new AgentDividendContractViewModel[]
             {
-                new AgentDividendContractViewModel
+                new()
                 {
                     Id = agentContractId,
                     BrandId = brandId,
@@ -63,7 +63,7 @@ public class AgentContractTests
                     BetDays = 1,
                     Conditions = new AgentDividendContractConditionViewModel[]
                     {
-                        new AgentDividendContractConditionViewModel
+                        new()
                         {
                             AgentDividendContractId = agentContractId,
                             Rank = 1,
