@@ -1,13 +1,30 @@
-﻿using Tgs.Agent.Dividend.Client;
+﻿using System.Runtime.Serialization;
+using Microsoft.Extensions.Options;
+using Tgs.Agent.Dividend.Client;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
 public static class ServiceCollectionExtensions
 {
-    public static IHttpClientBuilder AddAgentDividendClient(this IServiceCollection services)
+    public static IHttpClientBuilder AddAgentDividendClient(this IServiceCollection services,
+        Action<AgentDividnedOptions, IServiceProvider> configure)
     {
-        services.AddHttpClient<IBrandContractClient, BrandContractClient>();
-        services.AddHttpClient<IAgentContractClient, AgentContractClient>();
-        return services.AddHttpClient<IAgentDividendClient, AgentDividendClient>();
+        return services.AddOptions<AgentDividnedOptions>()
+            .Configure(configure)
+            .Services.AddHttpClient<IBrandContractClient, BrandContractClient>((sp, c) =>
+            {
+                var options = sp.GetRequiredService<IOptions<AgentDividnedOptions>>().Value;
+                c.BaseAddress = options.BaseUrl;
+            })
+            .Services.AddHttpClient<IAgentContractClient, AgentContractClient>((sp, c) =>
+            {
+                var options = sp.GetRequiredService<IOptions<AgentDividnedOptions>>().Value;
+                c.BaseAddress = options.BaseUrl;
+            })
+            .Services.AddHttpClient<IAgentDividendClient, AgentDividendClient>((sp, c) =>
+            {
+                var options = sp.GetRequiredService<IOptions<AgentDividnedOptions>>().Value;
+                c.BaseAddress = options.BaseUrl;
+            });
     }
 }

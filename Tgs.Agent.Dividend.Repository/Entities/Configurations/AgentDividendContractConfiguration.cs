@@ -28,17 +28,28 @@ namespace Tgs.Agent.Dividend.Repository.Entities.Configurations
             entity.Property(e => e.BrandId).HasColumnName("brand_id");
             entity.Property(e => e.ContractDividendType).HasColumnName("contract_dividend_type");
             entity.Property(e => e.ContractStatus).HasColumnName("contract_status");
-            entity.Property(e => e.CreatedByUsername).HasColumnName("created_by_username");
+            entity.Property(e => e.CreatedByUsername)
+            .HasMaxLength(64)
+            .HasColumnName("created_by_username");
             entity.Property(e => e.CreatedOn).HasColumnName("created_on");
             entity.Property(e => e.DepositAmount)
             .HasPrecision(18, 6)
             .HasColumnName("deposit_amount");
+            entity.Property(e => e.GameTypes)
+            .HasDefaultValueSql("ARRAY[]::text[]")
+            .HasColumnName("game_types");
             entity.Property(e => e.GradeIntervalLimit)
             .HasPrecision(18, 6)
             .HasColumnName("grade_interval_limit");
-            entity.Property(e => e.Name).HasColumnName("name");
-            entity.Property(e => e.UpdatedByUsername).HasColumnName("updated_by_username");
-            entity.Property(e => e.UpdatedOn).HasColumnName("updated_on");
+            entity.Property(e => e.Name)
+            .HasMaxLength(64)
+            .HasColumnName("name");
+            entity.Property(e => e.UpdatedByUsername)
+            .HasMaxLength(64)
+            .HasColumnName("updated_by_username");
+            entity.Property(e => e.UpdatedOn)
+            .HasDefaultValueSql("'-infinity'::timestamp with time zone")
+            .HasColumnName("updated_on");
             entity.Property(e => e.ValidBetAmount)
             .HasPrecision(18, 6)
             .HasColumnName("valid_bet_amount");

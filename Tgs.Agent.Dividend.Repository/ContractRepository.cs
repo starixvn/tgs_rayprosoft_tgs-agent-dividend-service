@@ -124,7 +124,11 @@ internal class ContractRepository(tgsContext context) : IContractRepository
             ContractStatus = (short)ContractStatus.Enabled,
             ValidBetAmount = brandContract.ValidBetAmount,
             DepositAmount = brandContract.DepositAmount,
-            BetDays = brandContract.BetDays
+            BetDays = brandContract.BetDays,
+            CreatedByUsername = request.EditorUsername,
+            UpdatedByUsername = request.EditorUsername,
+            CreatedOn = DateTime.Now,
+            UpdatedOn = DateTime.Now
         };
 
         var conditions = brandContract.BrandContractConditions.Select(x => new AgentDividendCondition
@@ -161,6 +165,9 @@ internal class ContractRepository(tgsContext context) : IContractRepository
             BetDays = request.BetDays,
             GameTypes = request.GameTypes?.Select(x => ((int)x).ToString()).ToList() ?? [],
             CreatedByUsername = request.EditorUsername,
+            UpdatedByUsername = request.EditorUsername,
+            CreatedOn = DateTime.Now,
+            UpdatedOn = DateTime.Now,
             BrandContractConditions = request.Conditions.Select(x => new BrandContractCondition
                 {
                     BrandContractId = id,
