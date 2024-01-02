@@ -27,13 +27,13 @@ public partial class BrandContract
 
     public List<string> GameTypes { get; set; } = null!;
 
-    public string? CreatedByUsername { get; set; }
+    public string CreatedByUsername { get; set; } = null!;
 
-    public string? UpdatedByUsername { get; set; }
+    public string UpdatedByUsername { get; set; } = null!;
 
     public DateTime CreatedOn { get; set; }
 
-    public DateTime UpdatedOn { get; set; }
+    public DateTime? UpdatedOn { get; set; }
 
     public virtual ICollection<BrandContractCondition> BrandContractConditions { get; set; } = new List<BrandContractCondition>();
 }

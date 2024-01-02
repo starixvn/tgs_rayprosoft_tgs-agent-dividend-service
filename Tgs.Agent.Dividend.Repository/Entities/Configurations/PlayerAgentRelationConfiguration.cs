@@ -20,7 +20,7 @@ namespace Tgs.Agent.Dividend.Repository.Entities.Configurations
 
             entity.HasIndex(e => e.AgentId, "ix_player_agent_relations_agent_id").IsUnique();
 
-            entity.HasIndex(e => e.BrandId, "ix_player_agent_relations_brand_id").IsUnique();
+            entity.HasIndex(e => e.BrandId, "ix_player_agent_relations_brand_id");
 
             entity.Property(e => e.PlayerCode)
             .HasMaxLength(16)
@@ -33,8 +33,8 @@ namespace Tgs.Agent.Dividend.Repository.Entities.Configurations
             .HasForeignKey<PlayerAgentRelation>(d => d.AgentId)
             .HasConstraintName("fk_player_agents_agents_agent_id");
 
-            entity.HasOne(d => d.Brand).WithOne(p => p.PlayerAgentRelation)
-            .HasForeignKey<PlayerAgentRelation>(d => d.BrandId)
+            entity.HasOne(d => d.Brand).WithMany(p => p.PlayerAgentRelations)
+            .HasForeignKey(d => d.BrandId)
             .HasConstraintName("fk_player_agents_brands_brand_id");
 
             entity.HasOne(d => d.PlayerCodeNavigation).WithOne(p => p.PlayerAgentRelation)
