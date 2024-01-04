@@ -95,7 +95,7 @@ public class AgentDividendHandlerTests
                 .Create<AgentPlayerAggregateModel>()
         };
 
-        fakeContractRepository.GetAgentDividendContractsAsync(Arg.Any<Guid>())
+        fakeContractRepository.GetBrandAgentDividendContractsAsync(Arg.Any<Guid>())
             .Returns(contracts.ToAsyncEnumerable());
 
         fakeRepository.GetBrandAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(brand);
@@ -116,11 +116,11 @@ public class AgentDividendHandlerTests
 
         var @event = new AgentDividendRequest(brandId);
 
-        var sut = new AgentDividendHandler(fakeRepository,
+        var sut = new BrandAgentDividendHandler(fakeRepository,
             fakeContractRepository,
             fakeMediator,
             sp,
-            new NullLogger<AgentDividendHandler>());
+            new NullLogger<BrandAgentDividendHandler>());
 
         await sut.Handle(@event, default);
 
@@ -217,7 +217,7 @@ public class AgentDividendHandlerTests
                 .Create<AgentPlayerAggregateModel>()
         };
 
-        fakeContractRepository.GetAgentDividendContractsAsync(Arg.Any<Guid>())
+        fakeContractRepository.GetBrandAgentDividendContractsAsync(Arg.Any<Guid>())
             .Returns(contracts.ToAsyncEnumerable());
 
         fakeRepository.GetBrandAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(brand);
@@ -259,7 +259,7 @@ public class AgentDividendHandlerTests
             }.ToAsyncEnumerable());
 
         fakeRepository
-            .GetAgentPlayerAggregatesForMultipleLayerCacheAsync(brandId, from, to, Arg.Any<CancellationToken>())
+            .GetAgentPlayerAggregatesForMultipleLayerCacheAsync(brandId, from, to, Arg.Any<CancellationToken>(), false)
             .Returns(agentPlayerAggregates.ToAsyncEnumerable());
 
         fakeMediator.Send(Arg.Any<GetNoSendDividendRequest>())
@@ -270,11 +270,11 @@ public class AgentDividendHandlerTests
             });
         var @event = new AgentDividendRequest(brandId);
 
-        var sut = new AgentDividendHandler(fakeRepository,
+        var sut = new BrandAgentDividendHandler(fakeRepository,
             fakeContractRepository,
             fakeMediator,
             sp,
-            new NullLogger<AgentDividendHandler>());
+            new NullLogger<BrandAgentDividendHandler>());
 
         await sut.Handle(@event, default);
 
@@ -380,7 +380,7 @@ public class AgentDividendHandlerTests
                 .Create<AgentPlayerAggregateModel>()
         };
 
-        fakeContractRepository.GetAgentDividendContractsAsync(Arg.Any<Guid>())
+        fakeContractRepository.GetBrandAgentDividendContractsAsync(Arg.Any<Guid>())
             .Returns(contracts.ToAsyncEnumerable());
 
         fakeRepository.GetBrandAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(brand);
@@ -454,7 +454,7 @@ public class AgentDividendHandlerTests
                 Arg.Any<DateTime>(),
                 Arg.Any<DateTime>(),
                 Arg.Any<CancellationToken>(),
-                false)
+                true)
             .Returns(agentPlayerAggregates.ToAsyncEnumerable());
         fakeRepository.GetAgentPlayerGameAggregatesCacheAsync(Arg.Any<Guid>(), Arg.Any<DateTime>(), Arg.Any<DateTime>())
             .Returns(AsyncEnumerable.Empty<AgentPlayerGameAggregateModel>());
@@ -466,11 +466,11 @@ public class AgentDividendHandlerTests
             });
         var @event = new AgentDividendRequest(brandId);
 
-        var sut = new AgentDividendHandler(fakeRepository,
+        var sut = new BrandAgentDividendHandler(fakeRepository,
             fakeContractRepository,
             fakeMediator,
             sp,
-            new NullLogger<AgentDividendHandler>());
+            new NullLogger<BrandAgentDividendHandler>());
 
         await sut.Handle(@event, default);
 
@@ -599,7 +599,7 @@ public class AgentDividendHandlerTests
                 .Create<AgentPlayerAggregateModel>()
         };
 
-        fakeContractRepository.GetAgentDividendContractsAsync(Arg.Any<Guid>())
+        fakeContractRepository.GetBrandAgentDividendContractsAsync(Arg.Any<Guid>())
             .Returns(contracts.ToAsyncEnumerable());
 
         fakeRepository.GetBrandAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(brand);
@@ -619,11 +619,11 @@ public class AgentDividendHandlerTests
             });
         var @event = new AgentDividendRequest(brandId);
 
-        var sut = new AgentDividendHandler(fakeRepository,
+        var sut = new BrandAgentDividendHandler(fakeRepository,
             fakeContractRepository,
             fakeMediator,
             sp,
-            new NullLogger<AgentDividendHandler>());
+            new NullLogger<BrandAgentDividendHandler>());
 
         await sut.Handle(@event, default);
 

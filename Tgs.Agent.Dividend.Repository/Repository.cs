@@ -318,9 +318,9 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache) : IRepos
         DateTime from,
         DateTime to,
         [EnumeratorCancellation] CancellationToken cancellationToken,
-        bool includePlayerAgent = true)
+        bool includePlayerAgentRelation = false)
     {
-        var key = $"AgentPlayerAggregatesForMultipleLayerCache{brandId}{from}{to}";
+        var key = $"AgentPlayerAggregatesForMultipleLayerCache{brandId}{from}{to}{includePlayerAgentRelation}";
 
         _cacheKeys.Add(key);
 
@@ -347,7 +347,7 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache) : IRepos
                                          x.pa,
                                          playerAgentRelation
                                      })
-                                 .Where(!includePlayerAgent, x => x.playerAgentRelation == null)
+                                 .Where(includePlayerAgentRelation, x => x.playerAgentRelation != null)
                                  .GroupBy(x => new
                                  {
                                      x.pa.BrandId,
@@ -658,29 +658,6 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache) : IRepos
         await context.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task CreateAgentDividendRecordAsync(Guid brandId,
-        Guid agentId,
-        int agentDividendId,
-        decimal agentDividendAmount,
-        CancellationToken cancellationToken)
-    {
-        var negativeDividends = await context.AgentDividends.Where(x => x.ReferencedAgentDividendId == agentDividendId)
-            .ToArrayAsync(cancellationToken);
-
-        _ = await context.AgentDividendRecords.AddAsync(new AgentDividendRecord
-            {
-                BrandId = brandId,
-                AgentId = agentId,
-                AgentDividendId = agentDividendId,
-                NegativeDividendIds = negativeDividends.Select(x => x.Id.ToString()).ToList(),
-                AgentDividendAmount = agentDividendAmount,
-                CreatedOn = DateTime.UtcNow
-            },
-            cancellationToken);
-
-        await context.SaveChangesAsync(cancellationToken);
-    }
-
     public void RemoveAllMemoryCache(CancellationToken cancellationToken)
     {
         foreach (var cacheKey in _cacheKeys) memoryCache.Remove(cacheKey);
@@ -740,7 +717,8 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache) : IRepos
                             DividendProviderAgentId = x.DividendProviderAgentId,
                             DividendProviderId = x.DividendProviderId,
                             Layer = x.Layer,
-                            Dividend = x.Dividend
+                            Dividend = x.Dividend,
+                            AgentDividendSnapshotId = x.AgentDividendSnapshotId
                         })
                     .ToArray()
             })

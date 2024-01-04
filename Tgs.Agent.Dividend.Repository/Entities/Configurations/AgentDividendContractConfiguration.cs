@@ -18,8 +18,6 @@ namespace Tgs.Agent.Dividend.Repository.Entities.Configurations
 
             entity.ToTable("agent_dividend_contracts", "dbo");
 
-            entity.HasIndex(e => e.AgentId, "ix_agent_dividend_contracts_agent_id").IsUnique();
-
             entity.Property(e => e.Id)
             .ValueGeneratedNever()
             .HasColumnName("id");
@@ -53,10 +51,6 @@ namespace Tgs.Agent.Dividend.Repository.Entities.Configurations
             entity.Property(e => e.ValidBetAmount)
             .HasPrecision(18, 6)
             .HasColumnName("valid_bet_amount");
-
-            entity.HasOne(d => d.Agent).WithOne(p => p.AgentDividendContract)
-            .HasForeignKey<AgentDividendContract>(d => d.AgentId)
-            .HasConstraintName("fk_agent_dividend_contracts_agents_agent_id");
 
             OnConfigurePartial(entity);
         }

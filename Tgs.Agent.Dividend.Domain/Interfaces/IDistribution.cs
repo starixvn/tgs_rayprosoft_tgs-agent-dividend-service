@@ -20,7 +20,7 @@ public interface IDistribution
     IEnumerable<AgentPlayerAggregateModel> GenerateAdditionalAgentPlayerAggregates(int idNumber,
         BrandModel brand,
         AgentDividendMultipleLayerModel childLayer,
-        IEnumerable<AgentPlayerAggregateModel> currentAllAgentPlayerAggregates,
+        IEnumerable<AgentPlayerAggregateModel> allAgentPlayerAggregates,
         CancellationToken cancellationToken);
 
     decimal GetAgentDividendAmount(AgentPlayerAggregateModel agentPlayerAggregate,

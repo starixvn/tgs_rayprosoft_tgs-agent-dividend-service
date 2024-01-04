@@ -28,8 +28,10 @@ public class OneLayerDistributionTests
         decimal dividendAmount)
     {
         var fakeRepository = Substitute.For<IRepository>();
+        var fakeContractRepository = Substitute.For<IContractRepository>();
 
         var sut = new OneLayerDistribution(
+            fakeContractRepository,
             fakeRepository);
 
         var brandId = Guid.NewGuid();
@@ -160,6 +162,7 @@ public class OneLayerDistributionTests
         decimal agent4DividendAmount)
     {
         var fakeRepository = Substitute.For<IRepository>();
+        var fakeContractRepository = Substitute.For<IContractRepository>();
 
         var brandId = Guid.NewGuid();
         var agentId = Guid.NewGuid();
@@ -280,6 +283,7 @@ public class OneLayerDistributionTests
         foreach (var agentPlayerAggregateModel in agentPlayerAggregates)
         {
             var sut = new OneLayerDistribution(
+                fakeContractRepository,
                 fakeRepository);
 
             multipleLayers.AddRange(await sut

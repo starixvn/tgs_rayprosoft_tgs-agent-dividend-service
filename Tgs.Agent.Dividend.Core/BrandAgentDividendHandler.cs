@@ -10,17 +10,17 @@ using Tgs.Agent.Dividend.Domain.Models;
 
 namespace Tgs.Agent.Dividend.Core;
 
-internal class AgentDividendHandler(
+internal class BrandAgentDividendHandler(
     IRepository repository,
     IContractRepository contractRepository,
     IMediator mediator,
     IServiceProvider serviceProvider,
-    ILogger<AgentDividendHandler> logger)
+    ILogger<BrandAgentDividendHandler> logger)
     : IRequestHandler<AgentDividendRequest>
 {
     public async Task Handle(AgentDividendRequest request, CancellationToken cancellationToken)
     {
-        var contracts = await contractRepository.GetAgentDividendContractsAsync(request.BrandId)
+        var contracts = await contractRepository.GetBrandAgentDividendContractsAsync(request.BrandId)
             .ToArrayAsync(cancellationToken);
 
         var brand = await repository.GetBrandAsync(request.BrandId, cancellationToken).ConfigureAwait(false);
@@ -81,8 +81,7 @@ internal class AgentDividendHandler(
                                     a.AgentId == agentDividendMultipleLayerModel.DividendProviderAgentId &&
                                     a.ContractStatus == (short)ContractStatus.Enabled) ??
                                 throw new Exception(
-                                    $"Can't find contract agentId: {agentDividendMultipleLayerModel.AgentId}");
-            ;
+                                    $"Can't find contract agentId: {agentDividendMultipleLayerModel.DividendProviderAgentId}");
 
             var distributionService =
                 serviceProvider.GetRequiredKeyedService<IDistribution>(
@@ -94,6 +93,8 @@ internal class AgentDividendHandler(
                     agentPlayerAggregates,
                     cancellationToken)
                 .ToArray();
+
+            currentNumber += data.Length;
 
             additional.AddRange(data);
         }

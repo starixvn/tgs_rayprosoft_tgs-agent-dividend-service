@@ -11,4 +11,8 @@
 		<PackageReference Include="Microsoft.Extensions.Http" Version="8.0.0" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <ProjectReference Include="..\Tgs.Agent.Dividend.Domain\Tgs.Agent.Dividend.Domain.csproj" />
+	</ItemGroup>
+
 </Project>

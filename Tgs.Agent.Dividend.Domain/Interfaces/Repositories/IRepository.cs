@@ -22,7 +22,7 @@ public interface IRepository
         DateTime from,
         DateTime to,
         CancellationToken cancellationToken,
-        bool includePlayerAgent = true);
+        bool includePlayerAgentRelation = true);
 
     IAsyncEnumerable<AgentPlayerGameAggregateModel> GetAgentPlayerGameAggregatesCacheAsync(Guid brandId,
         DateTime from,
@@ -55,12 +55,6 @@ public interface IRepository
     Task<int> GetMaxAgentDividendIdAsync(CancellationToken cancellationToken);
 
     Task UpdateSentOnAsync(int agentDividendId, CancellationToken cancellationToken);
-
-    Task CreateAgentDividendRecordAsync(Guid brandId,
-        Guid agentId,
-        int agentDividendId,
-        decimal agentDividendAmount,
-        CancellationToken cancellationToken);
 
     void RemoveAllMemoryCache(CancellationToken cancellationToken);
 }

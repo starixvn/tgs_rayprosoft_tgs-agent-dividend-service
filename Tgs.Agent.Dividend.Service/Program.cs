@@ -59,7 +59,12 @@ builder.Services.AddHostedService<AgentDividendBackground>()
 
 builder.Services.AddCore()
     .AddRepository((_, dbOptionsBuilder) => dbOptionsBuilder
-        .UseNpgsql("name=Tgs", x => x.UseNetTopologySuite()))
+        .UseNpgsql("name=Tgs",
+            x =>
+            {
+                x.UseNetTopologySuite();
+                x.UseQuerySplittingBehavior(QuerySplittingBehavior.SingleQuery);
+            }))
     .AddCashServiceClient((options, sp) =>
     {
         var config = sp.GetRequiredService<IConfiguration>();

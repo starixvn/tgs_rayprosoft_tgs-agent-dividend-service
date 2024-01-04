@@ -102,7 +102,7 @@ public class OneLayerDistributionTests
                 .Create<AgentPlayerAggregateModel>()
         };
 
-        _fakeContractRepository.GetAgentDividendContractsAsync(Arg.Any<Guid>())
+        _fakeContractRepository.GetBrandAgentDividendContractsAsync(Arg.Any<Guid>())
             .Returns(contracts.ToAsyncEnumerable());
 
         _fakeRepository.GetBrandAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(brand);
@@ -123,11 +123,11 @@ public class OneLayerDistributionTests
 
         var @event = new AgentDividendRequest(brandId);
 
-        var sut = new AgentDividendHandler(_fakeRepository,
+        var sut = new BrandAgentDividendHandler(_fakeRepository,
             _fakeContractRepository,
             _fakeMediator,
             sp,
-            new NullLogger<AgentDividendHandler>());
+            new NullLogger<BrandAgentDividendHandler>());
 
         await sut.Handle(@event, default);
 

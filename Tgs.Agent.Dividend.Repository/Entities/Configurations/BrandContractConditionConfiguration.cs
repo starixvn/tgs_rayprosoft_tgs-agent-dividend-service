@@ -35,7 +35,6 @@ namespace Tgs.Agent.Dividend.Repository.Entities.Configurations
 
             entity.HasOne(d => d.BrandContract).WithMany(p => p.BrandContractConditions)
             .HasForeignKey(d => d.BrandContractId)
-            .OnDelete(DeleteBehavior.ClientSetNull)
             .HasConstraintName("fk_brand_contract_conditions_brand_contract_brand_contract_id");
 
             OnConfigurePartial(entity);
