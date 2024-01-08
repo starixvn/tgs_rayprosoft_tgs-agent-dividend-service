@@ -1,5 +1,4 @@
-﻿using System.Reflection.Emit;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using System.Text.Json;
 using Tgs.Agent.Dividend.Domain;
 using Tgs.Agent.Dividend.Domain.Interfaces;
@@ -137,15 +136,7 @@ internal class OnePercentageDistribution(IContractRepository contractRepository,
         IEnumerable<AgentPlayerAggregateModel> allAgentPlayerAggregates,
         CancellationToken cancellationToken)
     {
-        var exists = allAgentPlayerAggregates.Any(a => a.AgentId == childLayer.AgentId);
-
-        if (exists) yield break;
-
-        var model = GetDefaultAggregate(brand, childLayer.AgentId);
-
-        model.Id = idNumber + 1;
-
-        yield return model;
+        return Enumerable.Empty<AgentPlayerAggregateModel>();
     }
 
     public decimal GetAgentDividendAmount(AgentPlayerAggregateModel agentPlayerAggregate,
@@ -223,7 +214,7 @@ internal class OnePercentageDistribution(IContractRepository contractRepository,
                 };
             });
 
-        return lineAgents.Select(lineAgent =>
+        return lineAgents.Select((lineAgent, i) =>
         {
             var path = lineAgent.Path.ToString();
 
@@ -267,10 +258,10 @@ internal class OnePercentageDistribution(IContractRepository contractRepository,
                 AgentDividendSnapshotId = snapshotId,
                 DividendProviderAgentId = agent.Id,
                 DividendProviderId = id,
-                AgentDividendPercentage = 1,
-                ActualDividendPercentage = 1,
-                AgentCoveredBonus = (agentCurrentCondition.BonusAmount * 0.01M).Truncate(2),
-                AgentCoveredBonusAdjust = (agentCurrentCondition.BonusAdjustAmount * 0.01M).Truncate(2),
+                AgentDividendPercentage = i < 5 ? 1 : 0M,
+                ActualDividendPercentage = i < 5 ? 1 : 0M,
+                AgentCoveredBonus = i < 5 ? (agentCurrentCondition.BonusAmount * 0.01M).Truncate(2) : 0M,
+                AgentCoveredBonusAdjust = i < 5 ? (agentCurrentCondition.BonusAdjustAmount * 0.01M).Truncate(2) : 0M,
                 Layer = layer,
                 Dividend = (agentCurrentCondition.NetProfit * 0.01M).Truncate(2)
             };

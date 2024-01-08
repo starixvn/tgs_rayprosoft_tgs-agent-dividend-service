@@ -27,22 +27,34 @@ internal class BrandAgentDividendHandler(
 
         var maxId = await repository.GetMaxAgentDividendIdAsync(cancellationToken).ConfigureAwait(false);
 
-        var agents = await repository.GetAgentsCacheAsyncEnumerable(request.BrandId, cancellationToken)
+        var agentInstances = await repository.GetAgentsCacheAsyncEnumerable(request.BrandId, cancellationToken)
+            .Select(x =>
+            {
+                var agentContract = contracts.FirstOrDefault(a =>
+                                        a.AgentId == x.Id &&
+                                        a.ContractStatus == (short)ContractStatus.Enabled) ??
+                                    throw new Exception(
+                                        $"Can't find contract agentId: {x.Id}");
+
+                var distributionService =
+                    serviceProvider.GetRequiredKeyedService<IDistribution>(
+                        ((ContractDividendType)agentContract.ContractDividendType).ToString());
+
+                return (agentContract, distributionService);
+            })
             .ToArrayAsync(cancellationToken);
 
         var currentNumber = maxId;
 
         var agentPlayerAggregates = new List<AgentPlayerAggregateModel>();
 
-        var i = 0;
-
-        foreach (var agentModel in agents)
+        foreach (var (agentContract, distributionService) in agentInstances)
         {
-            var data = (await GetAgentPlayerAggregatesAsync(currentNumber + i,
-                contracts,
-                agentModel,
-                brand,
-                cancellationToken)).ToArray();
+            var data = (await distributionService.GetAgentPlayerAggregateAsync(currentNumber,
+                    brand,
+                    agentContract,
+                    cancellationToken)
+                .ToArrayAsync(cancellationToken)).ToArray();
 
             currentNumber += data.Length;
 
@@ -53,15 +65,7 @@ internal class BrandAgentDividendHandler(
 
         foreach (var agentPlayerAggregateModel in agentPlayerAggregates)
         {
-            var agentContract = contracts.FirstOrDefault(a =>
-                                    a.AgentId == agentPlayerAggregateModel.AgentId &&
-                                    a.ContractStatus == (short)ContractStatus.Enabled) ??
-                                throw new Exception(
-                                    $"Can't find contract agentId: {agentPlayerAggregateModel.AgentId}");
-
-            var distributionService =
-                serviceProvider.GetRequiredKeyedService<IDistribution>(
-                    ((ContractDividendType)agentContract.ContractDividendType).ToString());
+            var (agentContract, distributionService) = agentInstances.First(a => a.agentContract.AgentId == agentPlayerAggregateModel.AgentId);
 
             var data = await distributionService.GenerateMultipleLayerAsync(
                     brand,
@@ -75,25 +79,16 @@ internal class BrandAgentDividendHandler(
 
         var additional = new List<AgentPlayerAggregateModel>();
 
-        foreach (var agentDividendMultipleLayerModel in multipleLayers)
+        foreach (var data in from agentDividendMultipleLayerModel in multipleLayers
+                 let instance =
+                     agentInstances.First(a => a.agentContract.AgentId == agentDividendMultipleLayerModel.AgentId)
+                 select instance.distributionService.GenerateAdditionalAgentPlayerAggregates(currentNumber,
+                         brand,
+                         agentDividendMultipleLayerModel,
+                         agentPlayerAggregates,
+                         cancellationToken)
+                     .ToArray())
         {
-            var agentContract = contracts.FirstOrDefault(a =>
-                                    a.AgentId == agentDividendMultipleLayerModel.DividendProviderAgentId &&
-                                    a.ContractStatus == (short)ContractStatus.Enabled) ??
-                                throw new Exception(
-                                    $"Can't find contract agentId: {agentDividendMultipleLayerModel.DividendProviderAgentId}");
-
-            var distributionService =
-                serviceProvider.GetRequiredKeyedService<IDistribution>(
-                    ((ContractDividendType)agentContract.ContractDividendType).ToString());
-
-            var data = distributionService.GenerateAdditionalAgentPlayerAggregates(currentNumber,
-                    brand,
-                    agentDividendMultipleLayerModel,
-                    agentPlayerAggregates,
-                    cancellationToken)
-                .ToArray();
-
             currentNumber += data.Length;
 
             additional.AddRange(data);
@@ -102,14 +97,7 @@ internal class BrandAgentDividendHandler(
         var agentDividends = agentPlayerAggregates.Concat(additional)
             .Select(x =>
             {
-                var agentContract = contracts.FirstOrDefault(a =>
-                                        a.AgentId == x.AgentId && a.ContractStatus == (short)ContractStatus.Enabled) ??
-                                    throw new Exception($"Can't find contract agentId: {x.AgentId}");
-                ;
-
-                var distributionService =
-                    serviceProvider.GetRequiredKeyedService<IDistribution>(
-                        ((ContractDividendType)agentContract.ContractDividendType).ToString());
+                var (agentContract, distributionService) = agentInstances.First(a => a.agentContract.AgentId == x.AgentId);
 
                 var parentAgentDividends = distributionService.GetMultipleLayer(x,
                     multipleLayers,
@@ -127,6 +115,7 @@ internal class BrandAgentDividendHandler(
                     AgentId = x.AgentId,
                     From = x.From.UtcDateTime,
                     To = x.To.UtcDateTime,
+                    AutoSend = brand.AutoSentAgentBonus,
                     AgentDividendPercentage = x.AgentDividendPercentage,
                     PromotionAmount = x.PromotionAmount,
                     RebateAmount = x.RebateAmount,
@@ -167,9 +156,9 @@ internal class BrandAgentDividendHandler(
         var sendDividend =
             await mediator.Send(new GetNoSendDividendRequest(agentDividends), cancellationToken);
 
-        var (nextFrom, nextTo) = GetInterval(
+        var (nextFrom, nextTo) = DateTimeOffsetExtensions.GetInterval(
             (SettlementIntervalType)brand.SettlementIntervalType,
-            new DateTimeOffset(brand.NextSettlementTo).ToOffset(new TimeSpan(8, 0, 0)),
+            new DateTimeOffset(brand.NextSettlementTo).AddDays(1).ToOffset(new TimeSpan(8, 0, 0)),
             brand.SettlementDay);
 
         brand.PreviousSettlementFrom = brand.CurrentSettlementFrom;
@@ -193,45 +182,5 @@ internal class BrandAgentDividendHandler(
                 cancellationToken);
 
         repository.RemoveAllMemoryCache(cancellationToken);
-    }
-
-    private static (DateTimeOffset, DateTimeOffset) GetInterval(SettlementIntervalType type,
-        DateTimeOffset startDate,
-        int? dayOfMonth)
-    {
-        var date = startDate.AddDays(1);
-
-        return type switch
-        {
-            SettlementIntervalType.Daily => (date, date),
-            SettlementIntervalType.Weekly => (date.GetMonday(),
-                date.GetSunday()),
-            SettlementIntervalType.Monthly => (date,
-                dayOfMonth == null
-                    ? date.GetLastDayOfMonth()
-                    : startDate.AddMonths(1).GetSpecifyDayOfMonth(dayOfMonth.Value)),
-            _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
-        };
-    }
-
-    private async Task<IEnumerable<AgentPlayerAggregateModel>> GetAgentPlayerAggregatesAsync(int number,
-        IEnumerable<AgentDividendContractModel> contracts,
-        AgentModel agent,
-        BrandModel brand,
-        CancellationToken cancellationToken)
-    {
-        var agentContract = contracts.FirstOrDefault(a =>
-                                a.AgentId == agent.Id && a.ContractStatus == (short)ContractStatus.Enabled) ??
-                            throw new Exception($"Can't find contract agentId: {agent.Id}");
-
-        var distributionService =
-            serviceProvider.GetRequiredKeyedService<IDistribution>(
-                ((ContractDividendType)agentContract.ContractDividendType).ToString());
-
-        return await distributionService.GetAgentPlayerAggregateAsync(number,
-                brand,
-                agentContract,
-                cancellationToken)
-            .ToArrayAsync(cancellationToken);
     }
 }

@@ -165,6 +165,24 @@ public class OneLayerDistributionTests
         return fixture;
     }
 
+    private Fixture CreateContractFixture(Guid brandId,
+        ContractDividendType contractDividendType,
+        decimal validBetAmount,
+        decimal depositAmount,
+        int betDays)
+    {
+        var fixture = new Fixture();
+        fixture.Customize<AgentDividendContractModel>(u => u
+            .With(s => s.BrandId, brandId)
+            .With(s => s.ContractStatus, 0)
+            .With(s => s.ContractDividendType, (short)contractDividendType)
+            .With(s => s.DepositAmount, depositAmount)
+            .With(s => s.BetDays, betDays)
+            .With(s => s.ValidBetAmount, validBetAmount));
+        fixture.Behaviors.Add(new OmitOnRecursionBehavior());
+        return fixture;
+    }
+
     private Fixture CreateBrandFixture(Guid brandId,
         DateTime from,
         DateTime to,
@@ -225,4 +243,19 @@ public class OneLayerDistributionTests
         fixture.Behaviors.Add(new OmitOnRecursionBehavior());
         return fixture;
     }
+
+    private Fixture CreateAgentDividendPercentageDataFixture(
+        Guid agentId,
+        Guid? parentId,
+        decimal dividendPercentage)
+    {
+        var fixture = new Fixture();
+        fixture.Customize<AgentDividendPercentageData>(u => u
+            .With(s => s.AgentId, agentId)
+            .With(s => s.ParentAgentId, parentId)
+            .With(s => s.DividendPercentage, dividendPercentage));
+        fixture.Behaviors.Add(new OmitOnRecursionBehavior());
+        return fixture;
+    }
+
 }

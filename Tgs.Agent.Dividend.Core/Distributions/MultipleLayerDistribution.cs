@@ -1,6 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
 using System.Text.Json;
-using Microsoft.EntityFrameworkCore.ValueGeneration;
 using Tgs.Agent.Dividend.Domain;
 using Tgs.Agent.Dividend.Domain.Interfaces;
 using Tgs.Agent.Dividend.Domain.Interfaces.Repositories;
@@ -95,15 +94,7 @@ internal class MultipleLayerDistribution(IContractRepository contractRepository,
         IEnumerable<AgentPlayerAggregateModel> allAgentPlayerAggregates,
         CancellationToken cancellationToken)
     {
-        var exists = allAgentPlayerAggregates.Any(a => a.AgentId == childLayer.AgentId);
-
-        if (exists) yield break;
-
-        var model = GetDefaultAggregate(brand, childLayer.AgentId);
-
-        model.Id = idNumber + 1;
-
-        yield return model;
+        return Enumerable.Empty<AgentPlayerAggregateModel>();
     }
 
     public decimal GetAgentDividendAmount(AgentPlayerAggregateModel agentPlayerAggregate,
