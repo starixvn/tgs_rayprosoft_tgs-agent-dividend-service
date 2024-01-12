@@ -30,6 +30,7 @@ namespace Tgs.Agent.Dividend.Repository.Entities.Configurations
             .HasMaxLength(64)
             .HasColumnName("created_by_username");
             entity.Property(e => e.CreatedOn).HasColumnName("created_on");
+            entity.Property(e => e.DefaultBrandContractId).HasColumnName("default_brand_contract_id");
             entity.Property(e => e.DepositAmount)
             .HasPrecision(18, 6)
             .HasColumnName("deposit_amount");

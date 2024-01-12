@@ -25,6 +25,9 @@ namespace Tgs.Agent.Dividend.Repository.Entities.Configurations
             entity.HasIndex(e => new { e.BrandId, e.From, e.To }, "ix_agent_dividends_brand_id_from_to");
 
             entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.ActiveNumber)
+            .HasDefaultValue(0)
+            .HasColumnName("active_number");
             entity.Property(e => e.AgentAdjustAmount)
             .HasPrecision(18, 6)
             .HasColumnName("agent_adjust_amount");
@@ -90,6 +93,9 @@ namespace Tgs.Agent.Dividend.Repository.Entities.Configurations
             entity.Property(e => e.OriginalTurnover)
             .HasPrecision(18, 6)
             .HasColumnName("original_turnover");
+            entity.Property(e => e.PlatformChargePercentage)
+            .HasPrecision(18, 6)
+            .HasColumnName("platform_charge_percentage");
             entity.Property(e => e.PromotionAmount)
             .HasPrecision(18, 6)
             .HasColumnName("promotion_amount");

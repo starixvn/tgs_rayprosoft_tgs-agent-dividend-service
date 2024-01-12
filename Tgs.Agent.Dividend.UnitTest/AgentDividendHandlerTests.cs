@@ -6,7 +6,7 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using NSubstitute;
-using Tgs.Agent.Dividend.Core;
+using Tgs.Agent.Dividend.Core.AgentDividend;
 using Tgs.Agent.Dividend.Core.Distributions;
 using Tgs.Agent.Dividend.Domain.Enums;
 using Tgs.Agent.Dividend.Domain.Interfaces;
@@ -26,10 +26,10 @@ public class AgentDividendHandlerTests
         var fakeContractRepository = Substitute.For<IContractRepository>();
         var fakeTgsContext = Substitute.For<tgsContext>();
         var fakeMemoryCache = Substitute.For<IMemoryCache>();
-        var fakeDistribution = Substitute.For<IDistribution>();
+        var fakeDistribution = Substitute.For<IDividendCalculator>();
 
         var services = new ServiceCollection();
-        services.AddKeyedSingleton<IDistribution, OneLayerDistribution>(ContractDividendType.OneLayer.ToString());
+        services.AddKeyedSingleton<IDividendCalculator, OneLayerDividendCalculator>(ContractDividendType.OneLayer.ToString());
         services.AddSingleton(fakeDistribution)
             .AddSingleton(fakeRepository)
             .AddSingleton(fakeContractRepository)
@@ -146,10 +146,10 @@ public class AgentDividendHandlerTests
         var fakeContractRepository = Substitute.For<IContractRepository>();
         var fakeTgsContext = Substitute.For<tgsContext>();
         var fakeMemoryCache = Substitute.For<IMemoryCache>();
-        var fakeDistribution = Substitute.For<IDistribution>();
+        var fakeDistribution = Substitute.For<IDividendCalculator>();
 
         var services = new ServiceCollection();
-        services.AddKeyedSingleton<IDistribution, MultipleLayerDistribution>(
+        services.AddKeyedSingleton<IDividendCalculator, MultipleLayerDividendCalculator>(
             ContractDividendType.MultipleLayer.ToString());
         services.AddSingleton(fakeDistribution)
             .AddSingleton(fakeRepository)
@@ -309,10 +309,10 @@ public class AgentDividendHandlerTests
         var fakeContractRepository = Substitute.For<IContractRepository>();
         var fakeTgsContext = Substitute.For<tgsContext>();
         var fakeMemoryCache = Substitute.For<IMemoryCache>();
-        var fakeDistribution = Substitute.For<IDistribution>();
+        var fakeDistribution = Substitute.For<IDividendCalculator>();
 
         var services = new ServiceCollection();
-        services.AddKeyedSingleton<IDistribution, OnePercentageDistribution>(
+        services.AddKeyedSingleton<IDividendCalculator, OnePercentageDividendCalculator>(
             ContractDividendType.OnePercentage.ToString());
         services.AddSingleton(fakeDistribution)
             .AddSingleton(fakeRepository)
@@ -388,7 +388,7 @@ public class AgentDividendHandlerTests
         fakeRepository.GetAgentsCacheAsyncEnumerable(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(agents.ToAsyncEnumerable());
         fakeRepository
-            .GetAgentsByPathCacheAsyncEnumerable(Arg.Any<Guid>(), Arg.Any<LTree>(), Arg.Any<CancellationToken>())
+            .GetDescendantAgentsByPathCacheAsyncEnumerable(Arg.Any<Guid>(), Arg.Any<LTree>(), Arg.Any<CancellationToken>())
             .Returns(agents.ToAsyncEnumerable());
         fakeRepository.GetAgentPlayerValidBetsCacheAsync(Arg.Any<Guid>(),
                 Arg.Any<DateTime>(),
@@ -528,10 +528,10 @@ public class AgentDividendHandlerTests
         var fakeContractRepository = Substitute.For<IContractRepository>();
         var fakeTgsContext = Substitute.For<tgsContext>();
         var fakeMemoryCache = Substitute.For<IMemoryCache>();
-        var fakeDistribution = Substitute.For<IDistribution>();
+        var fakeDistribution = Substitute.For<IDividendCalculator>();
 
         var services = new ServiceCollection();
-        services.AddKeyedSingleton<IDistribution, MultipleLayerDistribution>(
+        services.AddKeyedSingleton<IDividendCalculator, MultipleLayerDividendCalculator>(
             ContractDividendType.MultipleLayer.ToString());
         services.AddSingleton(fakeDistribution)
             .AddSingleton(fakeRepository)

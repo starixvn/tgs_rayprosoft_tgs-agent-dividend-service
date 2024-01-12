@@ -30,7 +30,7 @@ public class OneLayerDistributionTests
         var fakeRepository = Substitute.For<IRepository>();
         var fakeContractRepository = Substitute.For<IContractRepository>();
 
-        var sut = new OneLayerDistribution(
+        var sut = new OneLayerDividendCalculator(
             fakeContractRepository,
             fakeRepository);
 
@@ -282,7 +282,7 @@ public class OneLayerDistributionTests
         var multipleLayers = new List<AgentDividendMultipleLayerModel>();
         foreach (var agentPlayerAggregateModel in agentPlayerAggregates)
         {
-            var sut = new OneLayerDistribution(
+            var sut = new OneLayerDividendCalculator(
                 fakeContractRepository,
                 fakeRepository);
 

@@ -127,7 +127,7 @@ public class OnePercentageDistributionTests
         fakeRepository.GetAgentsCacheAsyncEnumerable(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(agents.ToAsyncEnumerable());
         fakeRepository
-            .GetAgentsByPathCacheAsyncEnumerable(Arg.Any<Guid>(), Arg.Any<LTree>(), Arg.Any<CancellationToken>())
+            .GetDescendantAgentsByPathCacheAsyncEnumerable(Arg.Any<Guid>(), Arg.Any<LTree>(), Arg.Any<CancellationToken>())
             .Returns(agents.ToAsyncEnumerable());
 
         fakeRepository
@@ -156,7 +156,7 @@ public class OnePercentageDistributionTests
         var multipleLayers = new List<AgentDividendMultipleLayerModel>();
         foreach (var agentPlayerAggregateModel in agentPlayerAggregates)
         {
-            var sut = new OnePercentageDistribution(
+            var sut = new OnePercentageDividendCalculator(
                 fakeContractRepository,
                 fakeRepository);
 
@@ -288,7 +288,7 @@ public class OnePercentageDistributionTests
         fakeRepository.GetAgentsCacheAsyncEnumerable(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(agents.ToAsyncEnumerable());
         fakeRepository
-            .GetAgentsByPathCacheAsyncEnumerable(Arg.Any<Guid>(), Arg.Any<LTree>(), Arg.Any<CancellationToken>())
+            .GetDescendantAgentsByPathCacheAsyncEnumerable(Arg.Any<Guid>(), Arg.Any<LTree>(), Arg.Any<CancellationToken>())
             .Returns(agents.ToAsyncEnumerable());
 
         fakeRepository
@@ -317,7 +317,7 @@ public class OnePercentageDistributionTests
         var multipleLayers = new List<AgentDividendMultipleLayerModel>();
         foreach (var agentPlayerAggregateModel in agentPlayerAggregates)
         {
-            var sut = new OnePercentageDistribution(
+            var sut = new OnePercentageDividendCalculator(
                 fakeContractRepository,
                 fakeRepository);
 
@@ -438,7 +438,7 @@ public class OnePercentageDistributionTests
         fakeRepository.GetAgentsCacheAsyncEnumerable(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(agents.ToAsyncEnumerable());
         fakeRepository
-            .GetAgentsByPathCacheAsyncEnumerable(Arg.Any<Guid>(), Arg.Any<LTree>(), Arg.Any<CancellationToken>())
+            .GetDescendantAgentsByPathCacheAsyncEnumerable(Arg.Any<Guid>(), Arg.Any<LTree>(), Arg.Any<CancellationToken>())
             .Returns(agents.ToAsyncEnumerable());
 
         fakeRepository
@@ -467,7 +467,7 @@ public class OnePercentageDistributionTests
         var multipleLayers = new List<AgentDividendMultipleLayerModel>();
         foreach (var agentPlayerAggregateModel in agentPlayerAggregates)
         {
-            var sut = new OnePercentageDistribution(
+            var sut = new OnePercentageDividendCalculator(
                 fakeContractRepository,
                 fakeRepository);
 

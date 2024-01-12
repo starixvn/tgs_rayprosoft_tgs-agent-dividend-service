@@ -71,7 +71,10 @@ builder.Services.AddCore()
 
         options.BaseUrl = config.GetValue<Uri>("AgentDividend:CashBaseUrl")!;
     })
-    .AddMemoryCache();
+    .AddMemoryCache()
+    .AddAgentClient()
+    .ConfigureHttpClient(httpBuilder => httpBuilder.BaseAddress =
+        builder.Configuration.GetValue<Uri>("AgentDividend:AgentBaseUrl"));
 
 builder.Services.AddControllers();
 builder.Services.AddHealthChecks();

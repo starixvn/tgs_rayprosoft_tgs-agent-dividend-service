@@ -19,4 +19,12 @@ public class AgentDividendController : ControllerBase
     {
         return mediator.Send(new GenerateAgentDividendRequest(brandId));
     }
+
+    [HttpGet("{brandId:guid}/{agentId:guid}/beforehand")]
+    public Task<AgentDividendBeforehandResponse> GetAgentDividendBeforehandAsync([FromServices] IMediator mediator,
+        Guid brandId,
+        Guid agentId)
+    {
+        return mediator.Send(new GetAgentDividendBeforehandRequest(brandId, agentId));
+    }
 }

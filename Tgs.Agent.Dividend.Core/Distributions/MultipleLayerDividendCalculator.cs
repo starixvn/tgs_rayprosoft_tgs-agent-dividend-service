@@ -7,8 +7,8 @@ using Tgs.Agent.Dividend.Domain.Models;
 
 namespace Tgs.Agent.Dividend.Core.Distributions;
 
-internal class MultipleLayerDistribution(IContractRepository contractRepository, IRepository repository)
-    : IDistribution
+internal class MultipleLayerDividendCalculator(IContractRepository contractRepository, IRepository repository)
+    : IDividendCalculator
 {
     public async IAsyncEnumerable<AgentPlayerAggregateModel> GetAgentPlayerAggregateAsync(int idNumber,
         BrandModel brand,
@@ -30,6 +30,18 @@ internal class MultipleLayerDistribution(IContractRepository contractRepository,
                     brand.CurrentSettlementTo)
                 .FirstOrDefaultAsync(x => x.AgentId == contract.AgentId, cancellationToken);
 
+        var betPlayers = await repository
+            .GetAgentPlayerBetCountsCacheAsync(brand.Id,
+                brand.CurrentSettlementFrom,
+                brand.CurrentSettlementTo,
+                cancellationToken)
+            .Where(x => x.AgentId == contract.AgentId)
+            .ToArrayAsync(cancellationToken);
+
+        var playerCodes = betPlayers.Select(x => x.PlayerCode);
+
+        var validPlayerCount = GetValidPlayerCount(playerCodes, betPlayers, contract);
+
         agentAggregate ??= GetDefaultAggregate(brand, contract.AgentId);
 
         agentAggregate.LiveDealerWinLoss = agentPlayerGameAggregate?.LiveDealerWinLoss ?? 0M;
@@ -42,7 +54,7 @@ internal class MultipleLayerDistribution(IContractRepository contractRepository,
         agentAggregate.SportsWinLoss = agentPlayerGameAggregate?.SportsWinLoss ?? 0M;
         agentAggregate.ESportsWinLoss = agentPlayerGameAggregate?.ESportsWinLoss ?? 0M;
         agentAggregate.VirtualSportsWinLoss = agentPlayerGameAggregate?.VirtualSportsWinLoss ?? 0M;
-
+        agentAggregate.ActiveNumber = validPlayerCount;
         agentAggregate.Id = idNumber + 1;
 
         yield return agentAggregate;
@@ -59,25 +71,13 @@ internal class MultipleLayerDistribution(IContractRepository contractRepository,
 
         var snapshotId = await GenerateAgentDividendSnapshotAsync(contract, conditions, cancellationToken);
 
-        var betPlayers = await repository
-            .GetAgentPlayerBetCountsCacheAsync(brand.Id,
-                brand.CurrentSettlementFrom,
-                brand.CurrentSettlementTo,
-                cancellationToken)
-            .Where(x => x.AgentId == contract.AgentId)
-            .ToArrayAsync(cancellationToken);
-
-        var playerCodes = betPlayers.Select(x => x.PlayerCode);
-
-        var validPlayerCount = GetValidPlayerCount(playerCodes, betPlayers, contract);
-
         var agentDividend = GetAgentDividendsByMultipleLayer(agentPlayerAggregate.Id,
             contract.AgentId,
             snapshotId,
             brand.CheckDividendActiveCount,
             new AgentConditionModel
             {
-                ValidNumber = validPlayerCount,
+                ValidNumber = agentPlayerAggregate.ActiveNumber,
                 WinLossAmount = agentPlayerAggregate.WinLossAmount,
                 NetProfit = agentPlayerAggregate.NetProfit(brand.PlatformCharge)
             },

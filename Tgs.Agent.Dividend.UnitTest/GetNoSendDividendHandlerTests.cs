@@ -1,6 +1,7 @@
 using AutoFixture;
 using NSubstitute;
 using Tgs.Agent.Dividend.Core;
+using Tgs.Agent.Dividend.Core.AgentDividend;
 using Tgs.Agent.Dividend.Domain.Interfaces.Repositories;
 using Tgs.Agent.Dividend.Domain.Models;
 

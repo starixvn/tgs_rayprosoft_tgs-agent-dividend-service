@@ -87,5 +87,9 @@ public partial class AgentDividend
 
     public decimal WithdrawHandlingFee { get; set; }
 
+    public int ActiveNumber { get; set; }
+
+    public decimal PlatformChargePercentage { get; set; }
+
     public virtual ICollection<AgentDividendMultipleLayer> AgentDividendMultipleLayers { get; set; } = new List<AgentDividendMultipleLayer>();
 }

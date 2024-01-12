@@ -7,12 +7,12 @@ using Tgs.Agent.Dividend.Domain.Models;
 
 namespace Tgs.Agent.Dividend.Core.Distributions;
 
-internal class OneLayerDistribution(IContractRepository contractRepository, IRepository repository) : IDistribution
+internal class OneLayerDividendCalculator(IContractRepository contractRepository, IRepository repository) : IDividendCalculator
 {
-    public IAsyncEnumerable<AgentPlayerAggregateModel> GetAgentPlayerAggregateAsync(int idNumber,
+    public async IAsyncEnumerable<AgentPlayerAggregateModel> GetAgentPlayerAggregateAsync(int idNumber,
         BrandModel brand,
         AgentDividendContractModel contract,
-        CancellationToken cancellationToken)
+        [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         var agentAggregates = repository
             .GetAgentPlayerAggregatesCacheAsync(brand.Id,
@@ -21,12 +21,25 @@ internal class OneLayerDistribution(IContractRepository contractRepository, IRep
                 cancellationToken)
             .Where(x => x.AgentId == contract.AgentId);
 
-        return agentAggregates.Select((x, i) =>
-        {
-            x.Id = idNumber + i + 1;
+        var betPlayers = await repository
+            .GetAgentPlayerBetCountsCacheAsync(brand.Id,
+                brand.CurrentSettlementFrom,
+                brand.CurrentSettlementTo,
+                cancellationToken)
+            .Where(x => x.AgentId == contract.AgentId)
+            .ToArrayAsync(cancellationToken);
 
-            return x;
-        });
+        var i = 0;
+
+        await foreach (var agentPlayerAggregateModel in agentAggregates)
+        {
+            agentPlayerAggregateModel.Id = idNumber + i + 1;
+            agentPlayerAggregateModel.ActiveNumber = betPlayers.Length;
+
+            i++;
+
+            yield return agentPlayerAggregateModel;
+        }
     }
 
     public async IAsyncEnumerable<AgentDividendMultipleLayerModel> GenerateMultipleLayerAsync(

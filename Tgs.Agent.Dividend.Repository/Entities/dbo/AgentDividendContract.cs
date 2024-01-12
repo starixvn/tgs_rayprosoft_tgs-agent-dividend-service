@@ -36,4 +36,6 @@ public partial class AgentDividendContract
     public DateTime UpdatedOn { get; set; }
 
     public List<string> GameTypes { get; set; } = null!;
+
+    public Guid DefaultBrandContractId { get; set; }
 }

@@ -35,7 +35,7 @@ public class MultipleLayerDistributionTests
         var fakeContractRepository = Substitute.For<IContractRepository>();
         var fakeRepository = Substitute.For<IRepository>();
 
-        var sut = new MultipleLayerDistribution(
+        var sut = new MultipleLayerDividendCalculator(
             fakeContractRepository,
             fakeRepository);
 
@@ -136,7 +136,7 @@ public class MultipleLayerDistributionTests
         var fakeContractRepository = Substitute.For<IContractRepository>();
         var fakeRepository = Substitute.For<IRepository>();
 
-        var sut = new MultipleLayerDistribution(
+        var sut = new MultipleLayerDividendCalculator(
             fakeContractRepository,
             fakeRepository);
 

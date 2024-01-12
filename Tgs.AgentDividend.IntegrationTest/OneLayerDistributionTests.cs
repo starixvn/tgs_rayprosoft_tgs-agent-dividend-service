@@ -6,7 +6,7 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using NSubstitute;
-using Tgs.Agent.Dividend.Core;
+using Tgs.Agent.Dividend.Core.AgentDividend;
 using Tgs.Agent.Dividend.Core.Distributions;
 using Tgs.Agent.Dividend.Domain.Enums;
 using Tgs.Agent.Dividend.Domain.Interfaces;
@@ -29,9 +29,9 @@ public class OneLayerDistributionTests
     {
         var fakeTgsContext = Substitute.For<tgsContext>();
         var fakeMemoryCache = Substitute.For<IMemoryCache>();
-        var fakeDistribution = Substitute.For<IDistribution>();
+        var fakeDistribution = Substitute.For<IDividendCalculator>();
 
-        _services.AddKeyedSingleton<IDistribution, OneLayerDistribution>(ContractDividendType.OneLayer.ToString());
+        _services.AddKeyedSingleton<IDividendCalculator, OneLayerDividendCalculator>(ContractDividendType.OneLayer.ToString());
         _services.AddSingleton(fakeDistribution)
             .AddSingleton(_fakeRepository)
             .AddSingleton(_fakeContractRepository)

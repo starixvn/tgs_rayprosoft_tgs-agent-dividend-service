@@ -8,7 +8,7 @@ using Tgs.Agent.Dividend.Domain.Interfaces;
 using Tgs.Agent.Dividend.Domain.Interfaces.Repositories;
 using Tgs.Agent.Dividend.Domain.Models;
 
-namespace Tgs.Agent.Dividend.Core;
+namespace Tgs.Agent.Dividend.Core.AgentDividend;
 
 internal class BrandAgentDividendHandler(
     IRepository repository,
@@ -37,7 +37,7 @@ internal class BrandAgentDividendHandler(
                                         $"Can't find contract agentId: {x.Id}");
 
                 var distributionService =
-                    serviceProvider.GetRequiredKeyedService<IDistribution>(
+                    serviceProvider.GetRequiredKeyedService<IDividendCalculator>(
                         ((ContractDividendType)agentContract.ContractDividendType).ToString());
 
                 return (agentContract, distributionService);
@@ -50,11 +50,11 @@ internal class BrandAgentDividendHandler(
 
         foreach (var (agentContract, distributionService) in agentInstances)
         {
-            var data = (await distributionService.GetAgentPlayerAggregateAsync(currentNumber,
+            var data = await distributionService.GetAgentPlayerAggregateAsync(currentNumber,
                     brand,
                     agentContract,
                     cancellationToken)
-                .ToArrayAsync(cancellationToken)).ToArray();
+                .ToArrayAsync(cancellationToken);
 
             currentNumber += data.Length;
 
@@ -80,14 +80,14 @@ internal class BrandAgentDividendHandler(
         var additional = new List<AgentPlayerAggregateModel>();
 
         foreach (var data in from agentDividendMultipleLayerModel in multipleLayers
-                 let instance =
-                     agentInstances.First(a => a.agentContract.AgentId == agentDividendMultipleLayerModel.AgentId)
-                 select instance.distributionService.GenerateAdditionalAgentPlayerAggregates(currentNumber,
-                         brand,
-                         agentDividendMultipleLayerModel,
-                         agentPlayerAggregates,
-                         cancellationToken)
-                     .ToArray())
+                             let instance =
+                                 agentInstances.First(a => a.agentContract.AgentId == agentDividendMultipleLayerModel.AgentId)
+                             select instance.distributionService.GenerateAdditionalAgentPlayerAggregates(currentNumber,
+                                     brand,
+                                     agentDividendMultipleLayerModel,
+                                     agentPlayerAggregates,
+                                     cancellationToken)
+                                 .ToArray())
         {
             currentNumber += data.Length;
 
@@ -105,7 +105,7 @@ internal class BrandAgentDividendHandler(
 
                 x.AgentDividendAmount =
                     distributionService.GetAgentDividendAmount(x,
-                        multipleLayers.Where(m => m.DividendProviderId == x.Id),
+                        multipleLayers,
                         cancellationToken);
 
                 return new CreateAgentDividendModel

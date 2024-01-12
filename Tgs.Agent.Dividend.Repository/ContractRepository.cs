@@ -118,6 +118,7 @@ internal class ContractRepository(tgsContext context) : IContractRepository
             Id = contractId,
             BrandId = request.BrandId,
             AgentId = request.AgentId,
+            DefaultBrandContractId = brandContract.Id,
             Name = brandContract.Name,
             GradeIntervalLimit = brandContract.GradeIntervalLimit,
             ContractDividendType = brandContract.ContractDividendType,

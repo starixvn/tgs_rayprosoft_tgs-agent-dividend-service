@@ -3,16 +3,12 @@
 	<PropertyGroup>
 		<TargetFramework>net8.0</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
-		<Version>1.0.7</Version>
+		<Version>1.0.8</Version>
 		<Nullable>enable</Nullable>
 	</PropertyGroup>
 
 	<ItemGroup>
 		<PackageReference Include="Microsoft.Extensions.Http" Version="8.0.0" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <ProjectReference Include="..\Tgs.Agent.Dividend.Domain\Tgs.Agent.Dividend.Domain.csproj" />
 	</ItemGroup>
 
 </Project>
