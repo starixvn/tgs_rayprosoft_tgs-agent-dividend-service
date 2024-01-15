@@ -36,8 +36,8 @@ namespace Tgs.Agent.Dividend.Repository.Entities.Configurations
             entity.Property(e => e.AgentDividendPercentage)
             .HasPrecision(18, 6)
             .HasColumnName("agent_dividend_percentage");
+            entity.Property(e => e.AgentDividendSnapshotId).HasColumnName("agent_dividend_snapshot_id");
             entity.Property(e => e.AgentId).HasColumnName("agent_id");
-            entity.Property(e => e.ContractId).HasColumnName("contract_id");
             entity.Property(e => e.Dividend)
             .HasPrecision(18, 6)
             .HasColumnName("dividend");

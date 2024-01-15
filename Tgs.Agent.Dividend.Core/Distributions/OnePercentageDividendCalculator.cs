@@ -1,4 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
+using System.Text.Json;
 using Tgs.Agent.Dividend.Domain;
 using Tgs.Agent.Dividend.Domain.Interfaces;
 using Tgs.Agent.Dividend.Domain.Interfaces.Repositories;
@@ -6,7 +7,8 @@ using Tgs.Agent.Dividend.Domain.Models;
 
 namespace Tgs.Agent.Dividend.Core.Distributions;
 
-internal class OnePercentageDistribution(IContractRepository contractRepository, IRepository repository) : IDistribution
+internal class OnePercentageDividendCalculator(IContractRepository contractRepository, IRepository repository)
+    : IDividendCalculator
 {
     public async IAsyncEnumerable<AgentPlayerAggregateModel> GetAgentPlayerAggregateAsync(int idNumber,
         BrandModel brand,
@@ -17,8 +19,7 @@ internal class OnePercentageDistribution(IContractRepository contractRepository,
             .GetAgentPlayerAggregatesForMultipleLayerCacheAsync(brand.Id,
                 brand.CurrentSettlementFrom,
                 brand.CurrentSettlementTo,
-                cancellationToken,
-                false)
+                cancellationToken)
             .Where(x => x.AgentId == contract.AgentId)
             .FirstOrDefaultAsync(cancellationToken);
 
@@ -27,35 +28,6 @@ internal class OnePercentageDistribution(IContractRepository contractRepository,
                     brand.CurrentSettlementFrom,
                     brand.CurrentSettlementTo)
                 .FirstOrDefaultAsync(x => x.AgentId == contract.AgentId, cancellationToken);
-
-        agentAggregate ??= GetDefaultAggregate(brand, contract.AgentId);
-
-        agentAggregate.LiveDealerWinLoss = agentPlayerGameAggregate?.LiveDealerWinLoss ?? 0M;
-        agentAggregate.SlotWinLoss = agentPlayerGameAggregate?.SlotWinLoss ?? 0M;
-        agentAggregate.FishingWinLoss = agentPlayerGameAggregate?.FishingWinLoss ?? 0M;
-        agentAggregate.ArcadeWinLoss = agentPlayerGameAggregate?.ArcadeWinLoss ?? 0M;
-        agentAggregate.TableGameWinLoss = agentPlayerGameAggregate?.TableGameWinLoss ?? 0M;
-        agentAggregate.LotteryWinLoss = agentPlayerGameAggregate?.LotteryWinLoss ?? 0M;
-        agentAggregate.CardGameWinLoss = agentPlayerGameAggregate?.CardGameWinLoss ?? 0M;
-        agentAggregate.SportsWinLoss = agentPlayerGameAggregate?.SportsWinLoss ?? 0M;
-        agentAggregate.ESportsWinLoss = agentPlayerGameAggregate?.ESportsWinLoss ?? 0M;
-        agentAggregate.VirtualSportsWinLoss = agentPlayerGameAggregate?.VirtualSportsWinLoss ?? 0M;
-
-        agentAggregate.Id = idNumber + 1;
-
-        yield return agentAggregate;
-    }
-
-    public async IAsyncEnumerable<AgentDividendMultipleLayerModel> GenerateMultipleLayerAsync(BrandModel brand,
-        AgentDividendContractModel contract,
-        AgentPlayerAggregateModel agentPlayerAggregate,
-        [EnumeratorCancellation] CancellationToken cancellationToken)
-    {
-        var agent = await repository.GetAgentsCacheAsyncEnumerable(brand.Id, cancellationToken)
-            .FirstAsync(x => x.Id == contract.AgentId, cancellationToken);
-
-        var agents = await repository.GetAgentsByPathCacheAsyncEnumerable(brand.Id, agent.Path, cancellationToken)
-            .ToArrayAsync(cancellationToken);
 
         var from = new DateTimeOffset(brand.CurrentSettlementFrom.Year,
             brand.CurrentSettlementFrom.Month,
@@ -102,21 +74,53 @@ internal class OnePercentageDistribution(IContractRepository contractRepository,
             .Concat(deposits.Select(x => x.PlayerCode))
             .Distinct();
 
+        var validPlayerCount = GetValidPlayerCount(playerCodes, deposits, validBets, betDays, contract);
+
+        agentAggregate ??= GetDefaultAggregate(brand, contract.AgentId);
+
+        agentAggregate.LiveDealerWinLoss = agentPlayerGameAggregate?.LiveDealerWinLoss ?? 0M;
+        agentAggregate.SlotWinLoss = agentPlayerGameAggregate?.SlotWinLoss ?? 0M;
+        agentAggregate.FishingWinLoss = agentPlayerGameAggregate?.FishingWinLoss ?? 0M;
+        agentAggregate.ArcadeWinLoss = agentPlayerGameAggregate?.ArcadeWinLoss ?? 0M;
+        agentAggregate.TableGameWinLoss = agentPlayerGameAggregate?.TableGameWinLoss ?? 0M;
+        agentAggregate.LotteryWinLoss = agentPlayerGameAggregate?.LotteryWinLoss ?? 0M;
+        agentAggregate.CardGameWinLoss = agentPlayerGameAggregate?.CardGameWinLoss ?? 0M;
+        agentAggregate.SportsWinLoss = agentPlayerGameAggregate?.SportsWinLoss ?? 0M;
+        agentAggregate.ESportsWinLoss = agentPlayerGameAggregate?.ESportsWinLoss ?? 0M;
+        agentAggregate.VirtualSportsWinLoss = agentPlayerGameAggregate?.VirtualSportsWinLoss ?? 0M;
+        agentAggregate.ActiveNumber = validPlayerCount;
+        agentAggregate.Id = idNumber + 1;
+
+        yield return agentAggregate;
+    }
+
+    public async IAsyncEnumerable<AgentDividendMultipleLayerModel> GenerateMultipleLayerAsync(BrandModel brand,
+        AgentDividendContractModel contract,
+        AgentPlayerAggregateModel agentPlayerAggregate,
+        [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
         var conditions = await contractRepository
             .GetAgentDividendContractConditionsAsync(contract.Id, cancellationToken)
             .ToArrayAsync(cancellationToken);
 
-        var validPlayerCount = GetValidPlayerCount(playerCodes, deposits, validBets, betDays, contract);
+        var snapshotId = await GenerateAgentDividendSnapshotAsync(contract, conditions, cancellationToken);
+
+        var agent = await repository.GetAgentsCacheAsyncEnumerable(brand.Id, cancellationToken)
+            .FirstAsync(x => x.Id == contract.AgentId, cancellationToken);
+
+        var agents = await repository
+            .GetDescendantAgentsByPathCacheAsyncEnumerable(brand.Id, agent.Path, cancellationToken)
+            .ToArrayAsync(cancellationToken);
 
         var agentDividends = GetAgentDividendsByMultipleLayer(
             agentPlayerAggregate.Id,
-            contract.Id,
+            snapshotId,
             agent,
             brand.CheckDividendActiveCount,
             agents,
             new AgentConditionModel
             {
-                ValidNumber = validPlayerCount,
+                ValidNumber = agentPlayerAggregate.ActiveNumber,
                 BonusAmount = agentPlayerAggregate.BonusAmount,
                 BonusAdjustAmount = agentPlayerAggregate.BonusAdjustAmount,
                 WinLossAmount = agentPlayerAggregate.WinLossAmount,
@@ -129,8 +133,8 @@ internal class OnePercentageDistribution(IContractRepository contractRepository,
 
     public IEnumerable<AgentPlayerAggregateModel> GenerateAdditionalAgentPlayerAggregates(int idNumber,
         BrandModel brand,
-        AgentDividendMultipleLayerModel multipleLayer,
-        IEnumerable<AgentPlayerAggregateModel> contract,
+        AgentDividendMultipleLayerModel childLayer,
+        IEnumerable<AgentPlayerAggregateModel> allAgentPlayerAggregates,
         CancellationToken cancellationToken)
     {
         return Enumerable.Empty<AgentPlayerAggregateModel>();
@@ -176,7 +180,7 @@ internal class OnePercentageDistribution(IContractRepository contractRepository,
 
     private static IEnumerable<AgentDividendMultipleLayerModel> GetAgentDividendsByMultipleLayer(
         int id,
-        Guid contractId,
+        Guid snapshotId,
         AgentModel agent,
         bool checkDividendActiveCount,
         IEnumerable<AgentModel> lineAgents,
@@ -199,7 +203,7 @@ internal class OnePercentageDistribution(IContractRepository contractRepository,
                 return new AgentDividendMultipleLayerModel
                 {
                     AgentId = lineAgent.Id,
-                    ContractId = contractId,
+                    AgentDividendSnapshotId = snapshotId,
                     DividendProviderAgentId = agent.Id,
                     DividendProviderId = id,
                     AgentDividendPercentage = 0M,
@@ -211,7 +215,7 @@ internal class OnePercentageDistribution(IContractRepository contractRepository,
                 };
             });
 
-        return lineAgents.Select(lineAgent =>
+        return lineAgents.Select((lineAgent, i) =>
         {
             var path = lineAgent.Path.ToString();
 
@@ -223,7 +227,7 @@ internal class OnePercentageDistribution(IContractRepository contractRepository,
                 return new AgentDividendMultipleLayerModel
                 {
                     AgentId = lineAgent.Id,
-                    ContractId = contractId,
+                    AgentDividendSnapshotId = snapshotId,
                     DividendProviderAgentId = agent.Id,
                     DividendProviderId = id,
                     AgentDividendPercentage = percentage,
@@ -238,7 +242,7 @@ internal class OnePercentageDistribution(IContractRepository contractRepository,
                 return new AgentDividendMultipleLayerModel
                 {
                     AgentId = lineAgent.Id,
-                    ContractId = contractId,
+                    AgentDividendSnapshotId = snapshotId,
                     DividendProviderAgentId = agent.Id,
                     DividendProviderId = id,
                     AgentDividendPercentage = 10,
@@ -252,13 +256,13 @@ internal class OnePercentageDistribution(IContractRepository contractRepository,
             return new AgentDividendMultipleLayerModel
             {
                 AgentId = lineAgent.Id,
-                ContractId = contractId,
+                AgentDividendSnapshotId = snapshotId,
                 DividendProviderAgentId = agent.Id,
                 DividendProviderId = id,
-                AgentDividendPercentage = 1,
-                ActualDividendPercentage = 1,
-                AgentCoveredBonus = (agentCurrentCondition.BonusAmount * 0.01M).Truncate(2),
-                AgentCoveredBonusAdjust = (agentCurrentCondition.BonusAdjustAmount * 0.01M).Truncate(2),
+                AgentDividendPercentage = i < 5 ? 1 : 0M,
+                ActualDividendPercentage = i < 5 ? 1 : 0M,
+                AgentCoveredBonus = i < 5 ? (agentCurrentCondition.BonusAmount * 0.01M).Truncate(2) : 0M,
+                AgentCoveredBonusAdjust = i < 5 ? (agentCurrentCondition.BonusAdjustAmount * 0.01M).Truncate(2) : 0M,
                 Layer = layer,
                 Dividend = (agentCurrentCondition.NetProfit * 0.01M).Truncate(2)
             };
@@ -290,5 +294,30 @@ internal class OnePercentageDistribution(IContractRepository contractRepository,
             From = brand.CurrentSettlementFrom,
             To = brand.CurrentSettlementTo
         };
+    }
+
+    private async Task<Guid> GenerateAgentDividendSnapshotAsync(AgentDividendContractModel contract,
+        IEnumerable<AgentDividendContractConditionModel> conditions,
+        CancellationToken cancellationToken)
+    {
+        var snapshotId = Guid.NewGuid();
+
+        var data = JsonSerializer.Serialize(new
+        {
+            contract.Id,
+            contract.BrandId,
+            contract.AgentId,
+            contract.Name,
+            contract.ContractDividendType,
+            contract.ContractStatus,
+            contract.ValidBetAmount,
+            contract.DepositAmount,
+            contract.BetDays,
+            Conditions = conditions
+        });
+
+        await contractRepository.CreateAgentContractSnapshotAsync(snapshotId, data, cancellationToken);
+
+        return snapshotId;
     }
 }

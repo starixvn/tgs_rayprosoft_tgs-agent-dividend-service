@@ -2,7 +2,7 @@
 using Tgs.Agent.Dividend.Domain.Interfaces.Repositories;
 using Tgs.Agent.Dividend.Domain.Models;
 
-namespace Tgs.Agent.Dividend.Core;
+namespace Tgs.Agent.Dividend.Core.AgentDividend;
 
 internal class GetNoSendDividendHandler(IRepository repository)
     : IRequestHandler<GetNoSendDividendRequest, NoSendDividendResponse>
@@ -27,7 +27,7 @@ internal class GetNoSendDividendHandler(IRepository repository)
                 ? deductedNegativeDividend
                 : agentNoSendDividends.Sum(x => x.AgentDividendAmount);
 
-            if (agentNoSendDividend < 0)
+            if (agentNoSendDividend <= 0)
             {
                 var agentDividendAmount = request.AgentDividends.Where(x => x.AgentId == dividend.AgentId)
                     .Sum(x => x.AgentDividendAmount);
@@ -52,6 +52,8 @@ internal class GetNoSendDividendHandler(IRepository repository)
                     dividend.AutoSend = false;
                 }
             }
+
+            if (dividend.AgentDividendAmount < 0) dividend.AutoSend = false;
         }
 
         return new NoSendDividendResponse { Model = request.AgentDividends, NegativeDividendsIds = noSendDividendIds };

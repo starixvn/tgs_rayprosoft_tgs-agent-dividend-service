@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System.Runtime.CompilerServices;
+using System.Text.Json;
 using Tgs.Agent.Dividend.Domain;
 using Tgs.Agent.Dividend.Domain.Interfaces;
 using Tgs.Agent.Dividend.Domain.Interfaces.Repositories;
@@ -6,12 +7,13 @@ using Tgs.Agent.Dividend.Domain.Models;
 
 namespace Tgs.Agent.Dividend.Core.Distributions;
 
-internal class OneLayerDistribution(IRepository repository) : IDistribution
+internal class OneLayerDividendCalculator(IContractRepository contractRepository, IRepository repository)
+    : IDividendCalculator
 {
-    public IAsyncEnumerable<AgentPlayerAggregateModel> GetAgentPlayerAggregateAsync(int idNumber,
+    public async IAsyncEnumerable<AgentPlayerAggregateModel> GetAgentPlayerAggregateAsync(int idNumber,
         BrandModel brand,
         AgentDividendContractModel contract,
-        CancellationToken cancellationToken)
+        [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         var agentAggregates = repository
             .GetAgentPlayerAggregatesCacheAsync(brand.Id,
@@ -20,50 +22,66 @@ internal class OneLayerDistribution(IRepository repository) : IDistribution
                 cancellationToken)
             .Where(x => x.AgentId == contract.AgentId);
 
-        return agentAggregates.Select((x, i) =>
-        {
-            x.Id = idNumber + i + 1;
+        var betPlayers = await repository
+            .GetAgentPlayerBetCountsCacheAsync(brand.Id,
+                brand.CurrentSettlementFrom,
+                brand.CurrentSettlementTo,
+                cancellationToken)
+            .Where(x => x.AgentId == contract.AgentId)
+            .ToArrayAsync(cancellationToken);
 
-            return x;
-        });
+        var i = 0;
+
+        await foreach (var agentPlayerAggregateModel in agentAggregates)
+        {
+            agentPlayerAggregateModel.Id = idNumber + i + 1;
+            agentPlayerAggregateModel.ActiveNumber = betPlayers.Length;
+
+            i++;
+
+            yield return agentPlayerAggregateModel;
+        }
     }
 
-    public IAsyncEnumerable<AgentDividendMultipleLayerModel> GenerateMultipleLayerAsync(
+    public async IAsyncEnumerable<AgentDividendMultipleLayerModel> GenerateMultipleLayerAsync(
         BrandModel brand,
         AgentDividendContractModel contract,
         AgentPlayerAggregateModel agentPlayerAggregate,
-        CancellationToken cancellationToken)
+        [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         var agentDividendPercentage =
             JsonSerializer.Deserialize<AgentDividendPercentageData[]>(agentPlayerAggregate
                 .AgentDividendPercentageTreeData!);
 
+        var snapshotId =
+            await GenerateAgentDividendSnapshotAsync(contract, agentDividendPercentage!, cancellationToken);
+
         var bonusAdjustAmount = agentPlayerAggregate.BonusAdjustAmount -
                                 agentPlayerAggregate.NoIncludeNetProfitBonusAdjustAmount;
 
-        return GetAgentDividends(
-                agentPlayerAggregate.Id,
-                contract.Id,
-                agentDividendPercentage!,
-                agentPlayerAggregate.AgentId,
-                agentPlayerAggregate.BonusAmount,
-                bonusAdjustAmount,
-                agentPlayerAggregate.NetProfit(brand.PlatformCharge))
-            .ToAsyncEnumerable();
+        foreach (var agentDividendMultipleLayerModel in GetAgentDividends(
+                     agentPlayerAggregate.Id,
+                     snapshotId,
+                     agentDividendPercentage!,
+                     agentPlayerAggregate.AgentId,
+                     agentPlayerAggregate.BonusAmount,
+                     bonusAdjustAmount,
+                     agentPlayerAggregate.NetProfit(brand.PlatformCharge)))
+            yield return agentDividendMultipleLayerModel;
     }
 
     public IEnumerable<AgentPlayerAggregateModel> GenerateAdditionalAgentPlayerAggregates(int idNumber,
         BrandModel brand,
-        AgentDividendMultipleLayerModel layer,
-        IEnumerable<AgentPlayerAggregateModel> currentAllAgentPlayerAggregates,
+        AgentDividendMultipleLayerModel childLayer,
+        IEnumerable<AgentPlayerAggregateModel> allAgentPlayerAggregates,
         CancellationToken cancellationToken)
     {
-        var exists = currentAllAgentPlayerAggregates.Any(a =>
-            a.AgentId == layer.AgentId && a.AgentDividendPercentage == layer.AgentDividendPercentage);
+        var exists = allAgentPlayerAggregates.Any(a =>
+            a.AgentId == childLayer.AgentId && a.AgentDividendPercentage == childLayer.AgentDividendPercentage);
 
         if (exists) yield break;
 
-        var model = GetDefaultAggregate(idNumber + 1, brand, layer.AgentId, layer.AgentDividendPercentage);
+        var model = GetDefaultAggregate(idNumber + 1, brand, childLayer.AgentId, childLayer.AgentDividendPercentage);
 
         yield return model;
     }
@@ -90,7 +108,7 @@ internal class OneLayerDistribution(IRepository repository) : IDistribution
 
     private static IEnumerable<AgentDividendMultipleLayerModel> GetAgentDividends(
         int id,
-        Guid contractId,
+        Guid snapshotId,
         AgentDividendPercentageData[] agentDividendPercentages,
         Guid agentId,
         decimal bonusAmount,
@@ -112,7 +130,7 @@ internal class OneLayerDistribution(IRepository repository) : IDistribution
 
             yield return new AgentDividendMultipleLayerModel
             {
-                ContractId = contractId,
+                AgentDividendSnapshotId = snapshotId,
                 AgentId = currentAgentId,
                 DividendProviderAgentId = providerAgentId,
                 DividendProviderId = id,
@@ -153,5 +171,30 @@ internal class OneLayerDistribution(IRepository repository) : IDistribution
             From = brand.CurrentSettlementFrom,
             To = brand.CurrentSettlementTo
         };
+    }
+
+    private async Task<Guid> GenerateAgentDividendSnapshotAsync(AgentDividendContractModel contract,
+        IEnumerable<AgentDividendPercentageData> conditions,
+        CancellationToken cancellationToken)
+    {
+        var snapshotId = Guid.NewGuid();
+
+        var data = JsonSerializer.Serialize(new
+        {
+            contract.Id,
+            contract.BrandId,
+            contract.AgentId,
+            contract.Name,
+            contract.ContractDividendType,
+            contract.ContractStatus,
+            contract.ValidBetAmount,
+            contract.DepositAmount,
+            contract.BetDays,
+            Conditions = conditions
+        });
+
+        await contractRepository.CreateAgentContractSnapshotAsync(snapshotId, data, cancellationToken);
+
+        return snapshotId;
     }
 }

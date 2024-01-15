@@ -2,7 +2,7 @@
 
 namespace Tgs.Agent.Dividend.Domain.Interfaces;
 
-public interface IDistribution
+public interface IDividendCalculator
 {
     IAsyncEnumerable<AgentPlayerAggregateModel>
         GetAgentPlayerAggregateAsync(int idNumber,
@@ -20,7 +20,7 @@ public interface IDistribution
     IEnumerable<AgentPlayerAggregateModel> GenerateAdditionalAgentPlayerAggregates(int idNumber,
         BrandModel brand,
         AgentDividendMultipleLayerModel childLayer,
-        IEnumerable<AgentPlayerAggregateModel> currentAllAgentPlayerAggregates,
+        IEnumerable<AgentPlayerAggregateModel> allAgentPlayerAggregates,
         CancellationToken cancellationToken);
 
     decimal GetAgentDividendAmount(AgentPlayerAggregateModel agentPlayerAggregate,

@@ -29,7 +29,7 @@ public partial class AgentDividendMultipleLayer
 
     public int DividendProviderId { get; set; }
 
-    public Guid ContractId { get; set; }
+    public Guid AgentDividendSnapshotId { get; set; }
 
     public virtual AgentDividend AgentDividend { get; set; } = null!;
 }

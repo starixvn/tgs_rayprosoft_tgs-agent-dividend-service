@@ -82,8 +82,6 @@ public partial class Agent
 
     public virtual ICollection<AgentDividendCondition> AgentDividendConditions { get; set; } = new List<AgentDividendCondition>();
 
-    public virtual AgentDividendContract? AgentDividendContract { get; set; }
-
     public virtual Brand Brand { get; set; } = null!;
 
     public virtual ICollection<Agent> InverseParentAgent { get; set; } = new List<Agent>();

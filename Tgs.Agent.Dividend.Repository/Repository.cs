@@ -2,7 +2,6 @@
 using System.Transactions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.Logging;
 using Tgs.Agent.Dividend.Domain;
 using Tgs.Agent.Dividend.Domain.Enums;
 using Tgs.Agent.Dividend.Domain.Interfaces.Repositories;
@@ -44,12 +43,22 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache) : IRepos
         foreach (var model in models) yield return model;
     }
 
-    public IAsyncEnumerable<AgentModel> GetAgentsByPathCacheAsyncEnumerable(Guid brandId,
+    public IAsyncEnumerable<AgentModel> GetDescendantAgentsByPathCacheAsyncEnumerable(Guid brandId,
         LTree path,
         CancellationToken cancellationToken)
     {
-        return GetAgentsCacheAsyncEnumerable(brandId, cancellationToken)
-            .Where(x => path.IsDescendantOf(x.Path));
+        return context.Agents.Where(x => x.BrandId == brandId)
+            .Where(x => path.IsDescendantOf(x.Path))
+            .Select(x => new AgentModel
+            {
+                Id = x.Id,
+                BrandId = x.BrandId,
+                Username = x.Username,
+                ParentAgentId = x.ParentAgentId,
+                Path = x.Path,
+                DividendPercentage = x.DividendPercentage
+            })
+            .ToAsyncEnumerable();
     }
 
     public IAsyncEnumerable<Guid> GetNonArchivedBrandIdsAsyncEnumerable(Guid? brandId)
@@ -318,9 +327,9 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache) : IRepos
         DateTime from,
         DateTime to,
         [EnumeratorCancellation] CancellationToken cancellationToken,
-        bool includePlayerAgent = true)
+        bool includeCheckPlayerAgentRelation = false)
     {
-        var key = $"AgentPlayerAggregatesForMultipleLayerCache{brandId}{from}{to}";
+        var key = $"AgentPlayerAggregatesForMultipleLayerCache{brandId}{from}{to}{includeCheckPlayerAgentRelation}";
 
         _cacheKeys.Add(key);
 
@@ -347,7 +356,7 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache) : IRepos
                                          x.pa,
                                          playerAgentRelation
                                      })
-                                 .Where(!includePlayerAgent, x => x.playerAgentRelation == null)
+                                 .Where(includeCheckPlayerAgentRelation, x => x.playerAgentRelation == null)
                                  .GroupBy(x => new
                                  {
                                      x.pa.BrandId,
@@ -536,7 +545,7 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache) : IRepos
                              return context.PlayerAggregates
                                  .Where(x => x.ReportDate >= from && x.ReportDate < to.AddDays(1))
                                  .Where(x => x.BrandId == brandId && x.AgentId != null)
-                                 .Where(x => x.BetAmount > 0)
+                                 .Where(x => x.Turnover > 0)
                                  .GroupBy(x => new { x.ReportDate, x.BrandId, x.AgentId, x.PlayerCode })
                                  .Select(x => new AgentPlayerBetDaysModel
                                  {
@@ -558,6 +567,29 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache) : IRepos
     {
         return context.AgentDividends.Where(x => x.AgentId == agent && x.SentOn == null)
             .Select(x => new NegativeAgentDividendModel(x.Id, x.AgentId, x.AgentDividendAmount))
+            .ToAsyncEnumerable();
+    }
+
+    public IAsyncEnumerable<AgentDividendBeforehand> GetAgentDividendsAsync(Guid agentId, DateTime from, DateTime to)
+    {
+        return context.AgentDividends.Where(x => x.AgentId == agentId && x.From == from && x.To == to)
+            .Select(x => new AgentDividendBeforehand(
+                x.ActiveNumber,
+                x.WinLossAmount,
+                x.BonusAmount - x.RebateAmount,
+                x.RebateAmount,
+                x.WinLossAmount -
+                x.BonusAmount -
+                x.DepositHandlingFee -
+                x.WinLossAmount * x.PlatformChargePercentage / 100,
+                x.WinLossAmount - x.BonusAmount,
+                x.DepositHandlingFee,
+                x.WinLossAmount * x.PlatformChargePercentage / 100,
+                x.AgentDividendMultipleLayers.Where(w => w.DividendProviderAgentId == x.AgentId).Sum(s => s.Dividend),
+                x.AgentDividendPercentage,
+                x.AgentDividendMultipleLayers.Where(w => w.DividendProviderAgentId != x.AgentId).Sum(s => s.Dividend),
+                x.AgentDividendAmount,
+                x.SentOn))
             .ToAsyncEnumerable();
     }
 
@@ -591,7 +623,6 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache) : IRepos
                 }),
             cancellationToken);
 
-        //negativeDividend.SentOn = DateTime.UtcNow;
         await CreateAgentDividendsAsync(agentDividends);
 
         context.AgentDividends.UpdateRange(negativeDividends);
@@ -640,12 +671,8 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache) : IRepos
 
     public async Task UpdateSentOnAsync(int agentDividendId, CancellationToken cancellationToken)
     {
-        await context.AgentDividends.Where(x => x.ReferencedAgentDividendId == agentDividendId)
-            .ExecuteUpdateAsync(s =>
-                    s.SetProperty(e => e.SentOn, DateTime.UtcNow),
-                cancellationToken);
-
-        await context.AgentDividends.Where(x => x.Id == agentDividendId)
+        await context.AgentDividends
+            .Where(x => x.Id == agentDividendId || x.ReferencedAgentDividendId == agentDividendId)
             .ExecuteUpdateAsync(s =>
                     s.SetProperty(e => e.SentOn, DateTime.UtcNow),
                 cancellationToken);
@@ -654,29 +681,6 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache) : IRepos
             .ExecuteUpdateAsync(s =>
                     s.SetProperty(e => e.SentOn, DateTime.UtcNow),
                 cancellationToken);
-
-        await context.SaveChangesAsync(cancellationToken);
-    }
-
-    public async Task CreateAgentDividendRecordAsync(Guid brandId,
-        Guid agentId,
-        int agentDividendId,
-        decimal agentDividendAmount,
-        CancellationToken cancellationToken)
-    {
-        var negativeDividends = await context.AgentDividends.Where(x => x.ReferencedAgentDividendId == agentDividendId)
-            .ToArrayAsync(cancellationToken);
-
-        _ = await context.AgentDividendRecords.AddAsync(new AgentDividendRecord
-            {
-                BrandId = brandId,
-                AgentId = agentId,
-                AgentDividendId = agentDividendId,
-                NegativeDividendIds = negativeDividends.Select(x => x.Id.ToString()).ToList(),
-                AgentDividendAmount = agentDividendAmount,
-                CreatedOn = DateTime.UtcNow
-            },
-            cancellationToken);
 
         await context.SaveChangesAsync(cancellationToken);
     }
@@ -740,7 +744,8 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache) : IRepos
                             DividendProviderAgentId = x.DividendProviderAgentId,
                             DividendProviderId = x.DividendProviderId,
                             Layer = x.Layer,
-                            Dividend = x.Dividend
+                            Dividend = x.Dividend,
+                            AgentDividendSnapshotId = x.AgentDividendSnapshotId
                         })
                     .ToArray()
             })

@@ -1,5 +1,4 @@
-﻿using System.Runtime.Serialization;
-using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Options;
 using Tgs.Agent.Dividend.Client;
 
 namespace Microsoft.Extensions.DependencyInjection;

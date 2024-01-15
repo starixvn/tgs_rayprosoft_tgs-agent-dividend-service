@@ -12,6 +12,7 @@
 		<PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.0" />
 		<PackageReference Include="System.Linq.Async" Version="6.0.1" />
+		<PackageReference Include="Tgs.Agent.Client" Version="0.0.26" />
 		<PackageReference Include="Tgs.CashService.Client" Version="0.2.9" />
 	</ItemGroup>
 

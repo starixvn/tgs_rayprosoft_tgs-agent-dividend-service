@@ -1,4 +1,6 @@
-﻿namespace Tgs.Agent.Dividend.Domain;
+﻿using Tgs.Agent.Dividend.Domain.Enums;
+
+namespace Tgs.Agent.Dividend.Domain;
 
 public static class DateTimeOffsetExtensions
 {
@@ -27,5 +29,25 @@ public static class DateTimeOffsetExtensions
     public static DateTimeOffset GetSpecifyDayOfMonth(this DateTimeOffset dateTimeOffset, int day)
     {
         return new DateTimeOffset(dateTimeOffset.Year, dateTimeOffset.Month, day, 0, 0, 0, dateTimeOffset.Offset);
+    }
+
+    public static (DateTimeOffset, DateTimeOffset) GetInterval(SettlementIntervalType type,
+        DateTimeOffset startDate,
+        int? dayOfMonth)
+    {
+        return type switch
+        {
+            SettlementIntervalType.Daily => (startDate, startDate),
+            SettlementIntervalType.Weekly => (startDate, startDate.GetSunday()),
+            SettlementIntervalType.DoubleWeekly => (startDate,
+                startDate.Day > 15
+                    ? startDate.GetLastDayOfMonth()
+                    : new DateTimeOffset(startDate.Year, startDate.Month, 15, 0, 0, 0, startDate.Offset)),
+            SettlementIntervalType.Monthly => (startDate,
+                dayOfMonth == null
+                    ? startDate.GetLastDayOfMonth()
+                    : startDate.AddMonths(1).GetSpecifyDayOfMonth(dayOfMonth.Value)),
+            _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
+        };
     }
 }

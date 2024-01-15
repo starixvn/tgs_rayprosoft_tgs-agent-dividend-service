@@ -6,7 +6,7 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using NSubstitute;
-using Tgs.Agent.Dividend.Core;
+using Tgs.Agent.Dividend.Core.AgentDividend;
 using Tgs.Agent.Dividend.Core.Distributions;
 using Tgs.Agent.Dividend.Domain.Enums;
 using Tgs.Agent.Dividend.Domain.Interfaces;
@@ -29,9 +29,10 @@ public class OneLayerDistributionTests
     {
         var fakeTgsContext = Substitute.For<tgsContext>();
         var fakeMemoryCache = Substitute.For<IMemoryCache>();
-        var fakeDistribution = Substitute.For<IDistribution>();
+        var fakeDistribution = Substitute.For<IDividendCalculator>();
 
-        _services.AddKeyedSingleton<IDistribution, OneLayerDistribution>(ContractDividendType.OneLayer.ToString());
+        _services.AddKeyedSingleton<IDividendCalculator, OneLayerDividendCalculator>(ContractDividendType.OneLayer
+            .ToString());
         _services.AddSingleton(fakeDistribution)
             .AddSingleton(_fakeRepository)
             .AddSingleton(_fakeContractRepository)
@@ -102,7 +103,7 @@ public class OneLayerDistributionTests
                 .Create<AgentPlayerAggregateModel>()
         };
 
-        _fakeContractRepository.GetAgentDividendContractsAsync(Arg.Any<Guid>())
+        _fakeContractRepository.GetBrandAgentDividendContractsAsync(Arg.Any<Guid>())
             .Returns(contracts.ToAsyncEnumerable());
 
         _fakeRepository.GetBrandAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(brand);
@@ -123,11 +124,11 @@ public class OneLayerDistributionTests
 
         var @event = new AgentDividendRequest(brandId);
 
-        var sut = new AgentDividendHandler(_fakeRepository,
+        var sut = new BrandAgentDividendHandler(_fakeRepository,
             _fakeContractRepository,
             _fakeMediator,
             sp,
-            new NullLogger<AgentDividendHandler>());
+            new NullLogger<BrandAgentDividendHandler>());
 
         await sut.Handle(@event, default);
 
@@ -156,6 +157,24 @@ public class OneLayerDistributionTests
         fixture.Customize<AgentDividendContractModel>(u => u
             .With(s => s.BrandId, brandId)
             .With(s => s.AgentId, agentId)
+            .With(s => s.ContractStatus, 0)
+            .With(s => s.ContractDividendType, (short)contractDividendType)
+            .With(s => s.DepositAmount, depositAmount)
+            .With(s => s.BetDays, betDays)
+            .With(s => s.ValidBetAmount, validBetAmount));
+        fixture.Behaviors.Add(new OmitOnRecursionBehavior());
+        return fixture;
+    }
+
+    private Fixture CreateContractFixture(Guid brandId,
+        ContractDividendType contractDividendType,
+        decimal validBetAmount,
+        decimal depositAmount,
+        int betDays)
+    {
+        var fixture = new Fixture();
+        fixture.Customize<AgentDividendContractModel>(u => u
+            .With(s => s.BrandId, brandId)
             .With(s => s.ContractStatus, 0)
             .With(s => s.ContractDividendType, (short)contractDividendType)
             .With(s => s.DepositAmount, depositAmount)
@@ -222,6 +241,20 @@ public class OneLayerDistributionTests
             .With(s => s.AgentAdjustAmount, agentAdjustAmount)
             .With(s => s.AgentDividendPercentage, agentDividendPercentage)
             .With(s => s.AgentDividendPercentageTreeData, path));
+        fixture.Behaviors.Add(new OmitOnRecursionBehavior());
+        return fixture;
+    }
+
+    private Fixture CreateAgentDividendPercentageDataFixture(
+        Guid agentId,
+        Guid? parentId,
+        decimal dividendPercentage)
+    {
+        var fixture = new Fixture();
+        fixture.Customize<AgentDividendPercentageData>(u => u
+            .With(s => s.AgentId, agentId)
+            .With(s => s.ParentAgentId, parentId)
+            .With(s => s.DividendPercentage, dividendPercentage));
         fixture.Behaviors.Add(new OmitOnRecursionBehavior());
         return fixture;
     }

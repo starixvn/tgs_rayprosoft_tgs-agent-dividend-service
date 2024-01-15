@@ -5,7 +5,7 @@ public class AgentDividendMultipleLayerModel
     public int AgentDividendId { get; set; }
     public Guid AgentId { get; set; }
     public Guid DividendProviderAgentId { get; set; }
-    public Guid ContractId { get; set; }
+    public Guid AgentDividendSnapshotId { get; set; }
     public int DividendProviderId { get; set; }
     public decimal AgentDividendPercentage { get; set; }
     public decimal ActualDividendPercentage { get; set; }

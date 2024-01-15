@@ -1,6 +1,6 @@
 using AutoFixture;
 using NSubstitute;
-using Tgs.Agent.Dividend.Core;
+using Tgs.Agent.Dividend.Core.AgentDividend;
 using Tgs.Agent.Dividend.Domain.Interfaces.Repositories;
 using Tgs.Agent.Dividend.Domain.Models;
 
@@ -59,6 +59,7 @@ public class GetNoSendDividendHandlerTests
             Assert.That(ActualArray, Does.Contain(response.NegativeDividendsIds[33]));
             Assert.That(response.NegativeDividendsIds[34], Is.EqualTo(3));
             Assert.That(response.NegativeDividendsIds[35], Is.EqualTo(3));
+            Assert.That(response.Model.First(x => x.AgentId == agentId3).AutoSend, Is.EqualTo(false));
             Assert.That(response.Model.Where(x => x.AgentId == agentId).Sum(s => s.AgentDividendAmount),
                 Is.EqualTo(58));
             Assert.That(response.Model.Where(x => x.AgentId == agentId2).Sum(s => s.AgentDividendAmount),
@@ -79,7 +80,8 @@ public class GetNoSendDividendHandlerTests
             .With(s => s.AgentId, agentId)
             .With(s => s.AgentDividendPercentage, agentDividendPercentage)
             .With(s => s.AgentDividendAmount, agentDividendAmount)
-            .With(s => s.BeforeDividendAmount, 0));
+            .With(s => s.BeforeDividendAmount, 0)
+            .With(s => s.AutoSend, true));
         fixture.Behaviors.Add(new OmitOnRecursionBehavior());
         return fixture;
     }

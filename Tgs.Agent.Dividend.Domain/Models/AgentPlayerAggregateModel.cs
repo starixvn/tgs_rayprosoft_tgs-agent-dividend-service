@@ -37,6 +37,7 @@ public class AgentPlayerAggregateModel
     public decimal ESportsWinLoss { get; set; }
     public decimal VirtualSportsWinLoss { get; set; }
     public decimal AgentDividendAmount { get; set; }
+    public int ActiveNumber { get; set; }
 
     public decimal NetProfit(decimal platformCharge)
     {

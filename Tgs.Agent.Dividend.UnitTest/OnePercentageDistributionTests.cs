@@ -15,8 +15,8 @@ public class OnePercentageDistributionTests
     {
     }
 
-    [TestCase(-100, 20, 30, 30, -14.4)]
-    [TestCase(-100, 20, 30, 0, -18)]
+    [TestCase(-100, 20, 30, 30, -26.4)]
+    [TestCase(-100, 20, 30, 0, -33)]
     public async Task Generate_Agent_Dividend_With_Bonus(decimal winLossAmount,
         decimal bonusAmount,
         decimal bonusAdjustAmount,
@@ -38,7 +38,7 @@ public class OnePercentageDistributionTests
 
         var contract = CreateContractFixture(brandId,
                 agentId,
-                ContractDividendType.MultipleLayer,
+                ContractDividendType.OnePercentage,
                 2,
                 2,
                 2)
@@ -67,6 +67,7 @@ public class OnePercentageDistributionTests
                     from,
                     to,
                     winLossAmount,
+                    2,
                     bonusAmount,
                     bonusAdjustAmount,
                     noIncludeNetProfitBonusAdjustAmount)
@@ -127,7 +128,9 @@ public class OnePercentageDistributionTests
         fakeRepository.GetAgentsCacheAsyncEnumerable(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(agents.ToAsyncEnumerable());
         fakeRepository
-            .GetAgentsByPathCacheAsyncEnumerable(Arg.Any<Guid>(), Arg.Any<LTree>(), Arg.Any<CancellationToken>())
+            .GetDescendantAgentsByPathCacheAsyncEnumerable(Arg.Any<Guid>(),
+                Arg.Any<LTree>(),
+                Arg.Any<CancellationToken>())
             .Returns(agents.ToAsyncEnumerable());
 
         fakeRepository
@@ -156,7 +159,7 @@ public class OnePercentageDistributionTests
         var multipleLayers = new List<AgentDividendMultipleLayerModel>();
         foreach (var agentPlayerAggregateModel in agentPlayerAggregates)
         {
-            var sut = new OnePercentageDistribution(
+            var sut = new OnePercentageDividendCalculator(
                 fakeContractRepository,
                 fakeRepository);
 
@@ -170,24 +173,19 @@ public class OnePercentageDistributionTests
         Assert.That(multipleLayers.Sum(x => x.Dividend), Is.EqualTo(totalDividend));
     }
 
-    [TestCase(-110, 1, 0, 0, 20, 1, 1, 6, 2, 2, -26.4)]
-    [TestCase(-100, 1, 0, 0, 4, 1, 1, 6, 2, 2, -22.0)]
-    [TestCase(-50, 1, 1, 1, 4, 1, 1, 6, 2, 2, -8.5)]
-    [TestCase(-100, 2, 2, 2, 1, 1, 1, 4, 2, 2, -12.0)]
-    [TestCase(110, 1, 0, 0, 20, 1, 1, 6, 2, 2, 26.4)]
-    [TestCase(100, 1, 0, 0, 4, 1, 1, 6, 2, 2, 22.0)]
-    [TestCase(50, 1, 1, 1, 4, 1, 1, 6, 2, 2, 8.5)]
-    [TestCase(100, 2, 2, 2, 1, 1, 1, 4, 2, 2, 0)]
+    [TestCase(-110, 1, 0, 0,2, -26.4)]
+    [TestCase(-100, 1, 0, 0, 2, -22.0)]
+    [TestCase(-50, 1, 1, 1, 2, -8.5)]
+    [TestCase(-100, 2, 2, 2, 2, -22.0)]
+    [TestCase(110, 1, 0, 0, 2, 26.4)]
+    [TestCase(100, 1, 0, 0, 2, 22.0)]
+    [TestCase(50, 1, 1, 1, 2, 8.5)]
+    [TestCase(100, 2, 2, 2, 1, 0)]
     public async Task Generate_Agent_Dividend_For_One_Percentage_Type(decimal winLossAmount,
         decimal contractValidBetAmount,
         decimal contractDepositAmount,
         int contractBetDays,
-        decimal player1ValidBetAmount,
-        decimal player1DepositAmount,
-        int player1BetDays,
-        decimal player2ValidBetAmount,
-        decimal player2DepositAmount,
-        int player2BetDays,
+        int activeNumber,
         decimal totalDividend)
     {
         var fakeContractRepository = Substitute.For<IContractRepository>();
@@ -229,7 +227,7 @@ public class OnePercentageDistributionTests
 
         var agentPlayerAggregates = new[]
         {
-            CreateAgentPlayerAggregateFixture(brandId, agentId, from, to, winLossAmount)
+            CreateAgentPlayerAggregateFixture(brandId, agentId, from, to, winLossAmount, activeNumber)
                 .Create<AgentPlayerAggregateModel>()
         };
 
@@ -237,40 +235,6 @@ public class OnePercentageDistributionTests
         {
             CreateAgentPlayerGameAggregateFixture(brandId, agentId, from, to)
                 .Create<AgentPlayerGameAggregateModel>()
-        };
-
-        var playerValidBets = new[]
-        {
-            CreateAgentPlayerValidBetFixture(brandId, agentId, player1, from, to, player1ValidBetAmount)
-                .Create<AgentPlayerValidBetModel>(),
-            CreateAgentPlayerValidBetFixture(brandId, agentId, player2, from, to, player2ValidBetAmount)
-                .Create<AgentPlayerValidBetModel>()
-        };
-
-        var playerBetDays = new[]
-        {
-            CreateAgentPlayerBetCountFixture(brandId, agentId, player1, from, to, player1BetDays)
-                .Create<AgentPlayerBetDaysModel>(),
-            CreateAgentPlayerBetCountFixture(brandId, agentId, player2, from, to, player2BetDays)
-                .Create<AgentPlayerBetDaysModel>()
-        };
-
-        var playerDeposits = new[]
-        {
-            CreateAgentPlayerDepositFixture(brandId,
-                    agentId,
-                    player1,
-                    DateOnly.FromDateTime(from),
-                    DateOnly.FromDateTime(to),
-                    player1DepositAmount)
-                .Create<AgentPlayerDepositModel>(),
-            CreateAgentPlayerDepositFixture(brandId,
-                    agentId,
-                    player2,
-                    DateOnly.FromDateTime(from),
-                    DateOnly.FromDateTime(to),
-                    player2DepositAmount)
-                .Create<AgentPlayerDepositModel>()
         };
 
         var conditions = new[]
@@ -288,7 +252,9 @@ public class OnePercentageDistributionTests
         fakeRepository.GetAgentsCacheAsyncEnumerable(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(agents.ToAsyncEnumerable());
         fakeRepository
-            .GetAgentsByPathCacheAsyncEnumerable(Arg.Any<Guid>(), Arg.Any<LTree>(), Arg.Any<CancellationToken>())
+            .GetDescendantAgentsByPathCacheAsyncEnumerable(Arg.Any<Guid>(),
+                Arg.Any<LTree>(),
+                Arg.Any<CancellationToken>())
             .Returns(agents.ToAsyncEnumerable());
 
         fakeRepository
@@ -299,25 +265,13 @@ public class OnePercentageDistributionTests
             .GetAgentPlayerGameAggregatesCacheAsync(brandId, from, to)
             .Returns(agentPlayerGameAggregates.ToAsyncEnumerable());
 
-        fakeRepository.GetAgentPlayerValidBetsCacheAsync(brandId, from, to, Arg.Any<CancellationToken>())
-            .Returns(playerValidBets.ToAsyncEnumerable());
-
-        fakeRepository.GetAgentPlayerBetCountsCacheAsync(brandId, from, to, Arg.Any<CancellationToken>())
-            .Returns(playerBetDays.ToAsyncEnumerable());
-
-        fakeRepository.GetAgentPlayerDepositsCacheAsync(brandId,
-                DateOnly.FromDateTime(from),
-                DateOnly.FromDateTime(to),
-                Arg.Any<CancellationToken>())
-            .Returns(playerDeposits.ToAsyncEnumerable());
-
         fakeContractRepository.GetAgentDividendContractConditionsAsync(contract.Id, Arg.Any<CancellationToken>())
             .Returns(conditions.ToAsyncEnumerable());
 
         var multipleLayers = new List<AgentDividendMultipleLayerModel>();
         foreach (var agentPlayerAggregateModel in agentPlayerAggregates)
         {
-            var sut = new OnePercentageDistribution(
+            var sut = new OnePercentageDividendCalculator(
                 fakeContractRepository,
                 fakeRepository);
 
@@ -438,7 +392,9 @@ public class OnePercentageDistributionTests
         fakeRepository.GetAgentsCacheAsyncEnumerable(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(agents.ToAsyncEnumerable());
         fakeRepository
-            .GetAgentsByPathCacheAsyncEnumerable(Arg.Any<Guid>(), Arg.Any<LTree>(), Arg.Any<CancellationToken>())
+            .GetDescendantAgentsByPathCacheAsyncEnumerable(Arg.Any<Guid>(),
+                Arg.Any<LTree>(),
+                Arg.Any<CancellationToken>())
             .Returns(agents.ToAsyncEnumerable());
 
         fakeRepository
@@ -467,7 +423,7 @@ public class OnePercentageDistributionTests
         var multipleLayers = new List<AgentDividendMultipleLayerModel>();
         foreach (var agentPlayerAggregateModel in agentPlayerAggregates)
         {
-            var sut = new OnePercentageDistribution(
+            var sut = new OnePercentageDividendCalculator(
                 fakeContractRepository,
                 fakeRepository);
 
@@ -536,6 +492,7 @@ public class OnePercentageDistributionTests
         DateTime from,
         DateTime to,
         decimal winLoss,
+        int activeNumber,
         decimal? bonusAmount = 0,
         decimal? bonusAdjustAmount = 0,
         decimal? noIncludeNetProfitBonusAdjustAmount = 0)
@@ -547,6 +504,7 @@ public class OnePercentageDistributionTests
             .With(s => s.From, from)
             .With(s => s.To, to)
             .With(s => s.WinLossAmount, winLoss)
+            .With(s => s.ActiveNumber, activeNumber)
             .With(s => s.BonusAmount, bonusAmount)
             .With(s => s.BonusAdjustAmount, bonusAdjustAmount)
             .With(s => s.NoIncludeNetProfitBonusAdjustAmount, noIncludeNetProfitBonusAdjustAmount));

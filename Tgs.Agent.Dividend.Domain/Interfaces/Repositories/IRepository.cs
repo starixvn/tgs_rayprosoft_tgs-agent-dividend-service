@@ -7,7 +7,7 @@ public interface IRepository
 {
     IAsyncEnumerable<AgentModel> GetAgentsCacheAsyncEnumerable(Guid brandId, CancellationToken cancellationToken);
 
-    IAsyncEnumerable<AgentModel> GetAgentsByPathCacheAsyncEnumerable(Guid brandId,
+    IAsyncEnumerable<AgentModel> GetDescendantAgentsByPathCacheAsyncEnumerable(Guid brandId,
         LTree path,
         CancellationToken cancellationToken);
 
@@ -22,7 +22,7 @@ public interface IRepository
         DateTime from,
         DateTime to,
         CancellationToken cancellationToken,
-        bool includePlayerAgent = true);
+        bool includeCheckPlayerAgentRelation = true);
 
     IAsyncEnumerable<AgentPlayerGameAggregateModel> GetAgentPlayerGameAggregatesCacheAsync(Guid brandId,
         DateTime from,
@@ -45,6 +45,8 @@ public interface IRepository
 
     IAsyncEnumerable<NegativeAgentDividendModel> GetNegativeAgentDividendsAsync(Guid agent);
 
+    IAsyncEnumerable<AgentDividendBeforehand> GetAgentDividendsAsync(Guid agent, DateTime from, DateTime to);
+
     Task CreateAgentDividendsAsync(BrandModel brand,
         IEnumerable<CreateAgentDividendModel> agentDividends,
         IDictionary<int, int> sendNegativeDividendIds,
@@ -55,12 +57,6 @@ public interface IRepository
     Task<int> GetMaxAgentDividendIdAsync(CancellationToken cancellationToken);
 
     Task UpdateSentOnAsync(int agentDividendId, CancellationToken cancellationToken);
-
-    Task CreateAgentDividendRecordAsync(Guid brandId,
-        Guid agentId,
-        int agentDividendId,
-        decimal agentDividendAmount,
-        CancellationToken cancellationToken);
 
     void RemoveAllMemoryCache(CancellationToken cancellationToken);
 }

@@ -33,7 +33,7 @@ public partial class BrandContract
 
     public DateTime CreatedOn { get; set; }
 
-    public DateTime? UpdatedOn { get; set; }
+    public DateTime UpdatedOn { get; set; }
 
     public virtual ICollection<BrandContractCondition> BrandContractConditions { get; set; } = new List<BrandContractCondition>();
 }

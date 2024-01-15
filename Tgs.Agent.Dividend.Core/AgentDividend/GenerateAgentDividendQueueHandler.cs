@@ -3,7 +3,7 @@ using Tgs.Agent.Dividend.Core.Workers;
 using Tgs.Agent.Dividend.Domain.Interfaces.Repositories;
 using Tgs.Agent.Dividend.Domain.Models;
 
-namespace Tgs.Agent.Dividend.Core;
+namespace Tgs.Agent.Dividend.Core.AgentDividend;
 
 internal class GenerateAgentDividendQueueHandler(
     IAgentDividendTaskQueue queue,

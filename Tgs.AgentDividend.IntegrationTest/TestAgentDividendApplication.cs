@@ -41,7 +41,7 @@ internal class TestAgentDividendApplication : WebApplicationFactory<AgentDividen
             .Replace(ServiceDescriptor.Singleton(sp =>
             {
                 var dbContextOptionsBuilder = new DbContextOptionsBuilder<tgsContext>();
-
+                dbContextOptionsBuilder.UseNpgsql();
                 return new tgsContext(dbContextOptionsBuilder.Options);
             })));
 

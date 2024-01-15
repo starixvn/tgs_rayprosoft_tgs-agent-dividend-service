@@ -11,7 +11,7 @@ namespace Tgs.Agent.Dividend.Repository;
 
 internal class ContractRepository(tgsContext context) : IContractRepository
 {
-    public IAsyncEnumerable<AgentDividendContractModel> GetAgentDividendContractsAsync(Guid brandId)
+    public IAsyncEnumerable<AgentDividendContractModel> GetBrandAgentDividendContractsAsync(Guid brandId)
     {
         return context.AgentDividendContracts.Where(x => x.BrandId == brandId)
             .Select(x => new AgentDividendContractModel
@@ -106,7 +106,7 @@ internal class ContractRepository(tgsContext context) : IContractRepository
 
     public async Task CreateAgentContractAsync(CreateAgentContractRequest request, CancellationToken cancellationToken)
     {
-        var id = Guid.NewGuid();
+        var contractId = Guid.NewGuid();
 
         var brandContract = await context.BrandContracts
             .Include(x => x.BrandContractConditions)
@@ -115,9 +115,10 @@ internal class ContractRepository(tgsContext context) : IContractRepository
 
         var contract = new AgentDividendContract
         {
-            Id = id,
+            Id = contractId,
             BrandId = request.BrandId,
             AgentId = request.AgentId,
+            DefaultBrandContractId = brandContract.Id,
             Name = brandContract.Name,
             GradeIntervalLimit = brandContract.GradeIntervalLimit,
             ContractDividendType = brandContract.ContractDividendType,
@@ -125,15 +126,16 @@ internal class ContractRepository(tgsContext context) : IContractRepository
             ValidBetAmount = brandContract.ValidBetAmount,
             DepositAmount = brandContract.DepositAmount,
             BetDays = brandContract.BetDays,
+            GameTypes = brandContract.GameTypes,
             CreatedByUsername = request.EditorUsername,
             UpdatedByUsername = request.EditorUsername,
-            CreatedOn = DateTime.Now,
-            UpdatedOn = DateTime.Now
+            CreatedOn = DateTime.UtcNow,
+            UpdatedOn = DateTime.UtcNow
         };
 
         var conditions = brandContract.BrandContractConditions.Select(x => new AgentDividendCondition
         {
-            ContractId = id,
+            ContractId = contractId,
             Rank = x.Rank,
             AgentId = request.AgentId,
             NetProfit = x.NetProfit,
@@ -166,8 +168,8 @@ internal class ContractRepository(tgsContext context) : IContractRepository
             GameTypes = request.GameTypes?.Select(x => ((int)x).ToString()).ToList() ?? [],
             CreatedByUsername = request.EditorUsername,
             UpdatedByUsername = request.EditorUsername,
-            CreatedOn = DateTime.Now,
-            UpdatedOn = DateTime.Now,
+            CreatedOn = DateTime.UtcNow,
+            UpdatedOn = DateTime.UtcNow,
             BrandContractConditions = request.Conditions.Select(x => new BrandContractCondition
                 {
                     BrandContractId = id,
@@ -224,6 +226,20 @@ internal class ContractRepository(tgsContext context) : IContractRepository
             .ConfigureAwait(false);
 
         await context.BrandContractConditions.AddRangeAsync(brandContractConditions, cancellationToken)
+            .ConfigureAwait(false);
+
+        await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+    }
+
+    public async Task CreateAgentContractSnapshotAsync(Guid id, string data, CancellationToken cancellationToken)
+    {
+        await context.AgentDividendSnapshots.AddAsync(new AgentDividendSnapshot
+                {
+                    Id = id,
+                    Data = data,
+                    CreatedOn = DateTime.UtcNow
+                },
+                cancellationToken)
             .ConfigureAwait(false);
 
         await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
