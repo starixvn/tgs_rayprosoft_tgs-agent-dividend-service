@@ -31,7 +31,8 @@ public class OneLayerDistributionTests
         var fakeMemoryCache = Substitute.For<IMemoryCache>();
         var fakeDistribution = Substitute.For<IDividendCalculator>();
 
-        _services.AddKeyedSingleton<IDividendCalculator, OneLayerDividendCalculator>(ContractDividendType.OneLayer.ToString());
+        _services.AddKeyedSingleton<IDividendCalculator, OneLayerDividendCalculator>(ContractDividendType.OneLayer
+            .ToString());
         _services.AddSingleton(fakeDistribution)
             .AddSingleton(_fakeRepository)
             .AddSingleton(_fakeContractRepository)
@@ -257,5 +258,4 @@ public class OneLayerDistributionTests
         fixture.Behaviors.Add(new OmitOnRecursionBehavior());
         return fixture;
     }
-
 }

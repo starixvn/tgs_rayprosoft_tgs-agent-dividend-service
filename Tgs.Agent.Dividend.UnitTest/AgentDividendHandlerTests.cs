@@ -29,7 +29,8 @@ public class AgentDividendHandlerTests
         var fakeDistribution = Substitute.For<IDividendCalculator>();
 
         var services = new ServiceCollection();
-        services.AddKeyedSingleton<IDividendCalculator, OneLayerDividendCalculator>(ContractDividendType.OneLayer.ToString());
+        services.AddKeyedSingleton<IDividendCalculator, OneLayerDividendCalculator>(ContractDividendType.OneLayer
+            .ToString());
         services.AddSingleton(fakeDistribution)
             .AddSingleton(fakeRepository)
             .AddSingleton(fakeContractRepository)
@@ -388,7 +389,9 @@ public class AgentDividendHandlerTests
         fakeRepository.GetAgentsCacheAsyncEnumerable(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(agents.ToAsyncEnumerable());
         fakeRepository
-            .GetDescendantAgentsByPathCacheAsyncEnumerable(Arg.Any<Guid>(), Arg.Any<LTree>(), Arg.Any<CancellationToken>())
+            .GetDescendantAgentsByPathCacheAsyncEnumerable(Arg.Any<Guid>(),
+                Arg.Any<LTree>(),
+                Arg.Any<CancellationToken>())
             .Returns(agents.ToAsyncEnumerable());
         fakeRepository.GetAgentPlayerValidBetsCacheAsync(Arg.Any<Guid>(),
                 Arg.Any<DateTime>(),
@@ -453,8 +456,7 @@ public class AgentDividendHandlerTests
             .GetAgentPlayerAggregatesForMultipleLayerCacheAsync(Arg.Any<Guid>(),
                 Arg.Any<DateTime>(),
                 Arg.Any<DateTime>(),
-                Arg.Any<CancellationToken>(),
-                true)
+                Arg.Any<CancellationToken>())
             .Returns(agentPlayerAggregates.ToAsyncEnumerable());
         fakeRepository.GetAgentPlayerGameAggregatesCacheAsync(Arg.Any<Guid>(), Arg.Any<DateTime>(), Arg.Any<DateTime>())
             .Returns(AsyncEnumerable.Empty<AgentPlayerGameAggregateModel>());

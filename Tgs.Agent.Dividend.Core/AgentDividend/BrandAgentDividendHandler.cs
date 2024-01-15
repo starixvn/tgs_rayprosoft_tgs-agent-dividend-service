@@ -65,7 +65,8 @@ internal class BrandAgentDividendHandler(
 
         foreach (var agentPlayerAggregateModel in agentPlayerAggregates)
         {
-            var (agentContract, distributionService) = agentInstances.First(a => a.agentContract.AgentId == agentPlayerAggregateModel.AgentId);
+            var (agentContract, distributionService) =
+                agentInstances.First(a => a.agentContract.AgentId == agentPlayerAggregateModel.AgentId);
 
             var data = await distributionService.GenerateMultipleLayerAsync(
                     brand,
@@ -80,14 +81,14 @@ internal class BrandAgentDividendHandler(
         var additional = new List<AgentPlayerAggregateModel>();
 
         foreach (var data in from agentDividendMultipleLayerModel in multipleLayers
-                             let instance =
-                                 agentInstances.First(a => a.agentContract.AgentId == agentDividendMultipleLayerModel.AgentId)
-                             select instance.distributionService.GenerateAdditionalAgentPlayerAggregates(currentNumber,
-                                     brand,
-                                     agentDividendMultipleLayerModel,
-                                     agentPlayerAggregates,
-                                     cancellationToken)
-                                 .ToArray())
+                 let instance =
+                     agentInstances.First(a => a.agentContract.AgentId == agentDividendMultipleLayerModel.AgentId)
+                 select instance.distributionService.GenerateAdditionalAgentPlayerAggregates(currentNumber,
+                         brand,
+                         agentDividendMultipleLayerModel,
+                         agentPlayerAggregates,
+                         cancellationToken)
+                     .ToArray())
         {
             currentNumber += data.Length;
 
@@ -97,7 +98,8 @@ internal class BrandAgentDividendHandler(
         var agentDividends = agentPlayerAggregates.Concat(additional)
             .Select(x =>
             {
-                var (agentContract, distributionService) = agentInstances.First(a => a.agentContract.AgentId == x.AgentId);
+                var (agentContract, distributionService) =
+                    agentInstances.First(a => a.agentContract.AgentId == x.AgentId);
 
                 var parentAgentDividends = distributionService.GetMultipleLayer(x,
                     multipleLayers,

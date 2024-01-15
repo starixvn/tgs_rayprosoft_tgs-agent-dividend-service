@@ -234,12 +234,13 @@ internal class ContractRepository(tgsContext context) : IContractRepository
     public async Task CreateAgentContractSnapshotAsync(Guid id, string data, CancellationToken cancellationToken)
     {
         await context.AgentDividendSnapshots.AddAsync(new AgentDividendSnapshot
-        {
-            Id = id,
-            Data = data,
-            CreatedOn = DateTime.UtcNow
-        }, cancellationToken)
-        .ConfigureAwait(false);
+                {
+                    Id = id,
+                    Data = data,
+                    CreatedOn = DateTime.UtcNow
+                },
+                cancellationToken)
+            .ConfigureAwait(false);
 
         await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
     }

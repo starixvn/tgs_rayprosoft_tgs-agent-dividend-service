@@ -39,7 +39,10 @@ public static class DateTimeOffsetExtensions
         {
             SettlementIntervalType.Daily => (startDate, startDate),
             SettlementIntervalType.Weekly => (startDate, startDate.GetSunday()),
-            SettlementIntervalType.DoubleWeekly => (startDate, startDate.Day > 15 ? startDate.GetLastDayOfMonth() : new DateTimeOffset(startDate.Year, startDate.Month, 15,0,0,0, startDate.Offset)),
+            SettlementIntervalType.DoubleWeekly => (startDate,
+                startDate.Day > 15
+                    ? startDate.GetLastDayOfMonth()
+                    : new DateTimeOffset(startDate.Year, startDate.Month, 15, 0, 0, 0, startDate.Offset)),
             SettlementIntervalType.Monthly => (startDate,
                 dayOfMonth == null
                     ? startDate.GetLastDayOfMonth()

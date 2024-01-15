@@ -1,6 +1,5 @@
 ﻿using System.Text;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using Tgs.Agent.Dividend.Client.Models;
 
 namespace Tgs.Agent.Dividend.Client;
@@ -40,7 +39,8 @@ internal class AgentDividendClient(HttpClient client) : IAgentDividendClient
 
         _ = response.EnsureSuccessStatusCode();
 
-        return JsonSerializer.Deserialize<AgentDividendBeforehandResponse>(await response.Content.ReadAsStringAsync(cancellationToken),
+        return JsonSerializer.Deserialize<AgentDividendBeforehandResponse>(
+            await response.Content.ReadAsStringAsync(cancellationToken),
             JsonSerializerOptions)!;
     }
 }

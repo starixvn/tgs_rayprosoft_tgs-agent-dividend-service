@@ -12,7 +12,8 @@ public static class CoreExtensions
     {
         _ = services
             .AddMediatR(r => r.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()))
-            .AddKeyedTransient<IDividendCalculator, OneLayerDividendCalculator>(ContractDividendType.OneLayer.ToString())
+            .AddKeyedTransient<IDividendCalculator, OneLayerDividendCalculator>(
+                ContractDividendType.OneLayer.ToString())
             .AddKeyedTransient<IDividendCalculator, MultipleLayerDividendCalculator>(
                 ContractDividendType.MultipleLayer.ToString())
             .AddKeyedTransient<IDividendCalculator, OnePercentageDividendCalculator>(

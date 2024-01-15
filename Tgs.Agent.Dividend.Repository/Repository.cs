@@ -572,7 +572,8 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache) : IRepos
 
     public IAsyncEnumerable<AgentDividendBeforehand> GetAgentDividendsAsync(Guid agentId, DateTime from, DateTime to)
     {
-        return context.AgentDividends.Where(x => x.AgentId == agentId && x.From == from && x.To == to).Select(x => new AgentDividendBeforehand(
+        return context.AgentDividends.Where(x => x.AgentId == agentId && x.From == from && x.To == to)
+            .Select(x => new AgentDividendBeforehand(
                 x.ActiveNumber,
                 x.WinLossAmount,
                 x.BonusAmount - x.RebateAmount,
@@ -580,7 +581,7 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache) : IRepos
                 x.WinLossAmount -
                 x.BonusAmount -
                 x.DepositHandlingFee -
-                (x.WinLossAmount * x.PlatformChargePercentage / 100),
+                x.WinLossAmount * x.PlatformChargePercentage / 100,
                 x.WinLossAmount - x.BonusAmount,
                 x.DepositHandlingFee,
                 x.WinLossAmount * x.PlatformChargePercentage / 100,
@@ -670,7 +671,8 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache) : IRepos
 
     public async Task UpdateSentOnAsync(int agentDividendId, CancellationToken cancellationToken)
     {
-        await context.AgentDividends.Where(x => x.Id == agentDividendId || x.ReferencedAgentDividendId == agentDividendId)
+        await context.AgentDividends
+            .Where(x => x.Id == agentDividendId || x.ReferencedAgentDividendId == agentDividendId)
             .ExecuteUpdateAsync(s =>
                     s.SetProperty(e => e.SentOn, DateTime.UtcNow),
                 cancellationToken);

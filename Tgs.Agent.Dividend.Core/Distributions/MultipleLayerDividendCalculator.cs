@@ -184,7 +184,9 @@ internal class MultipleLayerDividendCalculator(IContractRepository contractRepos
         };
     }
 
-    private async Task<Guid> GenerateAgentDividendSnapshotAsync(AgentDividendContractModel contract, IEnumerable<AgentDividendContractConditionModel> conditions, CancellationToken cancellationToken)
+    private async Task<Guid> GenerateAgentDividendSnapshotAsync(AgentDividendContractModel contract,
+        IEnumerable<AgentDividendContractConditionModel> conditions,
+        CancellationToken cancellationToken)
     {
         var snapshotId = Guid.NewGuid();
 

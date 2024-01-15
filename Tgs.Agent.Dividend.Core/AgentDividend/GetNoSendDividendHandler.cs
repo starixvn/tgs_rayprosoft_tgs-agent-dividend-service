@@ -53,10 +53,7 @@ internal class GetNoSendDividendHandler(IRepository repository)
                 }
             }
 
-            if (dividend.AgentDividendAmount < 0)
-            {
-                dividend.AutoSend = false;
-            }
+            if (dividend.AgentDividendAmount < 0) dividend.AutoSend = false;
         }
 
         return new NoSendDividendResponse { Model = request.AgentDividends, NegativeDividendsIds = noSendDividendIds };

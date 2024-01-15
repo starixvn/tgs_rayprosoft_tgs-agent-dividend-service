@@ -86,7 +86,8 @@ internal class DividendHandler(
 
         foreach (var agentDividendMultipleLayerModel in multipleLayers)
         {
-            var instance = agentInstances.First(a => a.agentContract.AgentId == agentDividendMultipleLayerModel.AgentId);
+            var instance =
+                agentInstances.First(a => a.agentContract.AgentId == agentDividendMultipleLayerModel.AgentId);
 
             var data = instance.distributionService.GenerateAdditionalAgentPlayerAggregates(currentNumber,
                     brand,

@@ -2,7 +2,7 @@
 
 public record AgentDividendBeforehand(
     int ActiveNumber,
-    decimal CompanyWinLossAmount, 
+    decimal CompanyWinLossAmount,
     decimal Bonus,
     decimal PlayerRebate,
     decimal SettledProfitLoss,

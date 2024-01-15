@@ -7,7 +7,8 @@ using Tgs.Agent.Dividend.Domain.Models;
 
 namespace Tgs.Agent.Dividend.Core.Distributions;
 
-internal class OnePercentageDividendCalculator(IContractRepository contractRepository, IRepository repository) : IDividendCalculator
+internal class OnePercentageDividendCalculator(IContractRepository contractRepository, IRepository repository)
+    : IDividendCalculator
 {
     public async IAsyncEnumerable<AgentPlayerAggregateModel> GetAgentPlayerAggregateAsync(int idNumber,
         BrandModel brand,
@@ -18,8 +19,7 @@ internal class OnePercentageDividendCalculator(IContractRepository contractRepos
             .GetAgentPlayerAggregatesForMultipleLayerCacheAsync(brand.Id,
                 brand.CurrentSettlementFrom,
                 brand.CurrentSettlementTo,
-                cancellationToken,
-                true)
+                cancellationToken)
             .Where(x => x.AgentId == contract.AgentId)
             .FirstOrDefaultAsync(cancellationToken);
 
@@ -108,7 +108,8 @@ internal class OnePercentageDividendCalculator(IContractRepository contractRepos
         var agent = await repository.GetAgentsCacheAsyncEnumerable(brand.Id, cancellationToken)
             .FirstAsync(x => x.Id == contract.AgentId, cancellationToken);
 
-        var agents = await repository.GetDescendantAgentsByPathCacheAsyncEnumerable(brand.Id, agent.Path, cancellationToken)
+        var agents = await repository
+            .GetDescendantAgentsByPathCacheAsyncEnumerable(brand.Id, agent.Path, cancellationToken)
             .ToArrayAsync(cancellationToken);
 
         var agentDividends = GetAgentDividendsByMultipleLayer(
@@ -295,7 +296,9 @@ internal class OnePercentageDividendCalculator(IContractRepository contractRepos
         };
     }
 
-    private async Task<Guid> GenerateAgentDividendSnapshotAsync(AgentDividendContractModel contract, IEnumerable<AgentDividendContractConditionModel> conditions, CancellationToken cancellationToken)
+    private async Task<Guid> GenerateAgentDividendSnapshotAsync(AgentDividendContractModel contract,
+        IEnumerable<AgentDividendContractConditionModel> conditions,
+        CancellationToken cancellationToken)
     {
         var snapshotId = Guid.NewGuid();
 
