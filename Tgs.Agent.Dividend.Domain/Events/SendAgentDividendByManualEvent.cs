@@ -2,7 +2,7 @@
 
 namespace Tgs.Agent.Dividend.Domain.Events;
 
-public record SendAgentDividendEvent(
+public record SendAgentDividendByManualEvent(
     Guid BrandId,
     Guid AgentId,
     decimal Amount,

@@ -24,11 +24,11 @@ public class SendAgentDividendEventHandlerTests
         var fakeCashServiceClient = Substitute.For<ICashServiceClient>();
         var fakeRepository = Substitute.For<IRepository>();
 
-        var sut = new SendAgentDividendEventHandler(
+        var sut = new SendAgentDividendByAutoEventHandler(
             fakeAgentClient,
             fakeCashServiceClient,
             fakeRepository,
-            NullLogger<SendAgentDividendEventHandler>.Instance);
+            NullLogger<SendAgentDividendByAutoEventHandler>.Instance);
 
         var brandId = Guid.NewGuid();
         var agentId = Guid.NewGuid();
@@ -40,11 +40,11 @@ public class SendAgentDividendEventHandlerTests
         fakeAgentClient.GetAgentInfoAsync(Arg.Any<GetAgentInfoRequest>(), Arg.Any<CancellationToken>())
             .Returns(fixture.Create<AgentInfoModel>());
 
-        var @event = new SendAgentDividendEvent(brandId, agentId, amount, agentDividendId, "username");
+        var @event = new SendAgentDividendByAutoEvent(brandId, agentId, amount, agentDividendId, "username");
 
         _ = sut.Handle(@event, default);
 
-        await fakeRepository.UpdateSentOnAsync(Arg.Is(agentDividendId),
+        await fakeRepository.UpdateSentOnByAutoSendAsync(Arg.Is(agentDividendId),
             Arg.Is("username"),
             Arg.Any<CancellationToken>());
 

@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using NSubstitute;
 using Tgs.Agent.Dividend.Core.AgentDividend;
 using Tgs.Agent.Dividend.Core.Distributions;
+using Tgs.Agent.Dividend.Core.Workers;
 using Tgs.Agent.Dividend.Domain.Enums;
 using Tgs.Agent.Dividend.Domain.Interfaces;
 using Tgs.Agent.Dividend.Domain.Interfaces.Repositories;
@@ -135,13 +136,15 @@ public class AgentDividendHandlerTests
     {
         var fakeMediator = Substitute.For<IMediator>();
         var fakeRepository = Substitute.For<IRepository>();
+        var fakeBackgroundTaskQueue = Substitute.For<IBackgroundTaskQueue>();
 
         var services = new ServiceCollection();
         services.AddKeyedSingleton<IDividendCalculator, OneLayerDividendCalculator>(ContractDividendType.OneLayer
             .ToString());
         services
             .AddSingleton(fakeRepository)
-            .AddSingleton(fakeMediator);
+            .AddSingleton(fakeMediator)
+            .AddSingleton(fakeBackgroundTaskQueue);
 
         var brandId = Guid.NewGuid();
 
@@ -163,7 +166,9 @@ public class AgentDividendHandlerTests
             Enumerable.Empty<AgentDividendModel>(),
             new Dictionary<int, int> { { 1, 1 } });
 
-        var sut = new CreateAgentDividendHandler(fakeRepository,
+        var sut = new CreateAgentDividendHandler(
+            fakeRepository,
+            fakeBackgroundTaskQueue,
             fakeMediator);
 
         await sut.Handle(request, default);
