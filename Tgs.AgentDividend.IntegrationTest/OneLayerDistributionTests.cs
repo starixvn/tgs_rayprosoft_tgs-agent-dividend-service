@@ -118,7 +118,7 @@ public class OneLayerDistributionTests
         _fakeMediator.Send(Arg.Any<GetNoSendDividendRequest>())
             .Returns(new NoSendDividendResponse
             {
-                Model = Enumerable.Empty<CreateAgentDividendModel>(),
+                Model = Enumerable.Empty<AgentDividendModel>(),
                 NegativeDividendsIds = new Dictionary<int, int> { { 1, 1 } }
             });
 
@@ -132,17 +132,10 @@ public class OneLayerDistributionTests
 
         await sut.Handle(@event, default);
 
-        _ = _fakeRepository.ReceivedWithAnyArgs(1).CreateAgentDividendsAsync(null!, null!, null!, default);
         _ = _fakeMediator.Received(1).Send(Arg.Any<GetNoSendDividendRequest>(), Arg.Any<CancellationToken>());
 
         _ = _fakeMediator.Received(1)
             .Send(Arg.Any<GetNoSendDividendRequest>(),
-                Arg.Any<CancellationToken>());
-
-        _ = _fakeRepository.Received(1)
-            .CreateAgentDividendsAsync(Arg.Any<BrandModel>(),
-                Arg.Is<IEnumerable<CreateAgentDividendModel>>(s => !s.Any()),
-                Arg.Is<IDictionary<int, int>>(s => s.Count == 1),
                 Arg.Any<CancellationToken>());
     }
 

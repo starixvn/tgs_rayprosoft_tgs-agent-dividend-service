@@ -1,13 +1,12 @@
 ﻿namespace Tgs.Agent.Dividend.Domain.Models;
 
-public class CreateAgentDividendModel
+public class AgentDividendModel
 {
     public int Id { get; set; }
     public int? ReferencedAgentDividendId { get; set; }
     public string AgentUsername { get; set; } = default!;
     public Guid AgentId { get; set; }
     public Guid BrandId { get; set; }
-    public Guid WalletId { get; set; }
     public DateTimeOffset From { get; set; }
     public DateTimeOffset To { get; set; }
     public decimal PromotionAmount { get; set; }
@@ -40,7 +39,6 @@ public class CreateAgentDividendModel
     public decimal AgentDividendPercentage { get; set; }
     public decimal AgentDividendAmount { get; set; }
     public decimal? BeforeDividendAmount { get; set; }
-    public DateTimeOffset CreatedOn { get; set; }
     public bool AutoSend { get; set; }
     public AgentDividendMultipleLayerModel[] AgentDividendMultipleLayerModels { get; set; } = default!;
 }

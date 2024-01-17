@@ -7,4 +7,4 @@ public record GetAgentDividendWithContractRequest(
     BrandModel Brand,
     AgentModel Agent,
     IAsyncEnumerable<AgentPlayerAggregateModel> Aggregate,
-    AgentDividendContractModel Contract) : IStreamRequest<CreateAgentDividendModel>;
+    AgentDividendContractModel Contract) : IStreamRequest<AgentDividendModel>;

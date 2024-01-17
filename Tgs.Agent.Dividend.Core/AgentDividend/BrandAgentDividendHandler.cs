@@ -1,9 +1,7 @@
 ﻿using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Tgs.Agent.Dividend.Domain;
 using Tgs.Agent.Dividend.Domain.Enums;
-using Tgs.Agent.Dividend.Domain.Events;
 using Tgs.Agent.Dividend.Domain.Interfaces;
 using Tgs.Agent.Dividend.Domain.Interfaces.Repositories;
 using Tgs.Agent.Dividend.Domain.Models;
@@ -16,9 +14,9 @@ internal class BrandAgentDividendHandler(
     IMediator mediator,
     IServiceProvider serviceProvider,
     ILogger<BrandAgentDividendHandler> logger)
-    : IRequestHandler<AgentDividendRequest>
+    : IRequestHandler<AgentDividendRequest, NoSendDividendResponse>
 {
-    public async Task Handle(AgentDividendRequest request, CancellationToken cancellationToken)
+    public async Task<NoSendDividendResponse> Handle(AgentDividendRequest request, CancellationToken cancellationToken)
     {
         var contracts = await contractRepository.GetBrandAgentDividendContractsAsync(request.BrandId)
             .ToArrayAsync(cancellationToken);
@@ -110,7 +108,7 @@ internal class BrandAgentDividendHandler(
                         multipleLayers,
                         cancellationToken);
 
-                return new CreateAgentDividendModel
+                return new AgentDividendModel
                 {
                     Id = x.Id,
                     BrandId = x.BrandId,
@@ -158,31 +156,8 @@ internal class BrandAgentDividendHandler(
         var sendDividend =
             await mediator.Send(new GetNoSendDividendRequest(agentDividends), cancellationToken);
 
-        var (nextFrom, nextTo) = DateTimeOffsetExtensions.GetInterval(
-            (SettlementIntervalType)brand.SettlementIntervalType,
-            new DateTimeOffset(brand.NextSettlementTo).AddDays(1).ToOffset(new TimeSpan(8, 0, 0)),
-            brand.SettlementDay);
-
-        brand.PreviousSettlementFrom = brand.CurrentSettlementFrom;
-        brand.PreviousSettlementTo = brand.CurrentSettlementTo;
-        brand.CurrentSettlementFrom = brand.NextSettlementFrom;
-        brand.CurrentSettlementTo = brand.NextSettlementTo;
-        brand.NextSettlementFrom = nextFrom.UtcDateTime;
-        brand.NextSettlementTo = nextTo.UtcDateTime;
-
-        await repository.CreateAgentDividendsAsync(brand,
-            sendDividend.Model,
-            sendDividend.NegativeDividendsIds,
-            cancellationToken);
-
-        foreach (var createAgentDividendModel in sendDividend.Model.Where(x => x.AutoSend))
-            await mediator.Publish(new SendAgentDividendEvent(brand.Id,
-                    createAgentDividendModel.AgentId,
-                    createAgentDividendModel.WalletId,
-                    createAgentDividendModel.AgentDividendAmount,
-                    createAgentDividendModel.Id),
-                cancellationToken);
-
         repository.RemoveAllMemoryCache(cancellationToken);
+
+        return sendDividend;
     }
 }

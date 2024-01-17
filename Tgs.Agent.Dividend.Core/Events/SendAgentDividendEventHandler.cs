@@ -1,5 +1,7 @@
 ﻿using MediatR;
 using Microsoft.Extensions.Logging;
+using Tgs.Agent.Client;
+using Tgs.Agent.Client.Models;
 using Tgs.Agent.Dividend.Domain.Events;
 using Tgs.Agent.Dividend.Domain.Interfaces.Repositories;
 using Tgs.CashService.Client;
@@ -7,6 +9,7 @@ using Tgs.CashService.Client;
 namespace Tgs.Agent.Dividend.Core.Events;
 
 internal class SendAgentDividendEventHandler(
+    IAgentClient agentClient,
     ICashServiceClient cashServiceClient,
     IRepository repository,
     ILogger<SendAgentDividendEventHandler> logger)
@@ -14,16 +17,25 @@ internal class SendAgentDividendEventHandler(
 {
     public async Task Handle(SendAgentDividendEvent @event, CancellationToken cancellationToken)
     {
+        var agent = await agentClient.GetAgentInfoAsync(new GetAgentInfoRequest(@event.AgentId), cancellationToken);
+
+        if (agent?.WalletId == null)
+        {
+            logger.LogError("Agent wallet not found request:{request}", @event);
+
+            return;
+        }
+
         try
         {
-            if (@event.Amount >= 0)
-                _ = await cashServiceClient.AgentDividendAsync(@event.WalletId,
+            await repository.UpdateSentOnAsync(@event.AgentDividendId, @event.SendByUsername, cancellationToken);
+
+            if (@event.Amount != 0)
+                _ = await cashServiceClient.AgentDividendAsync(agent.WalletId.Value,
                     @event.Amount,
                     "",
                     @event.AgentDividendId.ToString(),
                     cancellationToken);
-
-            await repository.UpdateSentOnAsync(@event.AgentDividendId, cancellationToken);
         }
         catch (Exception e)
         {

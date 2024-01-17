@@ -46,7 +46,11 @@ public class AgentDividendBackground(
 
                 var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
 
-                await mediator.Send(new AgentDividendRequest(model.BrandId), stoppingToken);
+                var response = await mediator.Send(new AgentDividendRequest(model.BrandId), stoppingToken);
+
+                await mediator.Send(
+                    new CreateAgentDividendRequest(model.BrandId, response.Model, response.NegativeDividendsIds),
+                    stoppingToken);
             }
             catch (Exception ex)
             {

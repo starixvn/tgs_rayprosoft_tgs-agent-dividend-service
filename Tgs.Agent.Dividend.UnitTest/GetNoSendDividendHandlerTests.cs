@@ -23,10 +23,10 @@ public class GetNoSendDividendHandlerTests
 
         var models = new[]
         {
-            CreateCreateAgentDividendModelFixture(1, brandId, agentId, 50, 50).Create<CreateAgentDividendModel>(),
-            CreateCreateAgentDividendModelFixture(2, brandId, agentId, 40, 100).Create<CreateAgentDividendModel>(),
-            CreateCreateAgentDividendModelFixture(3, brandId, agentId2, 33, 100).Create<CreateAgentDividendModel>(),
-            CreateCreateAgentDividendModelFixture(4, brandId, agentId3, 33, -100).Create<CreateAgentDividendModel>()
+            CreateCreateAgentDividendModelFixture(1, brandId, agentId, 50, 50).Create<AgentDividendModel>(),
+            CreateCreateAgentDividendModelFixture(2, brandId, agentId, 40, 100).Create<AgentDividendModel>(),
+            CreateCreateAgentDividendModelFixture(3, brandId, agentId2, 33, 100).Create<AgentDividendModel>(),
+            CreateCreateAgentDividendModelFixture(4, brandId, agentId3, 33, -100).Create<AgentDividendModel>()
         };
 
         var agentNegatives = new[]
@@ -74,7 +74,7 @@ public class GetNoSendDividendHandlerTests
         decimal agentDividendAmount)
     {
         var fixture = new Fixture();
-        fixture.Customize<CreateAgentDividendModel>(u => u
+        fixture.Customize<AgentDividendModel>(u => u
             .With(s => s.Id, id)
             .With(s => s.BrandId, brandId)
             .With(s => s.AgentId, agentId)
