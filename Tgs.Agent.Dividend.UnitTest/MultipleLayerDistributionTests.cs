@@ -153,8 +153,9 @@ public class MultipleLayerDistributionTests
             CreateAgentFixture(brandId, agentId2, null, new LTree($"{agentId2:N}")).Create<AgentModel>()
         };
 
-        var agentPlayerAggregate = CreateAgentPlayerAggregateFixture(brandId, agentId, from, to, winLossAmount, activeNumber)
-            .Create<AgentPlayerAggregateModel>();
+        var agentPlayerAggregate =
+            CreateAgentPlayerAggregateFixture(brandId, agentId, from, to, winLossAmount, activeNumber)
+                .Create<AgentPlayerAggregateModel>();
 
         var agentPlayerGameAggregates = new[]
         {

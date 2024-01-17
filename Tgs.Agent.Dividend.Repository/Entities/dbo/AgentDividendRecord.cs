@@ -15,11 +15,11 @@ public partial class AgentDividendRecord
 
     public int AgentDividendId { get; set; }
 
-    public List<string> NegativeDividendIds { get; set; } = null!;
-
     public decimal AgentDividendAmount { get; set; }
 
     public DateTime CreatedOn { get; set; }
 
     public DateTime? SentOn { get; set; }
+
+    public string SentByUsername { get; set; } = null!;
 }

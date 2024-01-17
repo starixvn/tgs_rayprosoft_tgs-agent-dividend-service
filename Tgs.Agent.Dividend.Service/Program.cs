@@ -55,7 +55,9 @@ builder.Services.AddOpenTelemetry()
 builder.Services.AddProfileViewer();
 
 builder.Services.AddHostedService<AgentDividendBackground>()
-    .AddSingleton<IAgentDividendTaskQueue, AgentDividendTaskQueue>();
+    .AddHostedService<QueuedHostedService>()
+    .AddSingleton<IAgentDividendTaskQueue, AgentDividendTaskQueue>()
+    .AddSingleton<IBackgroundTaskQueue, BackgroundTaskQueue>();
 
 builder.Services.AddCore()
     .AddRepository((_, dbOptionsBuilder) => dbOptionsBuilder

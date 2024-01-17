@@ -30,7 +30,10 @@ namespace Tgs.Agent.Dividend.Repository.Entities.Configurations
             entity.Property(e => e.AgentId).HasColumnName("agent_id");
             entity.Property(e => e.BrandId).HasColumnName("brand_id");
             entity.Property(e => e.CreatedOn).HasColumnName("created_on");
-            entity.Property(e => e.NegativeDividendIds).HasColumnName("negative_dividend_ids");
+            entity.Property(e => e.SentByUsername)
+            .HasMaxLength(64)
+            .HasDefaultValueSql("''::character varying")
+            .HasColumnName("sent_by_username");
             entity.Property(e => e.SentOn).HasColumnName("sent_on");
 
             OnConfigurePartial(entity);

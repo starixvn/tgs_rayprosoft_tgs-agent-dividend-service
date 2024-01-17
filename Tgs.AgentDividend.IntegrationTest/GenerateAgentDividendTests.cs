@@ -29,7 +29,7 @@ public class GenerateAgentDividendTests
 
         var sut = new AgentDividendClient(httpClient);
 
-        await sut.GenerateAgentDividend();
+        await sut.GenerateAgentDividend(default);
 
         _ = fakeRepository.ReceivedWithAnyArgs(1).GetNonArchivedBrandIdsAsyncEnumerable(null!);
     }
@@ -55,7 +55,7 @@ public class GenerateAgentDividendTests
 
         var sut = new AgentDividendClient(httpClient);
 
-        await sut.GenerateAgentDividend(brandId);
+        await sut.GenerateAgentDividend(brandId, default);
 
         _ = fakeRepository.Received(1).GetNonArchivedBrandIdsAsyncEnumerable(Arg.Is(brandId));
     }

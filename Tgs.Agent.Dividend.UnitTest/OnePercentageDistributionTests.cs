@@ -173,7 +173,7 @@ public class OnePercentageDistributionTests
         Assert.That(multipleLayers.Sum(x => x.Dividend), Is.EqualTo(totalDividend));
     }
 
-    [TestCase(-110, 1, 0, 0,2, -26.4)]
+    [TestCase(-110, 1, 0, 0, 2, -26.4)]
     [TestCase(-100, 1, 0, 0, 2, -22.0)]
     [TestCase(-50, 1, 1, 1, 2, -8.5)]
     [TestCase(-100, 2, 2, 2, 2, -22.0)]

@@ -22,7 +22,7 @@ internal class GetAgentDividendBeforehandHandler(
         var brand = await repository.GetBrandAsync(request.BrandId, cancellationToken).ConfigureAwait(false);
 
         var previousAgentDividend = await repository
-            .GetAgentDividendsAsync(request.AgentId, brand.PreviousSettlementFrom, brand.PreviousSettlementTo)
+            .GetAgentDividendBeforehandAsync(request.AgentId, brand.PreviousSettlementFrom, brand.PreviousSettlementTo)
             .FirstOrDefaultAsync(cancellationToken)
             .ConfigureAwait(false);
 

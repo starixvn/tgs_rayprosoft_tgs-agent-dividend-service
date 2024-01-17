@@ -19,7 +19,7 @@ namespace Tgs.Agent.Dividend.UnitTest;
 public class AgentDividendHandlerTests
 {
     [Test]
-    public async Task Create_Agent_Player_Dividends()
+    public async Task Generate_Agent_Player_Dividends()
     {
         var fakeMediator = Substitute.For<IMediator>();
         var fakeRepository = Substitute.For<IRepository>();
@@ -111,7 +111,7 @@ public class AgentDividendHandlerTests
         fakeMediator.Send(Arg.Any<GetNoSendDividendRequest>())
             .Returns(new NoSendDividendResponse
             {
-                Model = Enumerable.Empty<CreateAgentDividendModel>(),
+                Model = Enumerable.Empty<AgentDividendModel>(),
                 NegativeDividendsIds = new Dictionary<int, int> { { 1, 1 } }
             });
 
@@ -125,16 +125,50 @@ public class AgentDividendHandlerTests
 
         await sut.Handle(@event, default);
 
-        _ = fakeRepository.ReceivedWithAnyArgs(1).CreateAgentDividendsAsync(null!, null!, null!, default);
         _ = fakeMediator.Received(1).Send(Arg.Any<GetNoSendDividendRequest>(), Arg.Any<CancellationToken>());
 
-        _ = fakeRepository.Received(1)
-            .CreateAgentDividendsAsync(Arg.Any<BrandModel>(),
-                Arg.Any<IEnumerable<CreateAgentDividendModel>>(),
-                Arg.Any<IDictionary<int, int>>(),
-                Arg.Any<CancellationToken>());
-
         fakeRepository.Received(1).RemoveAllMemoryCache(Arg.Any<CancellationToken>());
+    }
+
+    [Test]
+    public async Task Create_Agent_Player_Dividends()
+    {
+        var fakeMediator = Substitute.For<IMediator>();
+        var fakeRepository = Substitute.For<IRepository>();
+
+        var services = new ServiceCollection();
+        services.AddKeyedSingleton<IDividendCalculator, OneLayerDividendCalculator>(ContractDividendType.OneLayer
+            .ToString());
+        services
+            .AddSingleton(fakeRepository)
+            .AddSingleton(fakeMediator);
+
+        var brandId = Guid.NewGuid();
+
+        var from = DateTime.Parse("2023/12/06 00:00:00+8");
+        var to = DateTime.Parse("2023/12/06 00:00:00+8");
+
+        var brand = CreateBrandFixture(brandId, from, to, 0, true, AgentDividendType.OneLayer).Create<BrandModel>();
+
+        fakeRepository.GetBrandAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(brand);
+
+        fakeMediator.Send(Arg.Any<GetNoSendDividendRequest>())
+            .Returns(new NoSendDividendResponse
+            {
+                Model = Enumerable.Empty<AgentDividendModel>(),
+                NegativeDividendsIds = new Dictionary<int, int> { { 1, 1 } }
+            });
+
+        var request = new CreateAgentDividendRequest(brandId,
+            Enumerable.Empty<AgentDividendModel>(),
+            new Dictionary<int, int> { { 1, 1 } });
+
+        var sut = new CreateAgentDividendHandler(fakeRepository,
+            fakeMediator);
+
+        await sut.Handle(request, default);
+
+        _ = fakeRepository.ReceivedWithAnyArgs(1).CreateAgentDividendsAsync(null!, null!, null!, default);
     }
 
     [TestCase(false)]
@@ -266,7 +300,7 @@ public class AgentDividendHandlerTests
         fakeMediator.Send(Arg.Any<GetNoSendDividendRequest>())
             .Returns(new NoSendDividendResponse
             {
-                Model = Enumerable.Empty<CreateAgentDividendModel>(),
+                Model = Enumerable.Empty<AgentDividendModel>(),
                 NegativeDividendsIds = new Dictionary<int, int> { { 1, 1 } }
             });
         var @event = new AgentDividendRequest(brandId);
@@ -279,13 +313,7 @@ public class AgentDividendHandlerTests
 
         await sut.Handle(@event, default);
 
-        _ = fakeRepository.ReceivedWithAnyArgs(1).CreateAgentDividendsAsync(null!, null!, null!, default);
         _ = fakeMediator.Received(1).Send(Arg.Any<GetNoSendDividendRequest>(), Arg.Any<CancellationToken>());
-        _ = fakeRepository.Received(1)
-            .CreateAgentDividendsAsync(Arg.Any<BrandModel>(),
-                Arg.Any<IEnumerable<CreateAgentDividendModel>>(),
-                Arg.Any<IDictionary<int, int>>(),
-                Arg.Any<CancellationToken>());
 
         if (checkDividendActiveCount)
             _ = fakeMediator.Received(1)
@@ -463,7 +491,7 @@ public class AgentDividendHandlerTests
         fakeMediator.Send(Arg.Any<GetNoSendDividendRequest>())
             .Returns(new NoSendDividendResponse
             {
-                Model = Enumerable.Empty<CreateAgentDividendModel>(),
+                Model = Enumerable.Empty<AgentDividendModel>(),
                 NegativeDividendsIds = new Dictionary<int, int> { { 1, 1 } }
             });
         var @event = new AgentDividendRequest(brandId);
@@ -475,8 +503,6 @@ public class AgentDividendHandlerTests
             new NullLogger<BrandAgentDividendHandler>());
 
         await sut.Handle(@event, default);
-
-        _ = fakeRepository.ReceivedWithAnyArgs(1).CreateAgentDividendsAsync(null!, null!, null!, default);
 
         if (checkDividendActiveCount)
             _ = fakeMediator.Received(1)
@@ -493,12 +519,6 @@ public class AgentDividendHandlerTests
         _ = fakeMediator.Received(1)
             .Send(Arg.Is<GetNoSendDividendRequest>(x =>
                     x.AgentDividends.Count() == 2),
-                Arg.Any<CancellationToken>());
-
-        _ = fakeRepository.Received(1)
-            .CreateAgentDividendsAsync(Arg.Any<BrandModel>(),
-                Arg.Any<IEnumerable<CreateAgentDividendModel>>(),
-                Arg.Any<IDictionary<int, int>>(),
                 Arg.Any<CancellationToken>());
     }
 
@@ -616,7 +636,7 @@ public class AgentDividendHandlerTests
         fakeMediator.Send(Arg.Any<GetNoSendDividendRequest>())
             .Returns(new NoSendDividendResponse
             {
-                Model = Enumerable.Empty<CreateAgentDividendModel>(),
+                Model = Enumerable.Empty<AgentDividendModel>(),
                 NegativeDividendsIds = new Dictionary<int, int> { { 1, 1 } }
             });
         var @event = new AgentDividendRequest(brandId);
@@ -629,13 +649,7 @@ public class AgentDividendHandlerTests
 
         await sut.Handle(@event, default);
 
-        _ = fakeRepository.ReceivedWithAnyArgs(1).CreateAgentDividendsAsync(null!, null!, null!, default);
         _ = fakeMediator.Received(1).Send(Arg.Any<GetNoSendDividendRequest>(), Arg.Any<CancellationToken>());
-        _ = fakeRepository.Received(1)
-            .CreateAgentDividendsAsync(Arg.Any<BrandModel>(),
-                Arg.Any<IEnumerable<CreateAgentDividendModel>>(),
-                Arg.Any<IDictionary<int, int>>(),
-                Arg.Any<CancellationToken>());
     }
 
 

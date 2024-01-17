@@ -43,12 +43,19 @@ public interface IRepository
         DateTime to,
         CancellationToken cancellationToken);
 
-    IAsyncEnumerable<NegativeAgentDividendModel> GetNegativeAgentDividendsAsync(Guid agent);
+    IAsyncEnumerable<NegativeAgentDividendModel> GetNegativeAgentDividendsAsync(Guid agentId);
 
-    IAsyncEnumerable<AgentDividendBeforehand> GetAgentDividendsAsync(Guid agent, DateTime from, DateTime to);
+    IAsyncEnumerable<AgentDividendBeforehand> GetAgentDividendBeforehandAsync(Guid agentId, DateTime from, DateTime to);
+
+    IAsyncEnumerable<AgentDividendRecordModel> GetAgentDividendRecordsAsync(Guid brandId,
+        DateTime from,
+        DateTime to,
+        string? agentUsername);
+
+    Task<AgentDividendRecordModel?> GetAgentDividendRecordAsync(Guid id, CancellationToken cancellationToken);
 
     Task CreateAgentDividendsAsync(BrandModel brand,
-        IEnumerable<CreateAgentDividendModel> agentDividends,
+        IEnumerable<AgentDividendModel> agentDividends,
         IDictionary<int, int> sendNegativeDividendIds,
         CancellationToken cancellationToken);
 
@@ -56,7 +63,7 @@ public interface IRepository
 
     Task<int> GetMaxAgentDividendIdAsync(CancellationToken cancellationToken);
 
-    Task UpdateSentOnAsync(int agentDividendId, CancellationToken cancellationToken);
+    Task UpdateSentOnAsync(int agentDividendId, string sendByUsername, CancellationToken cancellationToken);
 
     void RemoveAllMemoryCache(CancellationToken cancellationToken);
 }
