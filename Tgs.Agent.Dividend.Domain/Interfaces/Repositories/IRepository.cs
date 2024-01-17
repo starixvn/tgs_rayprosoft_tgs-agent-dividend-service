@@ -63,7 +63,9 @@ public interface IRepository
 
     Task<int> GetMaxAgentDividendIdAsync(CancellationToken cancellationToken);
 
-    Task UpdateSentOnAsync(int agentDividendId, string sendByUsername, CancellationToken cancellationToken);
+    Task UpdateSentOnByManualSendAsync(int agentDividendId, string sendByUsername, CancellationToken cancellationToken);
+
+    Task UpdateSentOnByAutoSendAsync(int agentDividendId, string sendByUsername, CancellationToken cancellationToken);
 
     void RemoveAllMemoryCache(CancellationToken cancellationToken);
 }

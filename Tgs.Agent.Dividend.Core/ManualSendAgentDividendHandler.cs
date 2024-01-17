@@ -1,4 +1,6 @@
 ﻿using MediatR;
+using Microsoft.Extensions.DependencyInjection;
+using Tgs.Agent.Dividend.Core.Workers;
 using Tgs.Agent.Dividend.Domain.Events;
 using Tgs.Agent.Dividend.Domain.Interfaces.Repositories;
 using Tgs.Agent.Dividend.Domain.Models;
@@ -7,6 +9,7 @@ namespace Tgs.Agent.Dividend.Core;
 
 internal class ManualSendAgentDividendHandler(
     IMediator mediator,
+    IBackgroundTaskQueue backgroundTaskQueue,
     IRepository repository)
     : IRequestHandler<ManualSendAgentDividendRequest>
 {
@@ -16,11 +19,18 @@ internal class ManualSendAgentDividendHandler(
             await repository.GetAgentDividendRecordAsync(request.AgentDividendRecordId, cancellationToken);
 
         if (agentDividendRecord is { SentOn: null })
-            await mediator.Publish(new SendAgentDividendEvent(agentDividendRecord.BrandId,
-                    agentDividendRecord.AgentId,
-                    agentDividendRecord.AgentDividendAmount,
-                    agentDividendRecord.AgentDividendId,
-                    "system"),
-                cancellationToken);
+        {
+            await backgroundTaskQueue.QueueBackgroundWorkItemAsync(async (scope, token) =>
+            {
+                var innerMediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+
+                await innerMediator.Publish(new SendAgentDividendByManualEvent(agentDividendRecord.BrandId,
+                        agentDividendRecord.AgentId,
+                        agentDividendRecord.AgentDividendAmount,
+                        agentDividendRecord.AgentDividendId,
+                        "system"),
+                    token);
+            });
+        }
     }
 }

@@ -8,14 +8,14 @@ using Tgs.CashService.Client;
 
 namespace Tgs.Agent.Dividend.Core.Events;
 
-internal class SendAgentDividendEventHandler(
+internal class SendAgentDividendByManualEventHandler(
     IAgentClient agentClient,
     ICashServiceClient cashServiceClient,
     IRepository repository,
-    ILogger<SendAgentDividendEventHandler> logger)
-    : INotificationHandler<SendAgentDividendEvent>
+    ILogger<SendAgentDividendByManualEventHandler> logger)
+    : INotificationHandler<SendAgentDividendByManualEvent>
 {
-    public async Task Handle(SendAgentDividendEvent @event, CancellationToken cancellationToken)
+    public async Task Handle(SendAgentDividendByManualEvent @event, CancellationToken cancellationToken)
     {
         var agent = await agentClient.GetAgentInfoAsync(new GetAgentInfoRequest(@event.AgentId), cancellationToken);
 
@@ -28,7 +28,7 @@ internal class SendAgentDividendEventHandler(
 
         try
         {
-            await repository.UpdateSentOnAsync(@event.AgentDividendId, @event.SendByUsername, cancellationToken);
+            await repository.UpdateSentOnByManualSendAsync(@event.AgentDividendId, @event.SendByUsername, cancellationToken);
 
             if (@event.Amount != 0)
                 _ = await cashServiceClient.AgentDividendAsync(agent.WalletId.Value,
