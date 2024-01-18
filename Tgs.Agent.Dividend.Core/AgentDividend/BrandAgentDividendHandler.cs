@@ -81,24 +81,7 @@ internal class BrandAgentDividendHandler(
             multipleLayers.AddRange(data);
         }
 
-        var additional = new List<AgentPlayerAggregateModel>();
-
-        foreach (var data in from agentDividendMultipleLayerModel in multipleLayers
-                 let instance =
-                     agentInstances.First(a => a.agentContract.AgentId == agentDividendMultipleLayerModel.AgentId)
-                 select instance.distributionService.GenerateAdditionalAgentPlayerAggregates(currentNumber,
-                         brand,
-                         agentDividendMultipleLayerModel,
-                         agentPlayerAggregates,
-                         cancellationToken)
-                     .ToArray())
-        {
-            currentNumber += data.Length;
-
-            additional.AddRange(data);
-        }
-
-        var agentDividends = agentPlayerAggregates.Concat(additional)
+        var agentDividends = agentPlayerAggregates
             .Select(x =>
             {
                 var (agentContract, distributionService) =

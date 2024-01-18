@@ -105,6 +105,9 @@ public class AgentDividendTests
         fakeRepository.GetBrandAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(CreateBrandModelFixture(brandId).Create<BrandModel>());
 
+        fakeRepository.GetNonArchivedBrandIdsAsyncEnumerable(Arg.Any<Guid?>())
+            .Returns(new Guid[]{ brandId }.ToAsyncEnumerable());
+
         fakeRepository.GetAgentDividendBeforehandAsync(Arg.Any<Guid>(), Arg.Any<DateTime>(), Arg.Any<DateTime>())
             .Returns(fixture.CreateMany<AgentDividendBeforehand>(1).ToAsyncEnumerable());
 

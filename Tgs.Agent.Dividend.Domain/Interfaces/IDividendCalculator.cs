@@ -17,11 +17,11 @@ public interface IDividendCalculator
             AgentPlayerAggregateModel agentPlayerAggregate,
             CancellationToken cancellationToken);
 
-    IEnumerable<AgentPlayerAggregateModel> GenerateAdditionalAgentPlayerAggregates(int idNumber,
-        BrandModel brand,
-        AgentDividendMultipleLayerModel childLayer,
-        IEnumerable<AgentPlayerAggregateModel> allAgentPlayerAggregates,
-        CancellationToken cancellationToken);
+    //IEnumerable<AgentPlayerAggregateModel> GenerateAdditionalAgentPlayerAggregates(int idNumber,
+    //    BrandModel brand,
+    //    AgentDividendMultipleLayerModel childLayer,
+    //    IEnumerable<AgentPlayerAggregateModel> allAgentPlayerAggregates,
+    //    CancellationToken cancellationToken);
 
     decimal GetAgentDividendAmount(AgentPlayerAggregateModel agentPlayerAggregate,
         IEnumerable<AgentDividendMultipleLayerModel> multipleLayer,
