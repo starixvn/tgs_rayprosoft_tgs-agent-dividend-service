@@ -135,7 +135,8 @@ internal class BrandAgentDividendHandler(
                                 DividendProviderAgentId = s.DividendProviderAgentId,
                                 DividendProviderId = s.DividendProviderId,
                                 Layer = s.Layer,
-                                Dividend = s.Dividend
+                                Dividend = s.Dividend,
+                                AgentDividendSnapshotId = s.AgentDividendSnapshotId
                             })
                         .ToArray()
                 };
