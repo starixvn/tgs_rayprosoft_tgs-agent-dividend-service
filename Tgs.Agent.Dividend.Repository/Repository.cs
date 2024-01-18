@@ -284,6 +284,8 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache) : IRepos
                                      {
                                          AgentId = groupItem.AgentId,
                                          BrandId = groupItem.BrandId,
+                                         From = from,
+                                         To = to,
                                          AgentDividendPercentage = groupItem.AgentDividendPercentage,
                                          AgentDividendPercentageTreeData = groupItem.AgentDividendPercentageTreeData,
                                          PromotionAmount = list.Sum(x => x.PromotionAmount),

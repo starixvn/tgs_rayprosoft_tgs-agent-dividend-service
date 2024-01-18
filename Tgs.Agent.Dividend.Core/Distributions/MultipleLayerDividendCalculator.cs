@@ -88,15 +88,6 @@ internal class MultipleLayerDividendCalculator(IContractRepository contractRepos
         yield return agentDividend;
     }
 
-    public IEnumerable<AgentPlayerAggregateModel> GenerateAdditionalAgentPlayerAggregates(int idNumber,
-        BrandModel brand,
-        AgentDividendMultipleLayerModel childLayer,
-        IEnumerable<AgentPlayerAggregateModel> allAgentPlayerAggregates,
-        CancellationToken cancellationToken)
-    {
-        return Enumerable.Empty<AgentPlayerAggregateModel>();
-    }
-
     public decimal GetAgentDividendAmount(AgentPlayerAggregateModel agentPlayerAggregate,
         IEnumerable<AgentDividendMultipleLayerModel> multipleLayer,
         CancellationToken cancellation)

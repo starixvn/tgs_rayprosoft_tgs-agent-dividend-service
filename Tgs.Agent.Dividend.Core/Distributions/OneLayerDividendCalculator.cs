@@ -1,5 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
 using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
 using Tgs.Agent.Dividend.Domain;
 using Tgs.Agent.Dividend.Domain.Interfaces;
 using Tgs.Agent.Dividend.Domain.Interfaces.Repositories;
@@ -29,18 +30,23 @@ internal class OneLayerDividendCalculator(IContractRepository contractRepository
                 cancellationToken)
             .Where(x => x.AgentId == contract.AgentId)
             .ToArrayAsync(cancellationToken);
-
         var i = 0;
 
-        await foreach (var agentPlayerAggregateModel in agentAggregates)
-        {
-            agentPlayerAggregateModel.Id = idNumber + i + 1;
-            agentPlayerAggregateModel.ActiveNumber = betPlayers.Length;
+        var agents = await repository.GetAgentsCacheAsyncEnumerable(brand.Id, cancellationToken)
+            .ToArrayAsync(cancellationToken);
 
-            i++;
+        if (!await agentAggregates.AnyAsync(cancellationToken))
+            yield return GetDefaultAggregate(idNumber + 1, contract.AgentId, brand, agents);
+        else
+            await foreach (var agentPlayerAggregateModel in agentAggregates)
+            {
+                agentPlayerAggregateModel.Id = idNumber + i + 1;
+                agentPlayerAggregateModel.ActiveNumber = betPlayers.Length;
 
-            yield return agentPlayerAggregateModel;
-        }
+                i++;
+
+                yield return agentPlayerAggregateModel;
+            }
     }
 
     public async IAsyncEnumerable<AgentDividendMultipleLayerModel> GenerateMultipleLayerAsync(
@@ -68,22 +74,6 @@ internal class OneLayerDividendCalculator(IContractRepository contractRepository
                      bonusAdjustAmount,
                      agentPlayerAggregate.NetProfit(brand.PlatformCharge)))
             yield return agentDividendMultipleLayerModel;
-    }
-
-    public IEnumerable<AgentPlayerAggregateModel> GenerateAdditionalAgentPlayerAggregates(int idNumber,
-        BrandModel brand,
-        AgentDividendMultipleLayerModel childLayer,
-        IEnumerable<AgentPlayerAggregateModel> allAgentPlayerAggregates,
-        CancellationToken cancellationToken)
-    {
-        var exists = allAgentPlayerAggregates.Any(a =>
-            a.AgentId == childLayer.AgentId && a.AgentDividendPercentage == childLayer.AgentDividendPercentage);
-
-        if (exists) yield break;
-
-        var model = GetDefaultAggregate(idNumber + 1, brand, childLayer.AgentId, childLayer.AgentDividendPercentage);
-
-        yield return model;
     }
 
     public decimal GetAgentDividendAmount(AgentPlayerAggregateModel agentPlayerAggregate,
@@ -158,18 +148,21 @@ internal class OneLayerDividendCalculator(IContractRepository contractRepository
     }
 
     private static AgentPlayerAggregateModel GetDefaultAggregate(int id,
-        BrandModel brand,
         Guid agentId,
-        decimal agentDividendPercentage)
+        BrandModel brand,
+        AgentModel[] agents)
     {
+        var agent = agents.First(x => x.Id == agentId);
+
         return new AgentPlayerAggregateModel
         {
             Id = id,
             BrandId = brand.Id,
-            AgentId = agentId,
-            AgentDividendPercentage = agentDividendPercentage,
+            AgentId = agent.Id,
+            AgentDividendPercentage = agent.DividendPercentage,
             From = brand.CurrentSettlementFrom,
-            To = brand.CurrentSettlementTo
+            To = brand.CurrentSettlementTo,
+            AgentDividendPercentageTreeData = GenerateAgentDividendPercentages(agent.Path, agents)
         };
     }
 
@@ -196,5 +189,22 @@ internal class OneLayerDividendCalculator(IContractRepository contractRepository
         await contractRepository.CreateAgentContractSnapshotAsync(snapshotId, data, cancellationToken);
 
         return snapshotId;
+    }
+
+    private static string? GenerateAgentDividendPercentages(LTree? agentPath, AgentModel[] agents)
+    {
+        if (agentPath is null)
+        {
+            return null;
+        }
+
+        var agentIds = agentPath.ToString()!.Split(".").Select(Guid.Parse);
+        var agentTree = agents.Where(x => agentIds.Contains(x.Id)).Select(x => new AgentDividendPercentageData
+        {
+            AgentId = x.Id,
+            ParentAgentId = x.ParentAgentId,
+            DividendPercentage = x.DividendPercentage
+        });
+        return JsonSerializer.Serialize(agentTree);
     }
 }

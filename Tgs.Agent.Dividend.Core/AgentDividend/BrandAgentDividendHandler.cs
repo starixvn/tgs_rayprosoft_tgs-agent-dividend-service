@@ -18,6 +18,11 @@ internal class BrandAgentDividendHandler(
 {
     public async Task<NoSendDividendResponse> Handle(AgentDividendRequest request, CancellationToken cancellationToken)
     {
+        if (!await repository.GetNonArchivedBrandIdsAsyncEnumerable(request.BrandId).AnyAsync(cancellationToken))
+        {
+            return new NoSendDividendResponse();
+        }
+
         var contracts = await contractRepository.GetBrandAgentDividendContractsAsync(request.BrandId)
             .ToArrayAsync(cancellationToken);
 
@@ -76,24 +81,7 @@ internal class BrandAgentDividendHandler(
             multipleLayers.AddRange(data);
         }
 
-        var additional = new List<AgentPlayerAggregateModel>();
-
-        foreach (var data in from agentDividendMultipleLayerModel in multipleLayers
-                 let instance =
-                     agentInstances.First(a => a.agentContract.AgentId == agentDividendMultipleLayerModel.AgentId)
-                 select instance.distributionService.GenerateAdditionalAgentPlayerAggregates(currentNumber,
-                         brand,
-                         agentDividendMultipleLayerModel,
-                         agentPlayerAggregates,
-                         cancellationToken)
-                     .ToArray())
-        {
-            currentNumber += data.Length;
-
-            additional.AddRange(data);
-        }
-
-        var agentDividends = agentPlayerAggregates.Concat(additional)
+        var agentDividends = agentPlayerAggregates
             .Select(x =>
             {
                 var (agentContract, distributionService) =

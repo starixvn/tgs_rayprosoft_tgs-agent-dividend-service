@@ -6,6 +6,7 @@ using Tgs.Agent.Dividend.Repository.Entities;
 
 namespace Tgs.Agent.Dividend.IntegrationTest;
 
+[Parallelizable]
 public class GenerateAgentDividendTests
 {
     [Test]
@@ -29,9 +30,9 @@ public class GenerateAgentDividendTests
 
         var sut = new AgentDividendClient(httpClient);
 
-        await sut.GenerateAgentDividend(default);
+        await sut.GenerateAgentDividend(Arg.Any<CancellationToken>());
 
-        _ = fakeRepository.ReceivedWithAnyArgs(1).GetNonArchivedBrandIdsAsyncEnumerable(null!);
+        _ = fakeRepository.ReceivedWithAnyArgs().GetNonArchivedBrandIdsAsyncEnumerable(null!);
     }
 
     [Test]
@@ -42,7 +43,7 @@ public class GenerateAgentDividendTests
 
         var brandId = Guid.NewGuid();
 
-        fakeRepository.GetNonArchivedBrandIdsAsyncEnumerable(Arg.Any<Guid?>())
+        fakeRepository.GetNonArchivedBrandIdsAsyncEnumerable(Arg.Any<Guid>())
             .Returns(new[] { brandId }.ToAsyncEnumerable());
 
         await using var web = new TestAgentDividendApplication(builder => builder.ConfigureServices(services =>
@@ -55,8 +56,8 @@ public class GenerateAgentDividendTests
 
         var sut = new AgentDividendClient(httpClient);
 
-        await sut.GenerateAgentDividend(brandId, default);
+        await sut.GenerateAgentDividend(brandId, Arg.Any<CancellationToken>());
 
-        _ = fakeRepository.Received(1).GetNonArchivedBrandIdsAsyncEnumerable(Arg.Is(brandId));
+        _ = fakeRepository.Received().GetNonArchivedBrandIdsAsyncEnumerable(Arg.Is(brandId));
     }
 }
