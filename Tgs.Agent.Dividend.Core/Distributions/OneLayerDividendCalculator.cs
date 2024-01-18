@@ -29,18 +29,23 @@ internal class OneLayerDividendCalculator(IContractRepository contractRepository
                 cancellationToken)
             .Where(x => x.AgentId == contract.AgentId)
             .ToArrayAsync(cancellationToken);
-
         var i = 0;
 
-        await foreach (var agentPlayerAggregateModel in agentAggregates)
-        {
-            agentPlayerAggregateModel.Id = idNumber + i + 1;
-            agentPlayerAggregateModel.ActiveNumber = betPlayers.Length;
+        var agent = await repository.GetAgentsCacheAsyncEnumerable(brand.Id, cancellationToken)
+            .FirstOrDefaultAsync(cancellationToken);
 
-            i++;
+        if (!await agentAggregates.AnyAsync(cancellationToken))
+            yield return GetDefaultAggregate(idNumber + 1, brand, agent.Id, agent.DividendPercentage);
+        else
+            await foreach (var agentPlayerAggregateModel in agentAggregates)
+            {
+                agentPlayerAggregateModel.Id = idNumber + i + 1;
+                agentPlayerAggregateModel.ActiveNumber = betPlayers.Length;
 
-            yield return agentPlayerAggregateModel;
-        }
+                i++;
+
+                yield return agentPlayerAggregateModel;
+            }
     }
 
     public async IAsyncEnumerable<AgentDividendMultipleLayerModel> GenerateMultipleLayerAsync(
