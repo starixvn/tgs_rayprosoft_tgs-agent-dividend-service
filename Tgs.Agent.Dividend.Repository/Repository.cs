@@ -7,6 +7,7 @@ using Tgs.Agent.Dividend.Domain.Enums;
 using Tgs.Agent.Dividend.Domain.Interfaces.Repositories;
 using Tgs.Agent.Dividend.Domain.Models;
 using Tgs.Agent.Dividend.Repository.Entities;
+using TGS.Core.Infrastructures.Extensions;
 
 namespace Tgs.Agent.Dividend.Repository;
 
@@ -685,6 +686,7 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache) : IRepos
         await context.AgentDividendRecords.AddRangeAsync(agentDividends
                 .Select(x => new AgentDividendRecord
                 {
+                    Id = GuidExtensions.NewSequentialGuid(),
                     BrandId = brand.Id,
                     AgentId = x.AgentId,
                     AgentDividendId = x.Id,
