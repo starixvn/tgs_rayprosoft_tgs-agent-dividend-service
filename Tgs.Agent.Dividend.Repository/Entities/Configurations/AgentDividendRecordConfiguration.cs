@@ -32,7 +32,6 @@ namespace Tgs.Agent.Dividend.Repository.Entities.Configurations
             entity.Property(e => e.CreatedOn).HasColumnName("created_on");
             entity.Property(e => e.SentByUsername)
             .HasMaxLength(64)
-            .HasDefaultValueSql("''::character varying")
             .HasColumnName("sent_by_username");
             entity.Property(e => e.SentOn).HasColumnName("sent_on");
 

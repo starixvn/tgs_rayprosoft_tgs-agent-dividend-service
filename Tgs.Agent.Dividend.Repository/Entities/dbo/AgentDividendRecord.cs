@@ -21,5 +21,5 @@ public partial class AgentDividendRecord
 
     public DateTime? SentOn { get; set; }
 
-    public string SentByUsername { get; set; } = null!;
+    public string? SentByUsername { get; set; }
 }
