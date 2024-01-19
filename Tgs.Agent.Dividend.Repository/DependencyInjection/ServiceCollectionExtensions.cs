@@ -15,6 +15,7 @@ public static class ServiceCollectionExtensions
         return services
             .AddDbContext<tgsContext>(dbContextConfigure)
             .AddTransient<IRepository, Repository>()
-            .AddTransient<IContractRepository, ContractRepository>();
+            .AddTransient<IContractRepository, ContractRepository>()
+            .AddSingleton<IMemoryCacheKeyMapper, MemoryCacheKeyMapper>();
     }
 }

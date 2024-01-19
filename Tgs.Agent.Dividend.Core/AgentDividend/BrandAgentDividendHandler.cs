@@ -18,11 +18,6 @@ internal class BrandAgentDividendHandler(
 {
     public async Task<NoSendDividendResponse> Handle(AgentDividendRequest request, CancellationToken cancellationToken)
     {
-        if (!await repository.GetNonArchivedBrandIdsAsyncEnumerable(request.BrandId).AnyAsync(cancellationToken))
-        {
-            return new NoSendDividendResponse();
-        }
-
         var contracts = await contractRepository.GetBrandAgentDividendContractsAsync(request.BrandId)
             .ToArrayAsync(cancellationToken);
 

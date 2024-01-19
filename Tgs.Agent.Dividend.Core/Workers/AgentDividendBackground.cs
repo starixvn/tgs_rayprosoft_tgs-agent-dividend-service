@@ -1,7 +1,9 @@
-﻿using MediatR;
+﻿using System.Threading;
+using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Tgs.Agent.Dividend.Domain.Interfaces.Repositories;
 using Tgs.Agent.Dividend.Domain.Models;
 
 namespace Tgs.Agent.Dividend.Core.Workers;
@@ -43,8 +45,13 @@ public class AgentDividendBackground(
             try
             {
                 using var scope = serviceProvider.CreateScope();
-
                 var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+                var repository = scope.ServiceProvider.GetRequiredService<IRepository>();
+
+                if (!await repository.GetNonArchivedBrandIdsAsyncEnumerable(model.BrandId).AnyAsync(stoppingToken))
+                {
+                    continue;
+                }
 
                 var response = await mediator.Send(new AgentDividendRequest(model.BrandId), stoppingToken);
 
