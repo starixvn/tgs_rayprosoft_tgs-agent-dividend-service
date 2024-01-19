@@ -143,7 +143,7 @@ internal class BrandAgentDividendHandler(
             });
 
         var sendDividend =
-            await mediator.Send(new GetNoSendDividendRequest(agentDividends), cancellationToken);
+            await mediator.Send(new GetNoSendDividendRequest(agentDividends.ToArray()), cancellationToken);
 
         repository.RemoveAllMemoryCache(cancellationToken);
 

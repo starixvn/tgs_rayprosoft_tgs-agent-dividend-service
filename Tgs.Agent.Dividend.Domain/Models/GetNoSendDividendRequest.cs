@@ -2,5 +2,5 @@
 
 namespace Tgs.Agent.Dividend.Domain.Models;
 
-public record GetNoSendDividendRequest(IEnumerable<AgentDividendModel> AgentDividends)
+public record GetNoSendDividendRequest(AgentDividendModel[] AgentDividends)
     : IRequest<NoSendDividendResponse>;

@@ -27,12 +27,12 @@ internal class GetNoSendDividendHandler(IRepository repository)
                 ? deductedNegativeDividend
                 : agentNoSendDividends.Sum(x => x.AgentDividendAmount);
 
-            if (agentNoSendDividend <= 0)
-            {
-                var agentDividendAmount = request.AgentDividends.Where(x => x.AgentId == dividend.AgentId)
-                    .Sum(x => x.AgentDividendAmount);
+            var agentDividendAmount = request.AgentDividends.Where(x => x.AgentId == dividend.AgentId)
+                .Sum(x => x.AgentDividendAmount);
 
-                if (agentDividendAmount + agentNoSendDividend > 0M)
+            switch (agentDividendAmount + agentNoSendDividend)
+            {
+                case > 0M:
                 {
                     dividend.BeforeDividendAmount = dividend.AgentDividendAmount;
 
@@ -46,14 +46,12 @@ internal class GetNoSendDividendHandler(IRepository repository)
                     foreach (var negativeDividend in agentNoSendDividends)
                         if (!noSendDividendIds.ContainsKey(negativeDividend.Id))
                             noSendDividendIds.Add(negativeDividend.Id, dividend.Id);
+                    break;
                 }
-                else
-                {
+                case < 0M:
                     dividend.AutoSend = false;
-                }
+                    break;
             }
-
-            if (dividend.AgentDividendAmount < 0) dividend.AutoSend = false;
         }
 
         return new NoSendDividendResponse { Model = request.AgentDividends, NegativeDividendsIds = noSendDividendIds };
