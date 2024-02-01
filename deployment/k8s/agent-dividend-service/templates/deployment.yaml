@@ -59,12 +59,6 @@ spec:
               name: appsettings
               readOnly: true
               subPath: appsettings.json
-            {{- if eq .Release.Namespace "prod" }}
-            - mountPath: /etc/ssl/certs/rds-combined-ca-bundle.pem
-              name: rds-combined-ca-bundle
-              readOnly: true
-              subPath: rds-combined-ca-bundle.pem
-            {{- end }}
           startupProbe:
             httpGet:
               path: /healthz
