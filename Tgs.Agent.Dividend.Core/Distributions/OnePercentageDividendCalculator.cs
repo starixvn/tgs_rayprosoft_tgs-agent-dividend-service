@@ -11,62 +11,62 @@ internal class OnePercentageDividendCalculator(IContractRepository contractRepos
     : IDividendCalculator
 {
     public async IAsyncEnumerable<AgentPlayerAggregateModel> GetAgentPlayerAggregateAsync(int idNumber,
-        BrandModel brand,
+        AgentModel agent,
         AgentDividendContractModel contract,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         var agentAggregate = await repository
-            .GetAgentPlayerAggregatesForMultipleLayerCacheAsync(brand.Id,
-                brand.CurrentSettlementFrom,
-                brand.CurrentSettlementTo,
+            .GetAgentPlayerAggregatesForMultipleLayerCacheAsync(agent.BrandId,
+                agent.CurrentSettlementFrom,
+                agent.CurrentSettlementTo,
                 cancellationToken)
-            .Where(x => x.AgentId == contract.AgentId)
+            .Where(x => x.AgentId == agent.Id)
             .FirstOrDefaultAsync(cancellationToken);
 
         var agentPlayerGameAggregate =
-            await repository.GetAgentPlayerGameAggregatesCacheAsync(brand.Id,
-                    brand.CurrentSettlementFrom,
-                    brand.CurrentSettlementTo)
-                .FirstOrDefaultAsync(x => x.AgentId == contract.AgentId, cancellationToken);
+            await repository.GetAgentPlayerGameAggregatesCacheAsync(agent.BrandId,
+                    agent.CurrentSettlementFrom,
+                    agent.CurrentSettlementTo)
+                .FirstOrDefaultAsync(x => x.AgentId == agent.Id, cancellationToken);
 
-        var from = new DateTimeOffset(brand.CurrentSettlementFrom.Year,
-            brand.CurrentSettlementFrom.Month,
-            brand.CurrentSettlementFrom.Day,
+        var from = new DateTimeOffset(agent.CurrentSettlementFrom.Year,
+            agent.CurrentSettlementFrom.Month,
+            agent.CurrentSettlementFrom.Day,
             0,
             0,
             0,
             TimeSpan.Zero).ToOffset(TimeSpan.FromHours(8));
 
-        var to = new DateTimeOffset(brand.CurrentSettlementTo.Year,
-            brand.CurrentSettlementTo.Month,
-            brand.CurrentSettlementTo.Day,
+        var to = new DateTimeOffset(agent.CurrentSettlementTo.Year,
+            agent.CurrentSettlementTo.Month,
+            agent.CurrentSettlementTo.Day,
             0,
             0,
             0,
             TimeSpan.Zero).ToOffset(TimeSpan.FromHours(8));
 
         var validBets = await repository
-            .GetAgentPlayerValidBetsCacheAsync(brand.Id,
-                brand.CurrentSettlementFrom,
-                brand.CurrentSettlementTo,
+            .GetAgentPlayerValidBetsCacheAsync(agent.BrandId,
+                agent.CurrentSettlementFrom,
+                agent.CurrentSettlementTo,
                 cancellationToken)
-            .Where(x => x.AgentId == contract.AgentId)
+            .Where(x => x.AgentId == agent.Id)
             .ToArrayAsync(cancellationToken);
 
         var betDays = await repository
-            .GetAgentPlayerBetCountsCacheAsync(brand.Id,
-                brand.CurrentSettlementFrom,
-                brand.CurrentSettlementTo,
+            .GetAgentPlayerBetCountsCacheAsync(agent.BrandId,
+                agent.CurrentSettlementFrom,
+                agent.CurrentSettlementTo,
                 cancellationToken)
-            .Where(x => x.AgentId == contract.AgentId)
+            .Where(x => x.AgentId == agent.Id)
             .ToArrayAsync(cancellationToken);
 
         var deposits = await repository
-            .GetAgentPlayerDepositsCacheAsync(brand.Id,
+            .GetAgentPlayerDepositsCacheAsync(agent.BrandId,
                 DateOnly.FromDateTime(from.DateTime),
                 DateOnly.FromDateTime(to.DateTime),
                 cancellationToken)
-            .Where(x => x.AgentId == contract.AgentId)
+            .Where(x => x.AgentId == agent.Id)
             .ToArrayAsync(cancellationToken);
 
         var playerCodes = validBets.Select(x => x.PlayerCode)
@@ -76,7 +76,7 @@ internal class OnePercentageDividendCalculator(IContractRepository contractRepos
 
         var validPlayerCount = GetValidPlayerCount(playerCodes, deposits, validBets, betDays, contract);
 
-        agentAggregate ??= GetDefaultAggregate(brand, contract.AgentId);
+        agentAggregate ??= GetDefaultAggregate(agent);
 
         agentAggregate.LiveDealerWinLoss = agentPlayerGameAggregate?.LiveDealerWinLoss ?? 0M;
         agentAggregate.SlotWinLoss = agentPlayerGameAggregate?.SlotWinLoss ?? 0M;
@@ -276,14 +276,14 @@ internal class OnePercentageDividendCalculator(IContractRepository contractRepos
         return (condition != null, condition?.Percentage ?? 0M);
     }
 
-    private static AgentPlayerAggregateModel GetDefaultAggregate(BrandModel brand, Guid agentId)
+    private static AgentPlayerAggregateModel GetDefaultAggregate(AgentModel agent)
     {
         return new AgentPlayerAggregateModel
         {
-            BrandId = brand.Id,
-            AgentId = agentId,
-            From = brand.CurrentSettlementFrom,
-            To = brand.CurrentSettlementTo
+            BrandId = agent.BrandId,
+            AgentId = agent.Id,
+            From = agent.CurrentSettlementFrom,
+            To = agent.CurrentSettlementTo
         };
     }
 

@@ -54,7 +54,7 @@ public interface IRepository
 
     Task<AgentDividendRecordModel?> GetAgentDividendRecordAsync(Guid id, CancellationToken cancellationToken);
 
-    Task CreateAgentDividendsAsync(BrandModel brand,
+    Task CreateAgentDividendsAsync(Guid brandId,
         IEnumerable<AgentDividendModel> agentDividends,
         IDictionary<int, int> sendNegativeDividendIds,
         CancellationToken cancellationToken);

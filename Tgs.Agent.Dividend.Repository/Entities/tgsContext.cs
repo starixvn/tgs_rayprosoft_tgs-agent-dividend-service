@@ -27,6 +27,8 @@ public partial class tgsContext : DbContext
 
     public virtual DbSet<AgentDividendContract> AgentDividendContracts { get; set; }
 
+    public virtual DbSet<AgentDividendContractTimeInterval> AgentDividendContractTimeIntervals { get; set; }
+
     public virtual DbSet<AgentDividendMultipleLayer> AgentDividendMultipleLayers { get; set; }
 
     public virtual DbSet<AgentDividendRecord> AgentDividendRecords { get; set; }
@@ -62,6 +64,7 @@ public partial class tgsContext : DbContext
         modelBuilder.ApplyConfiguration(new Configurations.AgentDividendConfiguration());
         modelBuilder.ApplyConfiguration(new Configurations.AgentDividendConditionConfiguration());
         modelBuilder.ApplyConfiguration(new Configurations.AgentDividendContractConfiguration());
+        modelBuilder.ApplyConfiguration(new Configurations.AgentDividendContractTimeIntervalConfiguration());
         modelBuilder.ApplyConfiguration(new Configurations.AgentDividendMultipleLayerConfiguration());
         modelBuilder.ApplyConfiguration(new Configurations.AgentDividendRecordConfiguration());
         modelBuilder.ApplyConfiguration(new Configurations.AgentDividendSnapshotConfiguration());

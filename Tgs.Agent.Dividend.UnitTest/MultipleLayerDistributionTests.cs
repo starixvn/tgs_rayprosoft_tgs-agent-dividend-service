@@ -101,7 +101,7 @@ public class MultipleLayerDistributionTests
         fakeContractRepository.GetAgentDividendContractConditionsAsync(contract.Id, Arg.Any<CancellationToken>())
             .Returns(conditions.ToAsyncEnumerable());
 
-        var response = await sut.GetAgentPlayerAggregateAsync(10, brand, contract, default).ToArrayAsync();
+        var response = await sut.GetAgentPlayerAggregateAsync(10, agents.First(), contract, default).ToArrayAsync();
 
         Assert.That(response, Has.Length.EqualTo(1));
     }
@@ -133,8 +133,6 @@ public class MultipleLayerDistributionTests
         var agentId2 = Guid.NewGuid();
         var from = DateTime.Parse("2023/12/06 00:00:00+8");
         var to = DateTime.Parse("2023/12/06 00:00:00+8");
-        var player1 = "player1";
-        var player2 = "player2";
 
         var contract = CreateContractFixture(brandId,
                 agentId,

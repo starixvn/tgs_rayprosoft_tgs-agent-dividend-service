@@ -12,31 +12,31 @@ internal class OneLayerDividendCalculator(IContractRepository contractRepository
     : IDividendCalculator
 {
     public async IAsyncEnumerable<AgentPlayerAggregateModel> GetAgentPlayerAggregateAsync(int idNumber,
-        BrandModel brand,
+        AgentModel agent,
         AgentDividendContractModel contract,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         var agentAggregates = repository
-            .GetAgentPlayerAggregatesCacheAsync(brand.Id,
-                brand.CurrentSettlementFrom,
-                brand.CurrentSettlementTo,
+            .GetAgentPlayerAggregatesCacheAsync(agent.Id,
+                agent.CurrentSettlementFrom,
+                agent.CurrentSettlementTo,
                 cancellationToken)
-            .Where(x => x.AgentId == contract.AgentId);
+            .Where(x => x.AgentId == agent.Id);
 
         var betPlayers = await repository
-            .GetAgentPlayerBetCountsCacheAsync(brand.Id,
-                brand.CurrentSettlementFrom,
-                brand.CurrentSettlementTo,
+            .GetAgentPlayerBetCountsCacheAsync(agent.Id,
+                agent.CurrentSettlementFrom,
+                agent.CurrentSettlementTo,
                 cancellationToken)
-            .Where(x => x.AgentId == contract.AgentId)
+            .Where(x => x.AgentId == agent.Id)
             .ToArrayAsync(cancellationToken);
         var i = 0;
 
-        var agents = await repository.GetAgentsCacheAsyncEnumerable(brand.Id, cancellationToken)
+        var agents = await repository.GetAgentsCacheAsyncEnumerable(agent.Id, cancellationToken)
             .ToArrayAsync(cancellationToken);
 
         if (!await agentAggregates.AnyAsync(cancellationToken))
-            yield return GetDefaultAggregate(idNumber + 1, contract.AgentId, brand, agents);
+            yield return GetDefaultAggregate(idNumber + 1, agent, agents);
         else
             await foreach (var agentPlayerAggregateModel in agentAggregates)
             {
@@ -148,20 +148,17 @@ internal class OneLayerDividendCalculator(IContractRepository contractRepository
     }
 
     private static AgentPlayerAggregateModel GetDefaultAggregate(int id,
-        Guid agentId,
-        BrandModel brand,
+        AgentModel agent,
         AgentModel[] agents)
     {
-        var agent = agents.First(x => x.Id == agentId);
-
         return new AgentPlayerAggregateModel
         {
             Id = id,
-            BrandId = brand.Id,
+            BrandId = agent.BrandId,
             AgentId = agent.Id,
             AgentDividendPercentage = agent.DividendPercentage,
-            From = brand.CurrentSettlementFrom,
-            To = brand.CurrentSettlementTo,
+            From = agent.CurrentSettlementFrom,
+            To = agent.CurrentSettlementTo,
             AgentDividendPercentageTreeData = GenerateAgentDividendPercentages(agent.Path, agents)
         };
     }

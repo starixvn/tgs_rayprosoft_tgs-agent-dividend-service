@@ -43,6 +43,10 @@ namespace Tgs.Agent.Dividend.Repository.Entities.Configurations
             entity.Property(e => e.Name)
             .HasMaxLength(64)
             .HasColumnName("name");
+            entity.Property(e => e.SettlementDay).HasColumnName("settlement_day");
+            entity.Property(e => e.SettlementIntervalType)
+            .HasDefaultValue((short)0)
+            .HasColumnName("settlement_interval_type");
             entity.Property(e => e.UpdatedByUsername)
             .HasMaxLength(64)
             .HasColumnName("updated_by_username");

@@ -11,27 +11,12 @@ namespace Tgs.Agent.Dividend.Core.AgentDividend;
 
 internal class CreateAgentDividendHandler(
     IRepository repository,
-    IBackgroundTaskQueue backgroundTaskQueue,
-    IPublisher mediator)
+    IBackgroundTaskQueue backgroundTaskQueue)
     : IRequestHandler<CreateAgentDividendRequest>
 {
     public async Task Handle(CreateAgentDividendRequest request, CancellationToken cancellationToken)
     {
-        var brand = await repository.GetBrandAsync(request.BrandId, cancellationToken).ConfigureAwait(false);
-
-        var (nextFrom, nextTo) = DateTimeOffsetExtensions.GetInterval(
-            (SettlementIntervalType)brand.SettlementIntervalType,
-            new DateTimeOffset(brand.NextSettlementTo).AddDays(1).ToOffset(new TimeSpan(8, 0, 0)),
-            brand.SettlementDay);
-
-        brand.PreviousSettlementFrom = brand.CurrentSettlementFrom;
-        brand.PreviousSettlementTo = brand.CurrentSettlementTo;
-        brand.CurrentSettlementFrom = brand.NextSettlementFrom;
-        brand.CurrentSettlementTo = brand.NextSettlementTo;
-        brand.NextSettlementFrom = nextFrom.UtcDateTime;
-        brand.NextSettlementTo = nextTo.UtcDateTime;
-
-        await repository.CreateAgentDividendsAsync(brand,
+        await repository.CreateAgentDividendsAsync(request.BrandId,
             request.Model,
             request.NegativeDividendsIds,
             cancellationToken);
@@ -42,7 +27,7 @@ internal class CreateAgentDividendHandler(
             {
                 var innerMediator = scope.ServiceProvider.GetRequiredService<IMediator>();
 
-                await innerMediator.Publish(new SendAgentDividendByAutoEvent(brand.Id,
+                await innerMediator.Publish(new SendAgentDividendByAutoEvent(request.BrandId,
                         createAgentDividendModel.AgentId,
                         createAgentDividendModel.AgentDividendAmount,
                         createAgentDividendModel.Id,

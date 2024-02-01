@@ -10,4 +10,10 @@ public class AgentModel
     public Guid? ParentAgentId { get; set; }
     public LTree Path { get; set; }
     public decimal DividendPercentage { get; set; }
+    public DateTime PreviousSettlementFrom { get; set; }
+    public DateTime PreviousSettlementTo { get; set; }
+    public DateTime CurrentSettlementFrom { get; set; }
+    public DateTime CurrentSettlementTo { get; set; }
+    public DateTime NextSettlementFrom { get; set; }
+    public DateTime NextSettlementTo { get; set; }
 }

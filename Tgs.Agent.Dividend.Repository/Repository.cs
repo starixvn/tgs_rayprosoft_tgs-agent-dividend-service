@@ -1,5 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
 using System.Transactions;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Tgs.Agent.Dividend.Domain;
@@ -26,14 +27,25 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IMemoryC
                              cacheEntry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5);
 
                              return context.Agents.Where(x => x.BrandId == brandId)
+                                 .Join(context.AgentDividendContractTimeIntervals, a => new { a.BrandId, a.Id }, ad => new { ad.BrandId, Id = ad.AgentId }, (agent, interval) => new
+                                 {
+                                     agent,
+                                     interval
+                                 })
                                  .Select(x => new AgentModel
                                  {
-                                     Id = x.Id,
-                                     BrandId = x.BrandId,
-                                     Username = x.Username,
-                                     ParentAgentId = x.ParentAgentId,
-                                     Path = x.Path,
-                                     DividendPercentage = x.DividendPercentage
+                                     Id = x.agent.Id,
+                                     BrandId = x.agent.BrandId,
+                                     Username = x.agent.Username,
+                                     ParentAgentId = x.agent.ParentAgentId,
+                                     Path = x.agent.Path,
+                                     DividendPercentage = x.agent.DividendPercentage,
+                                     PreviousSettlementFrom = x.interval.PreviousSettlementFrom,
+                                     PreviousSettlementTo = x.interval.PreviousSettlementTo,
+                                     CurrentSettlementFrom = x.interval.CurrentSettlementFrom,
+                                     CurrentSettlementTo = x.interval.CurrentSettlementTo,
+                                     NextSettlementFrom = x.interval.NextSettlementFrom,
+                                     NextSettlementTo = x.interval.NextSettlementTo
                                  })
                                  .ToArrayAsync(cancellationToken);
                          }) ??
@@ -65,7 +77,6 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IMemoryC
         return context.Brands
             .Where(x => brandId == null || x.Id == brandId)
             .Where(x => x.Status != (short)BrandStatus.Archived)
-            .Where(x => DateTime.UtcNow.AddDays(-1) > x.CurrentSettlementTo)
             .Select(x => x.Id)
             .ToAsyncEnumerable();
     }
@@ -667,11 +678,35 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IMemoryC
             .FirstOrDefaultAsync(cancellationToken);
     }
 
-    public async Task CreateAgentDividendsAsync(BrandModel brand,
+    public async Task CreateAgentDividendsAsync(Guid brandId,
         IEnumerable<AgentDividendModel> agentDividends,
         IDictionary<int, int> sendNegativeDividendIds,
         CancellationToken cancellationToken)
     {
+        var intervals = await context.AgentDividendContractTimeIntervals
+            .Where(x => x.BrandId == brandId)
+            .Where(x => DateTime.UtcNow.AddDays(-1) > x.CurrentSettlementTo)
+            .Join(context.AgentDividendContracts,
+                i => i.AgentDividendContractId,
+                a => a.Id,
+                (interval, contract) => new { interval, contract })
+            .ToArrayAsync(cancellationToken);
+
+        foreach (var interval in intervals)
+        {
+            var (nextFrom, nextTo) = Domain.DateTimeOffsetExtensions.GetInterval(
+                (SettlementIntervalType)interval.contract.SettlementIntervalType,
+                new DateTimeOffset(interval.interval.NextSettlementTo).AddDays(1).ToOffset(new TimeSpan(8, 0, 0)),
+                interval.contract.SettlementDay);
+
+            interval.interval.PreviousSettlementFrom = interval.interval.CurrentSettlementFrom;
+            interval.interval.PreviousSettlementTo = interval.interval.CurrentSettlementTo;
+            interval.interval.CurrentSettlementFrom = interval.interval.NextSettlementFrom;
+            interval.interval.CurrentSettlementTo = interval.interval.NextSettlementTo;
+            interval.interval.NextSettlementFrom = nextFrom.UtcDateTime;
+            interval.interval.NextSettlementTo = nextTo.UtcDateTime;
+        }
+
         using var scope = new TransactionScope(TransactionScopeOption.Required,
             new TransactionOptions
                 { Timeout = TimeSpan.FromMinutes(10) },
@@ -687,7 +722,7 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IMemoryC
                 .Select(x => new AgentDividendRecord
                 {
                     Id = GuidExtensions.NewSequentialGuid(),
-                    BrandId = brand.Id,
+                    BrandId = brandId,
                     AgentId = x.AgentId,
                     AgentDividendId = x.Id,
                     AgentDividendAmount = x.AgentDividendAmount,
@@ -699,15 +734,7 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IMemoryC
 
         context.AgentDividends.UpdateRange(negativeDividends);
 
-        await context.Brands.Where(x => x.Id == brand.Id)
-            .ExecuteUpdateAsync(s =>
-                    s.SetProperty(e => e.PreviousSettlementFrom, brand.PreviousSettlementFrom)
-                        .SetProperty(e => e.PreviousSettlementTo, brand.PreviousSettlementTo)
-                        .SetProperty(e => e.CurrentSettlementFrom, brand.CurrentSettlementFrom)
-                        .SetProperty(e => e.CurrentSettlementTo, brand.CurrentSettlementTo)
-                        .SetProperty(e => e.NextSettlementFrom, brand.NextSettlementFrom)
-                        .SetProperty(e => e.NextSettlementTo, brand.NextSettlementTo),
-                cancellationToken);
+        context.AgentDividendContractTimeIntervals.UpdateRange(intervals.Select(x => x.interval));
 
         await context.SaveChangesAsync(cancellationToken);
 

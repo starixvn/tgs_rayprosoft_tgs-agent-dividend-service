@@ -25,7 +25,9 @@ internal class BrandAgentDividendHandler(
 
         var maxId = await repository.GetMaxAgentDividendIdAsync(cancellationToken).ConfigureAwait(false);
 
-        var agentInstances = await repository.GetAgentsCacheAsyncEnumerable(request.BrandId, cancellationToken)
+        var agentInstances = await repository
+            .GetAgentsCacheAsyncEnumerable(request.BrandId, cancellationToken)
+            .Where(x => DateTime.UtcNow.AddDays(-1) > x.CurrentSettlementTo)
             .Select(x =>
             {
                 var agentContract = contracts.FirstOrDefault(a =>
@@ -38,7 +40,7 @@ internal class BrandAgentDividendHandler(
                     serviceProvider.GetRequiredKeyedService<IDividendCalculator>(
                         ((ContractDividendType)agentContract.ContractDividendType).ToString());
 
-                return (agentContract, distributionService);
+                return (agentContract, agent: x, distributionService);
             })
             .ToArrayAsync(cancellationToken);
 
@@ -46,10 +48,10 @@ internal class BrandAgentDividendHandler(
 
         var agentPlayerAggregates = new List<AgentPlayerAggregateModel>();
 
-        foreach (var (agentContract, distributionService) in agentInstances)
+        foreach (var (agentContract, agent, distributionService) in agentInstances)
         {
             var data = await distributionService.GetAgentPlayerAggregateAsync(currentNumber,
-                    brand,
+                    agent,
                     agentContract,
                     cancellationToken)
                 .ToArrayAsync(cancellationToken);
@@ -63,7 +65,7 @@ internal class BrandAgentDividendHandler(
 
         foreach (var agentPlayerAggregateModel in agentPlayerAggregates)
         {
-            var (agentContract, distributionService) =
+            var (agentContract, _, distributionService) =
                 agentInstances.First(a => a.agentContract.AgentId == agentPlayerAggregateModel.AgentId);
 
             var data = await distributionService.GenerateMultipleLayerAsync(
@@ -79,7 +81,7 @@ internal class BrandAgentDividendHandler(
         var agentDividends = agentPlayerAggregates
             .Select(x =>
             {
-                var (agentContract, distributionService) =
+                var (_, _, distributionService) =
                     agentInstances.First(a => a.agentContract.AgentId == x.AgentId);
 
                 var parentAgentDividends = distributionService.GetMultipleLayer(x,

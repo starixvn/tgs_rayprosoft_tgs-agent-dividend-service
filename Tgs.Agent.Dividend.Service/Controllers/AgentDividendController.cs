@@ -15,6 +15,9 @@ public class AgentDividendController(IMediator mediator, IBackgroundTaskQueue qu
     [HttpPost]
     public Task AgentDividendGenerationAsync()
     {
+        int b = 99999;
+        short a = (short)b;
+        Console.WriteLine("a={0}:{0:X8},b={1}:{1:X8}",a,b);
         return mediator.Send(new GenerateAgentDividendRequest());
     }
 
@@ -66,7 +69,7 @@ public class AgentDividendController(IMediator mediator, IBackgroundTaskQueue qu
         {
             var agent = await agentClient.GetAgentInfoAsync(new GetAgentInfoRequest(model.AgentId));
 
-            model.AgentUsername = agent.Username;
+            model.AgentUsername = agent!.Username;
 
             yield return model;
         }

@@ -20,6 +20,10 @@
          "ObjectType": 0
       },
       {
+         "Name": "dbo.agent_dividend_contract_time_intervals",
+         "ObjectType": 0
+      },
+      {
          "Name": "dbo.agent_dividend_contracts",
          "ObjectType": 0
       },

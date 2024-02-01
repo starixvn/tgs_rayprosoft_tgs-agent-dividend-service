@@ -8,7 +8,6 @@ using Tgs.Agent.Dividend.Domain.Models;
 namespace Tgs.Agent.Dividend.Core;
 
 internal class ManualSendAgentDividendHandler(
-    IMediator mediator,
     IBackgroundTaskQueue backgroundTaskQueue,
     IRepository repository)
     : IRequestHandler<ManualSendAgentDividendRequest>
@@ -28,7 +27,7 @@ internal class ManualSendAgentDividendHandler(
                         agentDividendRecord.AgentId,
                         agentDividendRecord.AgentDividendAmount,
                         agentDividendRecord.AgentDividendId,
-                        "system"),
+                        request.EditorUsername),
                     token);
             });
         }

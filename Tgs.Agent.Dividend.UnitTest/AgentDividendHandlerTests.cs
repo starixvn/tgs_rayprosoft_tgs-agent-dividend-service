@@ -59,13 +59,13 @@ public class AgentDividendHandlerTests
                 .Create<AgentDividendContractModel>()
         };
 
-        var brand = CreateBrandFixture(brandId, from, to, 0, true, AgentDividendType.OneLayer).Create<BrandModel>();
+        var brand = CreateBrandFixture(brandId, 0, true, AgentDividendType.OneLayer).Create<BrandModel>();
 
         var agents = new[]
         {
-            CreateAgentFixture(brandId, agentId2, agentId, 10, new LTree($"{agentId:N}.{agentId2:N}"))
+            CreateAgentFixture(brandId, agentId2, agentId, from, to, 10, new LTree($"{agentId:N}.{agentId2:N}"))
                 .Create<AgentModel>(),
-            CreateAgentFixture(brandId, agentId, null, 50, new LTree($"{agentId:N}")).Create<AgentModel>()
+            CreateAgentFixture(brandId, agentId, null, from, to, 50, new LTree($"{agentId:N}")).Create<AgentModel>()
         };
 
         var agentPath = new[]
@@ -151,7 +151,7 @@ public class AgentDividendHandlerTests
         var from = DateTime.Parse("2023/12/06 00:00:00+8");
         var to = DateTime.Parse("2023/12/06 00:00:00+8");
 
-        var brand = CreateBrandFixture(brandId, from, to, 0, true, AgentDividendType.OneLayer).Create<BrandModel>();
+        var brand = CreateBrandFixture(brandId, 0, true, AgentDividendType.OneLayer).Create<BrandModel>();
 
         fakeRepository.GetBrandAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(brand);
 
@@ -168,12 +168,11 @@ public class AgentDividendHandlerTests
 
         var sut = new CreateAgentDividendHandler(
             fakeRepository,
-            fakeBackgroundTaskQueue,
-            fakeMediator);
+            fakeBackgroundTaskQueue);
 
         await sut.Handle(request, default);
 
-        _ = fakeRepository.ReceivedWithAnyArgs(1).CreateAgentDividendsAsync(null!, null!, null!, default);
+        _ = fakeRepository.ReceivedWithAnyArgs(1).CreateAgentDividendsAsync(default, null!, null!, default);
     }
 
     [TestCase(false)]
@@ -218,14 +217,14 @@ public class AgentDividendHandlerTests
                 .Create<AgentDividendContractModel>()
         };
 
-        var brand = CreateBrandFixture(brandId, from, to, 0, checkDividendActiveCount, AgentDividendType.MultipleLayer)
+        var brand = CreateBrandFixture(brandId, 0, checkDividendActiveCount, AgentDividendType.MultipleLayer)
             .Create<BrandModel>();
 
         var agents = new[]
         {
-            CreateAgentFixture(brandId, agentId2, agentId, 10, new LTree($"{agentId:N}.{agentId2:N}"))
+            CreateAgentFixture(brandId, agentId2, agentId, from, to, 10, new LTree($"{agentId:N}.{agentId2:N}"))
                 .Create<AgentModel>(),
-            CreateAgentFixture(brandId, agentId, null, 50, new LTree($"{agentId:N}")).Create<AgentModel>()
+            CreateAgentFixture(brandId, agentId, null, from, to, 50, new LTree($"{agentId:N}")).Create<AgentModel>()
         };
 
         var agentPath = new[]
@@ -375,14 +374,14 @@ public class AgentDividendHandlerTests
                 .Create<AgentDividendContractModel>()
         };
 
-        var brand = CreateBrandFixture(brandId, from, to, 0, checkDividendActiveCount, AgentDividendType.OnePercentage)
+        var brand = CreateBrandFixture(brandId, 0, checkDividendActiveCount, AgentDividendType.OnePercentage)
             .Create<BrandModel>();
 
         var agents = new[]
         {
-            CreateAgentFixture(brandId, agentId2, agentId, 0, new LTree($"{agentId:N}.{agentId2:N}"))
+            CreateAgentFixture(brandId, agentId2, agentId, from, to, 0, new LTree($"{agentId:N}.{agentId2:N}"))
                 .Create<AgentModel>(),
-            CreateAgentFixture(brandId, agentId, null, 0, new LTree($"{agentId:N}")).Create<AgentModel>()
+            CreateAgentFixture(brandId, agentId, null, from, to, 0, new LTree($"{agentId:N}")).Create<AgentModel>()
         };
 
         var agentPath = new[]
@@ -587,14 +586,14 @@ public class AgentDividendHandlerTests
                 .Create<AgentDividendContractModel>()
         };
 
-        var brand = CreateBrandFixture(brandId, from, to, 0, true, AgentDividendType.MultipleLayer)
+        var brand = CreateBrandFixture(brandId, 0, true, AgentDividendType.MultipleLayer)
             .Create<BrandModel>();
 
         var agents = new[]
         {
-            CreateAgentFixture(brandId, agentId2, agentId, 10, new LTree($"{agentId:N}.{agentId2:N}"))
+            CreateAgentFixture(brandId, agentId2, agentId, from, to, 10, new LTree($"{agentId:N}.{agentId2:N}"))
                 .Create<AgentModel>(),
-            CreateAgentFixture(brandId, agentId, null, 50, new LTree($"{agentId:N}")).Create<AgentModel>()
+            CreateAgentFixture(brandId, agentId, null, from, to, 50, new LTree($"{agentId:N}")).Create<AgentModel>()
         };
 
         var agentPath = new[]
@@ -659,8 +658,6 @@ public class AgentDividendHandlerTests
 
 
     private static Fixture CreateBrandFixture(Guid brandId,
-        DateTime from,
-        DateTime to,
         decimal platformCharge,
         bool checkDividendActiveCount,
         AgentDividendType agentDividendType)
@@ -669,8 +666,6 @@ public class AgentDividendHandlerTests
         fixture.Customize<BrandModel>(u => u
             .With(s => s.Id, brandId)
             .With(s => s.SettlementIntervalType, (short)SettlementIntervalType.Daily)
-            .With(s => s.CurrentSettlementFrom, from)
-            .With(s => s.CurrentSettlementTo, to)
             .With(s => s.PlatformCharge, platformCharge)
             .With(s => s.CheckDividendActiveCount, checkDividendActiveCount)
             .With(s => s.AgentDividendType, (short)agentDividendType));
@@ -681,6 +676,8 @@ public class AgentDividendHandlerTests
     private static Fixture CreateAgentFixture(Guid brandId,
         Guid agentId,
         Guid? parentId,
+        DateTime from,
+        DateTime to,
         decimal dividendPercentage,
         LTree path)
     {
@@ -690,6 +687,8 @@ public class AgentDividendHandlerTests
             .With(s => s.ParentAgentId, parentId)
             .With(s => s.DividendPercentage, dividendPercentage)
             .With(s => s.Path, path)
+            .With(s => s.CurrentSettlementFrom, from)
+            .With(s => s.CurrentSettlementTo, to)
             .With(s => s.BrandId, brandId));
         fixture.Behaviors.Add(new OmitOnRecursionBehavior());
         return fixture;

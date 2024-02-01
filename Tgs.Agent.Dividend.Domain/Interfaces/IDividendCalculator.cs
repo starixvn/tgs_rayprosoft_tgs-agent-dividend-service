@@ -6,7 +6,7 @@ public interface IDividendCalculator
 {
     IAsyncEnumerable<AgentPlayerAggregateModel>
         GetAgentPlayerAggregateAsync(int idNumber,
-            BrandModel brand,
+            AgentModel agent,
             AgentDividendContractModel contract,
             CancellationToken cancellationToken);
 

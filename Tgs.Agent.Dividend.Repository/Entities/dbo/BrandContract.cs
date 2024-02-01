@@ -35,5 +35,9 @@ public partial class BrandContract
 
     public DateTime UpdatedOn { get; set; }
 
+    public int? SettlementDay { get; set; }
+
+    public short SettlementIntervalType { get; set; }
+
     public virtual ICollection<BrandContractCondition> BrandContractConditions { get; set; } = new List<BrandContractCondition>();
 }

@@ -66,12 +66,14 @@ public class BrandContractTests
                 new(agentContractId,
                     brandId,
                     "name",
-                    (short)ContractDividendType.OnePercentage,
+                    ContractDividendType.OnePercentage,
                     1,
                     1,
                     1,
                     1,
                     [1, 2],
+                    null,
+                    SettlementIntervalType.Daily,
                     new BrandContractConditionModel[]
                     {
                         new(1, 1, 1, 1, 1)

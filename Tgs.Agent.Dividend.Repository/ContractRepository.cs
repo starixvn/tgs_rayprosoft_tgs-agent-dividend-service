@@ -1,5 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
 using Microsoft.EntityFrameworkCore;
+using Tgs.Agent.Dividend.Domain;
 using Tgs.Agent.Dividend.Domain.Enums;
 using Tgs.Agent.Dividend.Domain.Interfaces.Repositories;
 using Tgs.Agent.Dividend.Domain.Models;
@@ -54,12 +55,14 @@ internal class ContractRepository(tgsContext context) : IContractRepository
                 x.Id,
                 x.BrandId,
                 x.Name,
-                x.ContractDividendType,
+                (ContractDividendType)x.ContractDividendType,
                 x.GradeIntervalLimit,
                 x.ValidBetAmount,
                 x.DepositAmount,
                 x.BetDays,
                 x.GameTypes.Select(g => int.Parse(g)).ToArray(),
+                x.SettlementDay,
+                (SettlementIntervalType)x.SettlementIntervalType,
                 x.BrandContractConditions.Select(b =>
                     new BrandContractConditionModel(
                         b.Rank,
@@ -142,6 +145,26 @@ internal class ContractRepository(tgsContext context) : IContractRepository
             ActiveNumber = x.ActiveNumber,
             WinLossAmount = x.WinLossAmount
         });
+
+        var now = DateTimeOffset.Now.ToOffset(TimeSpan.FromHours(8));
+
+        var (currentFrom, currentTo) = DateTimeOffsetExtensions.GetInterval((SettlementIntervalType)brandContract.SettlementIntervalType,
+            new DateTimeOffset(now.Year, now.Month, now.Day, 0, 0, 0, now.Offset),
+            brandContract.SettlementDay);
+
+        var (nextFrom, nextTo) = DateTimeOffsetExtensions.GetInterval((SettlementIntervalType)brandContract.SettlementIntervalType,
+            currentTo.AddDays(1),
+            brandContract.SettlementDay);
+
+        _ = await context.AgentDividendContractTimeIntervals.AddAsync(new AgentDividendContractTimeInterval
+        {
+            PreviousSettlementFrom = currentFrom.UtcDateTime,
+            PreviousSettlementTo = currentTo.UtcDateTime,
+            CurrentSettlementFrom = currentFrom.UtcDateTime,
+            CurrentSettlementTo = currentTo.UtcDateTime,
+            NextSettlementFrom = nextFrom.UtcDateTime,
+            NextSettlementTo = nextTo.UtcDateTime
+        }, cancellationToken).ConfigureAwait(false);
 
         _ = await context.AgentDividendContracts.AddAsync(contract, cancellationToken).ConfigureAwait(false);
 

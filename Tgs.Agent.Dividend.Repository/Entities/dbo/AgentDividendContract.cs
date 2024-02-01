@@ -38,4 +38,8 @@ public partial class AgentDividendContract
     public List<string> GameTypes { get; set; } = null!;
 
     public Guid DefaultBrandContractId { get; set; }
+
+    public int? SettlementDay { get; set; }
+
+    public short SettlementIntervalType { get; set; }
 }

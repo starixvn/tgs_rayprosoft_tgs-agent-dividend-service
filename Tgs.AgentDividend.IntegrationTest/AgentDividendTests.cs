@@ -242,7 +242,8 @@ public class AgentDividendTests
         var fixture = new Fixture();
         fixture.Customize<AgentModel>(u => u
             .With(s => s.Id, agentId)
-            .With(e => e.Path, new LTree($"{agentId:N}")));
+            .With(e => e.Path, new LTree($"{agentId:N}"))
+            .With(e => e.CurrentSettlementTo, DateTime.UtcNow.AddDays(-1)));
         fixture.Behaviors.Add(new OmitOnRecursionBehavior());
         return fixture;
     }
