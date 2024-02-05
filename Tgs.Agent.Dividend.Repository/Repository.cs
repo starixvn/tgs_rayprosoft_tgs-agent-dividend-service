@@ -468,12 +468,12 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IMemoryC
             .ToAsyncEnumerable();
     }
 
-    public async IAsyncEnumerable<AgentPlayerDepositModel> GetAgentPlayerDepositsCacheAsync(Guid brandId,
+    public async IAsyncEnumerable<AgentPlayerPaymentModel> GetAgentPlayerPaymentsCacheAsync(Guid brandId,
         DateOnly from,
         DateOnly to,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
-        var key = $"AgentPlayerDepositCache{brandId}{from}{to}";
+        var key = $"AgentPlayerPaymentCache{brandId}{from}{to}";
 
         memoryCacheKeyMapper.AddCacheKey(key);
 
@@ -487,17 +487,18 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IMemoryC
                                  .Join(context.Players,
                                      pp => pp.PlayerCode,
                                      p => p.PlayerCode,
-                                     (pp, p) => new { pp.PlayerCode, pp.DailyDepositAmount, p.AgentId, p.BrandId })
+                                     (pp, p) => new { pp.PlayerCode, pp.DailyDepositAmount, pp.DailyWithdrawAmount, p.AgentId, p.BrandId })
                                  .Where(x => x.BrandId == brandId && x.AgentId != null)
                                  .GroupBy(x => new { x.BrandId, x.AgentId, x.PlayerCode })
-                                 .Select(x => new AgentPlayerDepositModel
+                                 .Select(x => new AgentPlayerPaymentModel
                                  {
                                      BrandId = x.Key.BrandId,
                                      AgentId = x.Key.AgentId!.Value,
                                      PlayerCode = x.Key.PlayerCode,
                                      From = from,
                                      To = to,
-                                     DepositAmount = x.Sum(s => s.DailyDepositAmount ?? 0M)
+                                     DepositAmount = x.Sum(s => s.DailyDepositAmount ?? 0M),
+                                     WithdrawAmount = x.Sum(s => s.DailyWithdrawAmount ?? 0M),
                                  })
                                  .ToArrayAsync(cancellationToken);
                          }) ??
@@ -725,7 +726,10 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IMemoryC
                     BrandId = brandId,
                     AgentId = x.AgentId,
                     AgentDividendId = x.Id,
-                    AgentDividendAmount = x.AgentDividendAmount,
+                    NegativeAgentDividendAmount = x.NegativeAgentDividend,
+                    AgentDividendAmount = x.BeforeDividendAmount ?? x.AgentDividendAmount,
+                    ActualAgentDividendAmount = x.AgentDividendAmount < 0 ? 0M : x.AgentDividendAmount,
+                    Status = (short)DistributeStatus.ReadyToApprove,
                     CreatedOn = DateTime.UtcNow
                 }),
             cancellationToken);
@@ -849,9 +853,25 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IMemoryC
                 SportsWinLoss = model.SportsWinLoss,
                 ESportsWinLoss = model.ESportsWinLoss,
                 VirtualSportsWinLoss = model.VirtualSportsWinLoss,
+                DepositPaymentPercentage = model.DepositPaymentPercentage,
+                WithdrawalPaymentPercentage = model.WithdrawalPaymentPercentage,
+                SportsbookProductPercentage = model.SportsbookProductPercentage,
+                VirtualSportsProductPercentage = model.VirtualSportsProductPercentage,
+                LiveDealerProductPercentage = model.LiveDealerProductPercentage,
+                CardGameProductPercentage = model.CardGameProductPercentage,
+                LotteryProductPercentage = model.LotteryProductPercentage,
+                SlotProductPercentage = model.SlotProductPercentage,
+                SportsbookProductFee = model.SportsbookProductFee,
+                VirtualSportsProductFee = model.VirtualSportsProductFee,
+                LiveDealerProductFee = model.LiveDealerProductFee,
+                CardGameProductFee = model.CardGameProductFee,
+                LotteryProductFee = model.LotteryProductFee,
+                SlotProductFee = model.SlotProductFee,
+                DepositPaymentFee = model.DepositPaymentFee,
+                WithdrawalPaymentFee = model.WithdrawalPaymentFee,
                 AgentDividendAmount = model.AgentDividendAmount,
                 CreatedOn = DateTime.UtcNow,
-                SentOn = null,
+                SentOn = model.SentOn,
                 BeforeDividendAmount = model.BeforeDividendAmount,
                 ReferencedAgentDividendId = model.ReferencedAgentDividendId,
                 AgentDividendMultipleLayers = model.AgentDividendMultipleLayerModels.Select(x

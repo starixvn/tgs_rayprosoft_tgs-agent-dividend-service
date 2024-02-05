@@ -51,7 +51,7 @@ public class AgentDividendTests
         fakeAgentClient.GetChildAgentInfosAsync(Arg.Any<GetChildAgentInfosRequest>(), Arg.Any<CancellationToken>())
             .Returns(Array.Empty<ChildAgentInfoModel>().ToAsyncEnumerable());
 
-        fakeContractRepository.GetBrandAgentDividendContractsAsync(Arg.Any<Guid>())
+        fakeContractRepository.GetAgentDividendContractsByBrandIdAsync(Arg.Any<Guid>())
             .Returns(CreateAgentDividendContractFixture(brandId, agentId)
                 .CreateMany<AgentDividendContractModel>(1)
                 .ToAsyncEnumerable());
@@ -126,7 +126,7 @@ public class AgentDividendTests
         fakeAgentClient.GetAgentInfoAsync(Arg.Any<GetAgentInfoRequest>(), Arg.Any<CancellationToken>())
             .Returns(fixture.Create<AgentInfoModel>());
 
-        fakeContractRepository.GetBrandAgentDividendContractsAsync(Arg.Any<Guid>())
+        fakeContractRepository.GetAgentDividendContractsByBrandIdAsync(Arg.Any<Guid>())
             .Returns(CreateAgentDividendContractFixture(brandId, agentId)
                 .CreateMany<AgentDividendContractModel>(1)
                 .ToAsyncEnumerable());

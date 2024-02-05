@@ -30,6 +30,8 @@ internal class GetNoSendDividendHandler(IRepository repository)
             var agentDividendAmount = request.AgentDividends.Where(x => x.AgentId == dividend.AgentId)
                 .Sum(x => x.AgentDividendAmount);
 
+            dividend.NegativeAgentDividend = agentNoSendDividend;
+
             switch (agentDividendAmount + agentNoSendDividend)
             {
                 case > 0M:

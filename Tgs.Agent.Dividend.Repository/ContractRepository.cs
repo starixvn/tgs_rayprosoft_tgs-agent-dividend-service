@@ -1,4 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Tgs.Agent.Dividend.Domain;
 using Tgs.Agent.Dividend.Domain.Enums;
@@ -12,7 +13,7 @@ namespace Tgs.Agent.Dividend.Repository;
 
 internal class ContractRepository(tgsContext context) : IContractRepository
 {
-    public IAsyncEnumerable<AgentDividendContractModel> GetBrandAgentDividendContractsAsync(Guid brandId)
+    public IAsyncEnumerable<AgentDividendContractModel> GetAgentDividendContractsByBrandIdAsync(Guid brandId)
     {
         return context.AgentDividendContracts.Where(x => x.BrandId == brandId)
             .Select(x => new AgentDividendContractModel
@@ -25,7 +26,17 @@ internal class ContractRepository(tgsContext context) : IContractRepository
                 ContractStatus = x.ContractStatus,
                 ValidBetAmount = x.ValidBetAmount,
                 DepositAmount = x.DepositAmount,
-                BetDays = x.BetDays
+                BetDays = x.BetDays,
+                LevelPercentages = x.LevelPercentages.Select(g => decimal.Parse(g)).ToArray(),
+                DepositFeePercentage = x.DepositFeePercentage,
+                WithdrawFeePercentage = x.WithdrawalFeePercentage,
+                SportsbookPercentage = x.SportsbookPercentage,
+                VirtualSportsPercentage = x.VirtualSportsPercentage,
+                LiveDealerPercentage = x.LiveDealerPercentage,
+                CardGamePercentage = x.CardGamePercentage,
+                LotteryPercentage = x.LotteryPercentage,
+                SlotPercentage = x.SlotPercentage,
+                AutoSend = x.AutoSend
             })
             .ToAsyncEnumerable();
     }
@@ -56,11 +67,9 @@ internal class ContractRepository(tgsContext context) : IContractRepository
                 x.BrandId,
                 x.Name,
                 (ContractDividendType)x.ContractDividendType,
-                x.GradeIntervalLimit,
                 x.ValidBetAmount,
                 x.DepositAmount,
                 x.BetDays,
-                x.GameTypes.Select(g => int.Parse(g)).ToArray(),
                 x.SettlementDay,
                 (SettlementIntervalType)x.SettlementIntervalType,
                 x.BrandContractConditions.Select(b =>
@@ -121,15 +130,13 @@ internal class ContractRepository(tgsContext context) : IContractRepository
             Id = contractId,
             BrandId = request.BrandId,
             AgentId = request.AgentId,
-            DefaultBrandContractId = brandContract.Id,
+            BrandContractId = brandContract.Id,
             Name = brandContract.Name,
-            GradeIntervalLimit = brandContract.GradeIntervalLimit,
             ContractDividendType = brandContract.ContractDividendType,
             ContractStatus = (short)ContractStatus.Enabled,
             ValidBetAmount = brandContract.ValidBetAmount,
             DepositAmount = brandContract.DepositAmount,
             BetDays = brandContract.BetDays,
-            GameTypes = brandContract.GameTypes,
             CreatedByUsername = request.EditorUsername,
             UpdatedByUsername = request.EditorUsername,
             CreatedOn = DateTime.UtcNow,
@@ -182,13 +189,11 @@ internal class ContractRepository(tgsContext context) : IContractRepository
             Id = id,
             BrandId = request.BrandId,
             Name = request.Name,
-            GradeIntervalLimit = request.GradeIntervalLimit,
             ContractDividendType = request.ContractDividendType,
             ContractStatus = (short)ContractStatus.Enabled,
             ValidBetAmount = request.ValidBetAmount,
             DepositAmount = request.DepositAmount,
             BetDays = request.BetDays,
-            GameTypes = request.GameTypes?.Select(x => ((int)x).ToString()).ToList() ?? [],
             CreatedByUsername = request.EditorUsername,
             UpdatedByUsername = request.EditorUsername,
             CreatedOn = DateTime.UtcNow,

@@ -28,7 +28,7 @@ public interface IRepository
         DateTime from,
         DateTime to);
 
-    IAsyncEnumerable<AgentPlayerDepositModel> GetAgentPlayerDepositsCacheAsync(Guid brandId,
+    IAsyncEnumerable<AgentPlayerPaymentModel> GetAgentPlayerPaymentsCacheAsync(Guid brandId,
         DateOnly from,
         DateOnly to,
         CancellationToken cancellationToken);

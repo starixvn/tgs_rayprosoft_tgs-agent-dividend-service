@@ -22,4 +22,12 @@ public partial class AgentDividendRecord
     public DateTime? SentOn { get; set; }
 
     public string? SentByUsername { get; set; }
+
+    public decimal ActualAgentDividendAmount { get; set; }
+
+    public decimal NegativeAgentDividendAmount { get; set; }
+
+    public string? Remark { get; set; }
+
+    public short Status { get; set; }
 }

@@ -91,5 +91,37 @@ public partial class AgentDividend
 
     public decimal PlatformChargePercentage { get; set; }
 
+    public decimal CardGameProductFee { get; set; }
+
+    public decimal CardGameProductPercentage { get; set; }
+
+    public decimal DepositPaymentFee { get; set; }
+
+    public decimal DepositPaymentPercentage { get; set; }
+
+    public decimal LiveDealerProductFee { get; set; }
+
+    public decimal LiveDealerProductPercentage { get; set; }
+
+    public decimal LotteryProductFee { get; set; }
+
+    public decimal LotteryProductPercentage { get; set; }
+
+    public decimal SlotProductFee { get; set; }
+
+    public decimal SlotProductPercentage { get; set; }
+
+    public decimal SportsbookProductFee { get; set; }
+
+    public decimal SportsbookProductPercentage { get; set; }
+
+    public decimal VirtualSportsProductFee { get; set; }
+
+    public decimal VirtualSportsProductPercentage { get; set; }
+
+    public decimal WithdrawalPaymentFee { get; set; }
+
+    public decimal WithdrawalPaymentPercentage { get; set; }
+
     public virtual ICollection<AgentDividendMultipleLayer> AgentDividendMultipleLayers { get; set; } = new List<AgentDividendMultipleLayer>();
 }

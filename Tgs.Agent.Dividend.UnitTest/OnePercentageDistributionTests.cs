@@ -104,14 +104,14 @@ public class OnePercentageDistributionTests
                     DateOnly.FromDateTime(from),
                     DateOnly.FromDateTime(to),
                     2)
-                .Create<AgentPlayerDepositModel>(),
+                .Create<AgentPlayerPaymentModel>(),
             CreateAgentPlayerDepositFixture(brandId,
                     agentId,
                     player2,
                     DateOnly.FromDateTime(from),
                     DateOnly.FromDateTime(to),
                     1)
-                .Create<AgentPlayerDepositModel>()
+                .Create<AgentPlayerPaymentModel>()
         };
 
         var conditions = new[]
@@ -147,7 +147,7 @@ public class OnePercentageDistributionTests
         fakeRepository.GetAgentPlayerBetCountsCacheAsync(brandId, from, to, Arg.Any<CancellationToken>())
             .Returns(playerBetDays.ToAsyncEnumerable());
 
-        fakeRepository.GetAgentPlayerDepositsCacheAsync(brandId,
+        fakeRepository.GetAgentPlayerPaymentsCacheAsync(brandId,
                 DateOnly.FromDateTime(from),
                 DateOnly.FromDateTime(to),
                 Arg.Any<CancellationToken>())
@@ -367,14 +367,14 @@ public class OnePercentageDistributionTests
                     DateOnly.FromDateTime(from),
                     DateOnly.FromDateTime(to),
                     player1DepositAmount)
-                .Create<AgentPlayerDepositModel>(),
+                .Create<AgentPlayerPaymentModel>(),
             CreateAgentPlayerDepositFixture(brandId,
                     agentId,
                     player2,
                     DateOnly.FromDateTime(from),
                     DateOnly.FromDateTime(to),
                     player2DepositAmount)
-                .Create<AgentPlayerDepositModel>()
+                .Create<AgentPlayerPaymentModel>()
         };
 
         var conditions = new[]
@@ -409,7 +409,7 @@ public class OnePercentageDistributionTests
         fakeRepository.GetAgentPlayerBetCountsCacheAsync(brandId, from, to, Arg.Any<CancellationToken>())
             .Returns(playerBetDays.ToAsyncEnumerable());
 
-        fakeRepository.GetAgentPlayerDepositsCacheAsync(brandId,
+        fakeRepository.GetAgentPlayerPaymentsCacheAsync(brandId,
                 DateOnly.FromDateTime(from),
                 DateOnly.FromDateTime(to),
                 Arg.Any<CancellationToken>())
@@ -568,7 +568,7 @@ public class OnePercentageDistributionTests
         decimal deposit)
     {
         var fixture = new Fixture();
-        fixture.Customize<AgentPlayerDepositModel>(u => u
+        fixture.Customize<AgentPlayerPaymentModel>(u => u
             .With(s => s.BrandId, brandId)
             .With(s => s.AgentId, agentId)
             .With(s => s.PlayerCode, playerCode)

@@ -1,4 +1,6 @@
-﻿namespace Tgs.Agent.Dividend.Domain.Models;
+﻿using Tgs.Agent.Dividend.Domain.Enums;
+
+namespace Tgs.Agent.Dividend.Domain.Models;
 
 public class AgentDividendModel
 {
@@ -39,6 +41,25 @@ public class AgentDividendModel
     public decimal AgentDividendPercentage { get; set; }
     public decimal AgentDividendAmount { get; set; }
     public decimal? BeforeDividendAmount { get; set; }
+    public int ActiveNumber { get; set; }
+    public decimal DepositPaymentFee { get; set; }
+    public decimal WithdrawalPaymentFee { get; set; }
+    public decimal SportsbookProductFee { get; set; }
+    public decimal VirtualSportsProductFee { get; set; }
+    public decimal LiveDealerProductFee { get; set; }
+    public decimal CardGameProductFee { get; set; }
+    public decimal LotteryProductFee { get; set; }
+    public decimal SlotProductFee { get; set; }
+    public decimal DepositPaymentPercentage { get; set; }
+    public decimal WithdrawalPaymentPercentage { get; set; }
+    public decimal SportsbookProductPercentage { get; set; }
+    public decimal VirtualSportsProductPercentage { get; set; }
+    public decimal LiveDealerProductPercentage { get; set; }
+    public decimal CardGameProductPercentage { get; set; }
+    public decimal LotteryProductPercentage { get; set; }
+    public decimal SlotProductPercentage { get; set; }
+    public decimal NegativeAgentDividend { get; set; }
     public bool AutoSend { get; set; }
+    public DateTime? SentOn { get; set; }
     public AgentDividendMultipleLayerModel[] AgentDividendMultipleLayerModels { get; set; } = default!;
 }

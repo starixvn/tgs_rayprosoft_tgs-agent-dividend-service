@@ -71,8 +71,6 @@ public class BrandContractTests
                     1,
                     1,
                     1,
-                    [1, 2],
-                    null,
                     SettlementIntervalType.Daily,
                     new BrandContractConditionModel[]
                     {

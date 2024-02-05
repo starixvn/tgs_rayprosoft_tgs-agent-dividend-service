@@ -50,7 +50,7 @@ internal class GetAgentDividendBeforehandHandler(
 
         var agentIds = childAgents.Select(x => x.AgentId).Append(agentId).ToArray();
 
-        var contracts = await contractRepository.GetBrandAgentDividendContractsAsync(brand.Id)
+        var contracts = await contractRepository.GetAgentDividendContractsByBrandIdAsync(brand.Id)
             .Where(x => x.AgentId == agentId || childAgents.Select(s => s.AgentId).Contains(x.AgentId))
             .ToArrayAsync(cancellationToken);
 

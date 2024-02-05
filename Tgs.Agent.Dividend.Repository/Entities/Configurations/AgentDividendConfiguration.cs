@@ -52,6 +52,12 @@ namespace Tgs.Agent.Dividend.Repository.Entities.Configurations
             .HasPrecision(18, 6)
             .HasColumnName("bonus_amount");
             entity.Property(e => e.BrandId).HasColumnName("brand_id");
+            entity.Property(e => e.CardGameProductFee)
+            .HasPrecision(18, 6)
+            .HasColumnName("card_game_product_fee");
+            entity.Property(e => e.CardGameProductPercentage)
+            .HasPrecision(18, 6)
+            .HasColumnName("card_game_product_percentage");
             entity.Property(e => e.CardGameWinLoss)
             .HasPrecision(18, 6)
             .HasColumnName("card_game_win_loss");
@@ -65,6 +71,12 @@ namespace Tgs.Agent.Dividend.Repository.Entities.Configurations
             entity.Property(e => e.DepositHandlingFee)
             .HasPrecision(18, 6)
             .HasColumnName("deposit_handling_fee");
+            entity.Property(e => e.DepositPaymentFee)
+            .HasPrecision(18, 6)
+            .HasColumnName("deposit_payment_fee");
+            entity.Property(e => e.DepositPaymentPercentage)
+            .HasPrecision(18, 6)
+            .HasColumnName("deposit_payment_percentage");
             entity.Property(e => e.ESportsWinLoss)
             .HasPrecision(18, 6)
             .HasColumnName("e_sports_win_loss");
@@ -72,9 +84,21 @@ namespace Tgs.Agent.Dividend.Repository.Entities.Configurations
             .HasPrecision(18, 6)
             .HasColumnName("fishing_win_loss");
             entity.Property(e => e.From).HasColumnName("from");
+            entity.Property(e => e.LiveDealerProductFee)
+            .HasPrecision(18, 6)
+            .HasColumnName("live_dealer_product_fee");
+            entity.Property(e => e.LiveDealerProductPercentage)
+            .HasPrecision(18, 6)
+            .HasColumnName("live_dealer_product_percentage");
             entity.Property(e => e.LiveDealerWinLoss)
             .HasPrecision(18, 6)
             .HasColumnName("live_dealer_win_loss");
+            entity.Property(e => e.LotteryProductFee)
+            .HasPrecision(18, 6)
+            .HasColumnName("lottery_product_fee");
+            entity.Property(e => e.LotteryProductPercentage)
+            .HasPrecision(18, 6)
+            .HasColumnName("lottery_product_percentage");
             entity.Property(e => e.LotteryWinLoss)
             .HasPrecision(18, 6)
             .HasColumnName("lottery_win_loss");
@@ -104,12 +128,24 @@ namespace Tgs.Agent.Dividend.Repository.Entities.Configurations
             .HasColumnName("rebate_amount");
             entity.Property(e => e.ReferencedAgentDividendId).HasColumnName("referenced_agent_dividend_id");
             entity.Property(e => e.SentOn).HasColumnName("sent_on");
+            entity.Property(e => e.SlotProductFee)
+            .HasPrecision(18, 6)
+            .HasColumnName("slot_product_fee");
+            entity.Property(e => e.SlotProductPercentage)
+            .HasPrecision(18, 6)
+            .HasColumnName("slot_product_percentage");
             entity.Property(e => e.SlotWinLoss)
             .HasPrecision(18, 6)
             .HasColumnName("slot_win_loss");
             entity.Property(e => e.SportsWinLoss)
             .HasPrecision(18, 6)
             .HasColumnName("sports_win_loss");
+            entity.Property(e => e.SportsbookProductFee)
+            .HasPrecision(18, 6)
+            .HasColumnName("sportsbook_product_fee");
+            entity.Property(e => e.SportsbookProductPercentage)
+            .HasPrecision(18, 6)
+            .HasColumnName("sportsbook_product_percentage");
             entity.Property(e => e.TableGameWinLoss)
             .HasPrecision(18, 6)
             .HasColumnName("table_game_win_loss");
@@ -120,6 +156,12 @@ namespace Tgs.Agent.Dividend.Repository.Entities.Configurations
             entity.Property(e => e.ValidBetAmount)
             .HasPrecision(18, 6)
             .HasColumnName("valid_bet_amount");
+            entity.Property(e => e.VirtualSportsProductFee)
+            .HasPrecision(18, 6)
+            .HasColumnName("virtual_sports_product_fee");
+            entity.Property(e => e.VirtualSportsProductPercentage)
+            .HasPrecision(18, 6)
+            .HasColumnName("virtual_sports_product_percentage");
             entity.Property(e => e.VirtualSportsWinLoss)
             .HasPrecision(18, 6)
             .HasColumnName("virtual_sports_win_loss");
@@ -132,6 +174,12 @@ namespace Tgs.Agent.Dividend.Repository.Entities.Configurations
             entity.Property(e => e.WithdrawalAmount)
             .HasPrecision(18, 6)
             .HasColumnName("withdrawal_amount");
+            entity.Property(e => e.WithdrawalPaymentFee)
+            .HasPrecision(18, 6)
+            .HasColumnName("withdrawal_payment_fee");
+            entity.Property(e => e.WithdrawalPaymentPercentage)
+            .HasPrecision(18, 6)
+            .HasColumnName("withdrawal_payment_percentage");
 
             OnConfigurePartial(entity);
         }

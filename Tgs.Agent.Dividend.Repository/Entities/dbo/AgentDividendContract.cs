@@ -15,7 +15,7 @@ public partial class AgentDividendContract
 
     public string Name { get; set; } = null!;
 
-    public decimal GradeIntervalLimit { get; set; }
+    public decimal WithdrawalFeePercentage { get; set; }
 
     public short ContractDividendType { get; set; }
 
@@ -35,11 +35,29 @@ public partial class AgentDividendContract
 
     public DateTime UpdatedOn { get; set; }
 
-    public List<string> GameTypes { get; set; } = null!;
+    public List<string> LevelPercentages { get; set; } = null!;
 
-    public Guid DefaultBrandContractId { get; set; }
+    public Guid BrandContractId { get; set; }
+
+    public bool AutoSend { get; set; }
+
+    public decimal CardGamePercentage { get; set; }
+
+    public decimal DepositFeePercentage { get; set; }
+
+    public decimal LiveDealerPercentage { get; set; }
+
+    public decimal LotteryPercentage { get; set; }
+
+    public short NegativeAgentDividendResponsibilityType { get; set; }
 
     public int? SettlementDay { get; set; }
 
     public short SettlementIntervalType { get; set; }
+
+    public decimal SlotPercentage { get; set; }
+
+    public decimal SportsbookPercentage { get; set; }
+
+    public decimal VirtualSportsPercentage { get; set; }
 }

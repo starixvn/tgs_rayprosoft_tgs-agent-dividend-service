@@ -72,7 +72,15 @@ internal class OneLayerDividendCalculator(IContractRepository contractRepository
                      agentPlayerAggregate.AgentId,
                      agentPlayerAggregate.BonusAmount,
                      bonusAdjustAmount,
-                     agentPlayerAggregate.NetProfit(brand.PlatformCharge)))
+                     agentPlayerAggregate.NetProfit(brand.PlatformCharge,
+                         contract.DepositFeePercentage,
+                         contract.WithdrawFeePercentage,
+                         contract.SportsbookPercentage,
+                         contract.VirtualSportsPercentage,
+                         contract.LiveDealerPercentage,
+                         contract.CardGamePercentage,
+                         contract.LotteryPercentage,
+                         contract.SlotPercentage)))
             yield return agentDividendMultipleLayerModel;
     }
 
@@ -171,15 +179,7 @@ internal class OneLayerDividendCalculator(IContractRepository contractRepository
 
         var data = JsonSerializer.Serialize(new
         {
-            contract.Id,
-            contract.BrandId,
-            contract.AgentId,
-            contract.Name,
-            contract.ContractDividendType,
-            contract.ContractStatus,
-            contract.ValidBetAmount,
-            contract.DepositAmount,
-            contract.BetDays,
+            Contract = contract,
             Conditions = conditions
         });
 

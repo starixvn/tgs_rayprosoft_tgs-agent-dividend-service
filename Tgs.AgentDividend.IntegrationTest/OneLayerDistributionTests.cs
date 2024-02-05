@@ -103,7 +103,7 @@ public class OneLayerDistributionTests
                 .Create<AgentPlayerAggregateModel>()
         };
 
-        _fakeContractRepository.GetBrandAgentDividendContractsAsync(Arg.Any<Guid>())
+        _fakeContractRepository.GetAgentDividendContractsByBrandIdAsync(Arg.Any<Guid>())
             .Returns(contracts.ToAsyncEnumerable());
 
         _fakeRepository.GetBrandAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(brand);

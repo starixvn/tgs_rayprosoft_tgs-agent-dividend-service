@@ -18,11 +18,16 @@ namespace Tgs.Agent.Dividend.Repository.Entities.Configurations
 
             entity.ToTable("agent_dividend_records", "dbo");
 
+            entity.HasIndex(e => new { e.BrandId, e.AgentId }, "ix_agent_dividend_records_brand_id_agent_id");
+
             entity.HasIndex(e => e.AgentDividendId, "ux_agent_dividend_records").IsUnique();
 
             entity.Property(e => e.Id)
             .ValueGeneratedNever()
             .HasColumnName("id");
+            entity.Property(e => e.ActualAgentDividendAmount)
+            .HasPrecision(18, 6)
+            .HasColumnName("actual_agent_dividend_amount");
             entity.Property(e => e.AgentDividendAmount)
             .HasPrecision(18, 6)
             .HasColumnName("agent_dividend_amount");
@@ -30,10 +35,17 @@ namespace Tgs.Agent.Dividend.Repository.Entities.Configurations
             entity.Property(e => e.AgentId).HasColumnName("agent_id");
             entity.Property(e => e.BrandId).HasColumnName("brand_id");
             entity.Property(e => e.CreatedOn).HasColumnName("created_on");
+            entity.Property(e => e.NegativeAgentDividendAmount)
+            .HasPrecision(18, 6)
+            .HasColumnName("negative_agent_dividend_amount");
+            entity.Property(e => e.Remark).HasColumnName("remark");
             entity.Property(e => e.SentByUsername)
             .HasMaxLength(64)
             .HasColumnName("sent_by_username");
             entity.Property(e => e.SentOn).HasColumnName("sent_on");
+            entity.Property(e => e.Status)
+            .HasDefaultValue((short)0)
+            .HasColumnName("status");
 
             OnConfigurePartial(entity);
         }

@@ -97,7 +97,7 @@ public class AgentDividendHandlerTests
                 .Create<AgentPlayerAggregateModel>()
         };
 
-        fakeContractRepository.GetBrandAgentDividendContractsAsync(Arg.Any<Guid>())
+        fakeContractRepository.GetAgentDividendContractsByBrandIdAsync(Arg.Any<Guid>())
             .Returns(contracts.ToAsyncEnumerable());
 
         fakeRepository.GetBrandAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(brand);
@@ -256,7 +256,7 @@ public class AgentDividendHandlerTests
                 .Create<AgentPlayerAggregateModel>()
         };
 
-        fakeContractRepository.GetBrandAgentDividendContractsAsync(Arg.Any<Guid>())
+        fakeContractRepository.GetAgentDividendContractsByBrandIdAsync(Arg.Any<Guid>())
             .Returns(contracts.ToAsyncEnumerable());
 
         fakeRepository.GetBrandAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(brand);
@@ -413,7 +413,7 @@ public class AgentDividendHandlerTests
                 .Create<AgentPlayerAggregateModel>()
         };
 
-        fakeContractRepository.GetBrandAgentDividendContractsAsync(Arg.Any<Guid>())
+        fakeContractRepository.GetAgentDividendContractsByBrandIdAsync(Arg.Any<Guid>())
             .Returns(contracts.ToAsyncEnumerable());
 
         fakeRepository.GetBrandAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(brand);
@@ -451,13 +451,13 @@ public class AgentDividendHandlerTests
                     DayCount = 1
                 }
             }.ToAsyncEnumerable());
-        fakeRepository.GetAgentPlayerDepositsCacheAsync(Arg.Any<Guid>(),
+        fakeRepository.GetAgentPlayerPaymentsCacheAsync(Arg.Any<Guid>(),
                 Arg.Any<DateOnly>(),
                 Arg.Any<DateOnly>(),
                 Arg.Any<CancellationToken>())
             .Returns(new[]
             {
-                new AgentPlayerDepositModel
+                new AgentPlayerPaymentModel
                 {
                     AgentId = agentId2,
                     PlayerCode = "playerCode",
@@ -625,7 +625,7 @@ public class AgentDividendHandlerTests
                 .Create<AgentPlayerAggregateModel>()
         };
 
-        fakeContractRepository.GetBrandAgentDividendContractsAsync(Arg.Any<Guid>())
+        fakeContractRepository.GetAgentDividendContractsByBrandIdAsync(Arg.Any<Guid>())
             .Returns(contracts.ToAsyncEnumerable());
 
         fakeRepository.GetBrandAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(brand);

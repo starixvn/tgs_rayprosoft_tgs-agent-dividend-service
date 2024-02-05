@@ -18,7 +18,7 @@ internal class BrandAgentDividendHandler(
 {
     public async Task<NoSendDividendResponse> Handle(AgentDividendRequest request, CancellationToken cancellationToken)
     {
-        var contracts = await contractRepository.GetBrandAgentDividendContractsAsync(request.BrandId)
+        var contracts = await contractRepository.GetAgentDividendContractsByBrandIdAsync(request.BrandId)
             .ToArrayAsync(cancellationToken);
 
         var brand = await repository.GetBrandAsync(request.BrandId, cancellationToken).ConfigureAwait(false);
@@ -81,7 +81,7 @@ internal class BrandAgentDividendHandler(
         var agentDividends = agentPlayerAggregates
             .Select(x =>
             {
-                var (_, _, distributionService) =
+                var (agentContract, _, distributionService) =
                     agentInstances.First(a => a.agentContract.AgentId == x.AgentId);
 
                 var parentAgentDividends = distributionService.GetMultipleLayer(x,
@@ -100,6 +100,7 @@ internal class BrandAgentDividendHandler(
                     AgentId = x.AgentId,
                     From = x.From.UtcDateTime,
                     To = x.To.UtcDateTime,
+                    ActiveNumber = x.ActiveNumber,
                     AutoSend = brand.AutoSentAgentBonus,
                     AgentDividendPercentage = x.AgentDividendPercentage,
                     PromotionAmount = x.PromotionAmount,
@@ -118,8 +119,32 @@ internal class BrandAgentDividendHandler(
                     NoIncludeNetProfitCompanyAdjustAmount = x.NoIncludeNetProfitCompanyAdjustAmount,
                     NoIncludeNetProfitAgentAdjustAmount = x.NoIncludeNetProfitAgentAdjustAmount,
                     NoIncludeNetProfitBonusAdjustAmount = x.NoIncludeNetProfitBonusAdjustAmount,
-                    NetProfit = x.NetProfit(brand.PlatformCharge),
+                    NetProfit = x.NetProfit(brand.PlatformCharge,
+                        agentContract.DepositFeePercentage,
+                        agentContract.WithdrawFeePercentage,
+                        agentContract.SportsbookPercentage,
+                        agentContract.VirtualSportsPercentage,
+                        agentContract.LiveDealerPercentage,
+                        agentContract.CardGamePercentage,
+                        agentContract.LotteryPercentage,
+                        agentContract.SlotPercentage),
+                    DepositPaymentPercentage = agentContract.DepositFeePercentage,
+                    WithdrawalPaymentPercentage = agentContract.WithdrawFeePercentage,
+                    SportsbookProductPercentage = agentContract.SportsbookPercentage,
+                    VirtualSportsProductPercentage = agentContract.VirtualSportsPercentage,
+                    CardGameProductPercentage = agentContract.CardGamePercentage,
+                    LiveDealerProductPercentage = agentContract.LiveDealerPercentage,
+                    LotteryProductPercentage = agentContract.LotteryPercentage,
+                    SlotProductPercentage = agentContract.SlotPercentage,
                     AgentDividendAmount = x.AgentDividendAmount,
+                    DepositPaymentFee = x.DepositPaymentFee(agentContract.DepositFeePercentage),
+                    WithdrawalPaymentFee = x.WithdrawalPaymentFee(agentContract.WithdrawFeePercentage),
+                    SportsbookProductFee = x.SportsbookProductFee(agentContract.SportsbookPercentage),
+                    VirtualSportsProductFee = x.VirtualSportsProductFee(agentContract.VirtualSportsPercentage),
+                    CardGameProductFee = x.CardGameProductFee(agentContract.CardGamePercentage),
+                    LiveDealerProductFee = x.LiveDealerProductFee(agentContract.LiveDealerPercentage),
+                    LotteryProductFee = x.LotteryProductFee(agentContract.LotteryPercentage),
+                    SlotProductFee = x.SlotProductFee(agentContract.SlotPercentage),
                     AgentDividendMultipleLayerModels = parentAgentDividends.Select(s
                             => new AgentDividendMultipleLayerModel
                             {
@@ -135,7 +160,12 @@ internal class BrandAgentDividendHandler(
                                 Dividend = s.Dividend,
                                 AgentDividendSnapshotId = s.AgentDividendSnapshotId
                             })
-                        .ToArray()
+                        .ToArray(),
+                    SentOn = x.AgentDividendAmount < 0 &&
+                             agentContract.NegativeAgentDividendResponsibilityType ==
+                             NegativeAgentDividendResponsibilityType.NoCarryForward
+                        ? DateTime.UtcNow
+                        : null
                 };
             });
 

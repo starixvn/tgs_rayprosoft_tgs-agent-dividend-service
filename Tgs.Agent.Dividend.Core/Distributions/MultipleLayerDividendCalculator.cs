@@ -79,7 +79,15 @@ internal class MultipleLayerDividendCalculator(IContractRepository contractRepos
             {
                 ValidNumber = agentPlayerAggregate.ActiveNumber,
                 WinLossAmount = agentPlayerAggregate.WinLossAmount,
-                NetProfit = agentPlayerAggregate.NetProfit(brand.PlatformCharge)
+                NetProfit = agentPlayerAggregate.NetProfit(brand.PlatformCharge,
+                    contract.DepositFeePercentage,
+                    contract.WithdrawFeePercentage,
+                    contract.SportsbookPercentage,
+                    contract.VirtualSportsPercentage,
+                    contract.LiveDealerPercentage,
+                    contract.CardGamePercentage,
+                    contract.LotteryPercentage,
+                    contract.SlotPercentage)
             },
             conditions);
 
@@ -183,15 +191,7 @@ internal class MultipleLayerDividendCalculator(IContractRepository contractRepos
 
         var data = JsonSerializer.Serialize(new
         {
-            contract.Id,
-            contract.BrandId,
-            contract.AgentId,
-            contract.Name,
-            contract.ContractDividendType,
-            contract.ContractStatus,
-            contract.ValidBetAmount,
-            contract.DepositAmount,
-            contract.BetDays,
+            Contract = contract,
             Conditions = conditions
         });
 

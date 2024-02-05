@@ -6,7 +6,7 @@ namespace Tgs.Agent.Dividend.Domain.Interfaces.Repositories;
 
 public interface IContractRepository
 {
-    IAsyncEnumerable<AgentDividendContractModel> GetBrandAgentDividendContractsAsync(Guid brandId);
+    IAsyncEnumerable<AgentDividendContractModel> GetAgentDividendContractsByBrandIdAsync(Guid brandId);
 
     IAsyncEnumerable<AgentDividendContractConditionModel> GetAgentDividendContractConditionsAsync(
         Guid agentDividendContractId,

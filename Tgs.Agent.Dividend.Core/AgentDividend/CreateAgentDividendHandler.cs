@@ -1,8 +1,6 @@
 ﻿using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using Tgs.Agent.Dividend.Core.Workers;
-using Tgs.Agent.Dividend.Domain;
-using Tgs.Agent.Dividend.Domain.Enums;
 using Tgs.Agent.Dividend.Domain.Events;
 using Tgs.Agent.Dividend.Domain.Interfaces.Repositories;
 using Tgs.Agent.Dividend.Domain.Models;
@@ -21,7 +19,7 @@ internal class CreateAgentDividendHandler(
             request.NegativeDividendsIds,
             cancellationToken);
 
-        foreach (var createAgentDividendModel in request.Model.Where(x => x.AutoSend))
+        foreach (var createAgentDividendModel in request.Model.Where(x => x is { AutoSend: true, SentOn: null }))
         {
             await backgroundTaskQueue.QueueBackgroundWorkItemAsync(async (scope, token) =>
             {

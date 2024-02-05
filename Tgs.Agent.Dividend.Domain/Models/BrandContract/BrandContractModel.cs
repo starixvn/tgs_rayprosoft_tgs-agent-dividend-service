@@ -7,11 +7,9 @@ public record BrandContractModel(
     Guid BrandId,
     string Name,
     ContractDividendType ContractDividendType,
-    decimal GradeIntervalLimit,
     decimal ValidBetAmount,
     decimal DepositAmount,
     int BetDays,
-    int[] GameTypes,
     int? SettlementDay,
     SettlementIntervalType SettlementIntervalType,
 IEnumerable<BrandContractConditionModel> Conditions);

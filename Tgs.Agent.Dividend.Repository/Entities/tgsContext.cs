@@ -15,10 +15,6 @@ public partial class tgsContext : DbContext
     {
     }
 
-    public tgsContext()
-    {
-    }
-
     public virtual DbSet<Agent> Agents { get; set; }
 
     public virtual DbSet<AgentDividend> AgentDividends { get; set; }

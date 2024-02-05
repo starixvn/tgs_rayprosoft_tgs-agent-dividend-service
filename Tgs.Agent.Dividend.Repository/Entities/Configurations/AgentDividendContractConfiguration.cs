@@ -22,31 +22,52 @@ namespace Tgs.Agent.Dividend.Repository.Entities.Configurations
             .ValueGeneratedNever()
             .HasColumnName("id");
             entity.Property(e => e.AgentId).HasColumnName("agent_id");
+            entity.Property(e => e.AutoSend)
+            .HasDefaultValue(false)
+            .HasColumnName("auto_send");
             entity.Property(e => e.BetDays).HasColumnName("bet_days");
+            entity.Property(e => e.BrandContractId).HasColumnName("brand_contract_id");
             entity.Property(e => e.BrandId).HasColumnName("brand_id");
+            entity.Property(e => e.CardGamePercentage)
+            .HasPrecision(18, 6)
+            .HasColumnName("card_game_percentage");
             entity.Property(e => e.ContractDividendType).HasColumnName("contract_dividend_type");
             entity.Property(e => e.ContractStatus).HasColumnName("contract_status");
             entity.Property(e => e.CreatedByUsername)
             .HasMaxLength(64)
             .HasColumnName("created_by_username");
             entity.Property(e => e.CreatedOn).HasColumnName("created_on");
-            entity.Property(e => e.DefaultBrandContractId).HasColumnName("default_brand_contract_id");
             entity.Property(e => e.DepositAmount)
             .HasPrecision(18, 6)
             .HasColumnName("deposit_amount");
-            entity.Property(e => e.GameTypes)
-            .HasDefaultValueSql("ARRAY[]::text[]")
-            .HasColumnName("game_types");
-            entity.Property(e => e.GradeIntervalLimit)
+            entity.Property(e => e.DepositFeePercentage)
             .HasPrecision(18, 6)
-            .HasColumnName("grade_interval_limit");
+            .HasColumnName("deposit_fee_percentage");
+            entity.Property(e => e.LevelPercentages)
+            .HasDefaultValueSql("ARRAY[]::text[]")
+            .HasColumnName("level_percentages");
+            entity.Property(e => e.LiveDealerPercentage)
+            .HasPrecision(18, 6)
+            .HasColumnName("live_dealer_percentage");
+            entity.Property(e => e.LotteryPercentage)
+            .HasPrecision(18, 6)
+            .HasColumnName("lottery_percentage");
             entity.Property(e => e.Name)
             .HasMaxLength(64)
             .HasColumnName("name");
+            entity.Property(e => e.NegativeAgentDividendResponsibilityType)
+            .HasDefaultValue((short)0)
+            .HasColumnName("negative_agent_dividend_responsibility_type");
             entity.Property(e => e.SettlementDay).HasColumnName("settlement_day");
             entity.Property(e => e.SettlementIntervalType)
             .HasDefaultValue((short)0)
             .HasColumnName("settlement_interval_type");
+            entity.Property(e => e.SlotPercentage)
+            .HasPrecision(18, 6)
+            .HasColumnName("slot_percentage");
+            entity.Property(e => e.SportsbookPercentage)
+            .HasPrecision(18, 6)
+            .HasColumnName("sportsbook_percentage");
             entity.Property(e => e.UpdatedByUsername)
             .HasMaxLength(64)
             .HasColumnName("updated_by_username");
@@ -56,6 +77,12 @@ namespace Tgs.Agent.Dividend.Repository.Entities.Configurations
             entity.Property(e => e.ValidBetAmount)
             .HasPrecision(18, 6)
             .HasColumnName("valid_bet_amount");
+            entity.Property(e => e.VirtualSportsPercentage)
+            .HasPrecision(18, 6)
+            .HasColumnName("virtual_sports_percentage");
+            entity.Property(e => e.WithdrawalFeePercentage)
+            .HasPrecision(18, 6)
+            .HasColumnName("withdrawal_fee_percentage");
 
             OnConfigurePartial(entity);
         }

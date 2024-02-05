@@ -61,8 +61,8 @@ internal class OnePercentageDividendCalculator(IContractRepository contractRepos
             .Where(x => x.AgentId == agent.Id)
             .ToArrayAsync(cancellationToken);
 
-        var deposits = await repository
-            .GetAgentPlayerDepositsCacheAsync(agent.BrandId,
+        var paymentAmounts = await repository
+            .GetAgentPlayerPaymentsCacheAsync(agent.BrandId,
                 DateOnly.FromDateTime(from.DateTime),
                 DateOnly.FromDateTime(to.DateTime),
                 cancellationToken)
@@ -71,13 +71,15 @@ internal class OnePercentageDividendCalculator(IContractRepository contractRepos
 
         var playerCodes = validBets.Select(x => x.PlayerCode)
             .Concat(betDays.Select(x => x.PlayerCode))
-            .Concat(deposits.Select(x => x.PlayerCode))
+            .Concat(paymentAmounts.Select(x => x.PlayerCode))
             .Distinct();
 
-        var validPlayerCount = GetValidPlayerCount(playerCodes, deposits, validBets, betDays, contract);
+        var validPlayerCount = GetValidPlayerCount(playerCodes, paymentAmounts, validBets, betDays, contract);
 
         agentAggregate ??= GetDefaultAggregate(agent);
 
+        agentAggregate.DepositAmount = paymentAmounts.Sum(x => x.DepositAmount);
+        agentAggregate.WithdrawalAmount = paymentAmounts.Sum(x => x.WithdrawAmount);
         agentAggregate.LiveDealerWinLoss = agentPlayerGameAggregate?.LiveDealerWinLoss ?? 0M;
         agentAggregate.SlotWinLoss = agentPlayerGameAggregate?.SlotWinLoss ?? 0M;
         agentAggregate.FishingWinLoss = agentPlayerGameAggregate?.FishingWinLoss ?? 0M;
@@ -116,6 +118,7 @@ internal class OnePercentageDividendCalculator(IContractRepository contractRepos
             agentPlayerAggregate.Id,
             snapshotId,
             agent,
+            contract,
             brand.CheckDividendActiveCount,
             agents,
             new AgentConditionModel
@@ -124,7 +127,15 @@ internal class OnePercentageDividendCalculator(IContractRepository contractRepos
                 BonusAmount = agentPlayerAggregate.BonusAmount,
                 BonusAdjustAmount = agentPlayerAggregate.BonusAdjustAmount,
                 WinLossAmount = agentPlayerAggregate.WinLossAmount,
-                NetProfit = agentPlayerAggregate.NetProfit(brand.PlatformCharge)
+                NetProfit = agentPlayerAggregate.NetProfit(brand.PlatformCharge,
+                    contract.DepositFeePercentage,
+                    contract.WithdrawFeePercentage,
+                    contract.SportsbookPercentage,
+                    contract.VirtualSportsPercentage,
+                    contract.LiveDealerPercentage,
+                    contract.CardGamePercentage,
+                    contract.LotteryPercentage,
+                    contract.SlotPercentage)
             },
             conditions);
 
@@ -149,7 +160,7 @@ internal class OnePercentageDividendCalculator(IContractRepository contractRepos
 
     private static int GetValidPlayerCount(
         IEnumerable<string> playerCodes,
-        IEnumerable<AgentPlayerDepositModel> deposits,
+        IEnumerable<AgentPlayerPaymentModel> deposits,
         IEnumerable<AgentPlayerValidBetModel> validBets,
         IEnumerable<AgentPlayerBetDaysModel> betDays,
         AgentDividendContractModel contract)
@@ -173,6 +184,7 @@ internal class OnePercentageDividendCalculator(IContractRepository contractRepos
         int id,
         Guid snapshotId,
         AgentModel agent,
+        AgentDividendContractModel contract,
         bool checkDividendActiveCount,
         IEnumerable<AgentModel> lineAgents,
         AgentConditionModel agentCurrentCondition,
@@ -183,7 +195,7 @@ internal class OnePercentageDividendCalculator(IContractRepository contractRepos
             checkDividendActiveCount);
 
         if (!meetingTheRequirement && agentCurrentCondition.NetProfit > 0)
-            return lineAgents.Select(lineAgent =>
+            return lineAgents.OrderByDescending(x => x.Path).Select(lineAgent =>
             {
                 var path = lineAgent.Path.ToString();
 
@@ -206,7 +218,7 @@ internal class OnePercentageDividendCalculator(IContractRepository contractRepos
                 };
             });
 
-        return lineAgents.Select((lineAgent, i) =>
+        return lineAgents.OrderByDescending(x => x.Path).Select((lineAgent, i) =>
         {
             var path = lineAgent.Path.ToString();
 
@@ -229,20 +241,7 @@ internal class OnePercentageDividendCalculator(IContractRepository contractRepos
                     Dividend = (agentCurrentCondition.NetProfit * percentage / 100M).Truncate(2)
                 };
 
-            if (agent.ParentAgentId == lineAgent.Id)
-                return new AgentDividendMultipleLayerModel
-                {
-                    AgentId = lineAgent.Id,
-                    AgentDividendSnapshotId = snapshotId,
-                    DividendProviderAgentId = agent.Id,
-                    DividendProviderId = id,
-                    AgentDividendPercentage = 10,
-                    ActualDividendPercentage = 10,
-                    AgentCoveredBonus = (agentCurrentCondition.BonusAmount * 0.1M).Truncate(2),
-                    AgentCoveredBonusAdjust = (agentCurrentCondition.BonusAdjustAmount * 0.1M).Truncate(2),
-                    Layer = layer,
-                    Dividend = (agentCurrentCondition.NetProfit * 0.1M).Truncate(2)
-                };
+            var levelPercentage = contract.LevelPercentages.GetValue(i);
 
             return new AgentDividendMultipleLayerModel
             {
@@ -250,12 +249,12 @@ internal class OnePercentageDividendCalculator(IContractRepository contractRepos
                 AgentDividendSnapshotId = snapshotId,
                 DividendProviderAgentId = agent.Id,
                 DividendProviderId = id,
-                AgentDividendPercentage = i < 5 ? 1 : 0M,
-                ActualDividendPercentage = i < 5 ? 1 : 0M,
-                AgentCoveredBonus = i < 5 ? (agentCurrentCondition.BonusAmount * 0.01M).Truncate(2) : 0M,
-                AgentCoveredBonusAdjust = i < 5 ? (agentCurrentCondition.BonusAdjustAmount * 0.01M).Truncate(2) : 0M,
+                AgentDividendPercentage = (decimal?)levelPercentage ?? 0M,
+                ActualDividendPercentage = (decimal?)levelPercentage ?? 0M,
+                AgentCoveredBonus = (agentCurrentCondition.BonusAmount * (decimal?)levelPercentage ?? 0M / 100).Truncate(2),
+                AgentCoveredBonusAdjust = (agentCurrentCondition.BonusAdjustAmount * (decimal?)levelPercentage ?? 0M / 100).Truncate(2),
                 Layer = layer,
-                Dividend = (agentCurrentCondition.NetProfit * 0.01M).Truncate(2)
+                Dividend = (agentCurrentCondition.NetProfit * (decimal?)levelPercentage ?? 0M / 100).Truncate(2)
             };
         });
     }
@@ -295,15 +294,7 @@ internal class OnePercentageDividendCalculator(IContractRepository contractRepos
 
         var data = JsonSerializer.Serialize(new
         {
-            contract.Id,
-            contract.BrandId,
-            contract.AgentId,
-            contract.Name,
-            contract.ContractDividendType,
-            contract.ContractStatus,
-            contract.ValidBetAmount,
-            contract.DepositAmount,
-            contract.BetDays,
+            Contract = contract,
             Conditions = conditions
         });
 

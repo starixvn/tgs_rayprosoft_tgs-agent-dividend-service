@@ -39,12 +39,52 @@ public class AgentPlayerAggregateModel
     public decimal AgentDividendAmount { get; set; }
     public int ActiveNumber { get; set; }
 
-    public decimal NetProfit(decimal platformCharge)
+    public decimal PlatformChargeFee(decimal platformChargePercentage) =>
+        WinLossAmount * platformChargePercentage / 100;
+
+    public decimal DepositPaymentFee(decimal depositFeePercentage) => DepositAmount * depositFeePercentage / 100;
+    public decimal WithdrawalPaymentFee(decimal withdrawFeePercentage) => WithdrawalAmount * withdrawFeePercentage / 100;
+
+    public decimal SportsbookProductFee(decimal sportsbookProductPercentage) =>
+        (SportsWinLoss + ESportsWinLoss) * sportsbookProductPercentage / 100;
+
+    public decimal VirtualSportsProductFee(decimal virtualSportsProductPercentage) =>
+        VirtualSportsWinLoss * virtualSportsProductPercentage / 100;
+
+    public decimal LiveDealerProductFee(decimal liveDealerProductPercentage) =>
+        LiveDealerWinLoss * liveDealerProductPercentage / 100;
+
+    public decimal CardGameProductFee(decimal cardGameProductPercentage) =>
+        CardGameWinLoss * cardGameProductPercentage / 100;
+
+    public decimal LotteryProductFee(decimal lotteryProductPercentage) =>
+        LotteryWinLoss * lotteryProductPercentage / 100;
+
+    public decimal SlotProductFee(decimal slotProductPercentage) =>
+        (FishingWinLoss + ArcadeWinLoss + SlotWinLoss + TableGameWinLoss) * slotProductPercentage / 100;
+
+    public decimal NetProfit(decimal platformChargePercentage,
+        decimal depositFeePercentage,
+        decimal withdrawalFeePercentage,
+        decimal sportsbookProductPercentage,
+        decimal virtualSportsProductPercentage,
+        decimal liveDealerProductPercentage,
+        decimal cardGameProductPercentage,
+        decimal lotteryProductPercentage,
+        decimal slotProductPercentage)
     {
         return WinLossAmount -
                (BonusAdjustAmount -
                 NoIncludeNetProfitBonusAdjustAmount) -
                BonusAmount -
-               WinLossAmount * platformCharge / 100;
+               PlatformChargeFee(platformChargePercentage) -
+               DepositPaymentFee(depositFeePercentage) -
+               WithdrawalPaymentFee(withdrawalFeePercentage) -
+               SportsbookProductFee(sportsbookProductPercentage) -
+               VirtualSportsProductFee(virtualSportsProductPercentage) -
+               LiveDealerProductFee(liveDealerProductPercentage) -
+               CardGameProductFee(cardGameProductPercentage) -
+               LotteryProductFee(lotteryProductPercentage) -
+               SlotProductFee(slotProductPercentage);
     }
 }
