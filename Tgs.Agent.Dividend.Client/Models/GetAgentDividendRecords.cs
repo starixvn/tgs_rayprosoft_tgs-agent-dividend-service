@@ -2,7 +2,7 @@
 
 namespace Tgs.Agent.Dividend.Client.Models;
 
-public record GetAgentDividendRecordsRequest(
+public record GetAgentDividendRecords(
     Guid BrandId, 
     DistributeStatus? Status, 
     DateTime? From, 

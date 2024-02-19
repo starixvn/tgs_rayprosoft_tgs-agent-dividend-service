@@ -186,7 +186,7 @@ public class AgentDividendTests
 
         var sut = new AgentDividendClient(httpClient);
 
-        var request = new GetAgentDividendRecordsRequest(brandId, null, from, to, null, null, null, null);
+        var request = new GetAgentDividendRecords(brandId, null, from, to, null, null, null, null);
 
         var response = await sut.GetAgentDividendRecordsAsync(request, default).ToArrayAsync();
 
