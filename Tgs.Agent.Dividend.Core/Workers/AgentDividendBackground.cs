@@ -53,7 +53,7 @@ public class AgentDividendBackground(
                     continue;
                 }
 
-                var response = await mediator.Send(new AgentDividendRequest(model.BrandId), stoppingToken);
+                var response = await mediator.Send(new AgentDividendRequest(model.BrandId, false), stoppingToken);
 
                 await mediator.Send(
                     new CreateAgentDividendRequest(model.BrandId, response.Model, response.NegativeDividendsIds),

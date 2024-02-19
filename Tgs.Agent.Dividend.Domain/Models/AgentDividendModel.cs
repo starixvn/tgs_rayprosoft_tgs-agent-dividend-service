@@ -40,5 +40,7 @@ public class AgentDividendModel
     public decimal AgentDividendAmount { get; set; }
     public decimal? BeforeDividendAmount { get; set; }
     public bool AutoSend { get; set; }
+    public decimal NegativeAgentDividendAmount { get; set; }
+    public bool NegativeAgentDividendCarryForward { get; set; }
     public AgentDividendMultipleLayerModel[] AgentDividendMultipleLayerModels { get; set; } = default!;
 }

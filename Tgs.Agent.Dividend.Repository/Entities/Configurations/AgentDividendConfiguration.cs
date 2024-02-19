@@ -78,6 +78,9 @@ namespace Tgs.Agent.Dividend.Repository.Entities.Configurations
             entity.Property(e => e.LotteryWinLoss)
             .HasPrecision(18, 6)
             .HasColumnName("lottery_win_loss");
+            entity.Property(e => e.NegativeAgentDividendCarryForward)
+            .HasDefaultValue(true)
+            .HasColumnName("negative_agent_dividend_carry_forward");
             entity.Property(e => e.NetProfit)
             .HasPrecision(18, 6)
             .HasColumnName("net_profit");

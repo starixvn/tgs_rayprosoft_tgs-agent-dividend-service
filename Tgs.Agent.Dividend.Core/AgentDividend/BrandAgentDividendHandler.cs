@@ -10,7 +10,6 @@ namespace Tgs.Agent.Dividend.Core.AgentDividend;
 
 internal class BrandAgentDividendHandler(
     IRepository repository,
-    IContractRepository contractRepository,
     IMediator mediator,
     IServiceProvider serviceProvider,
     ILogger<BrandAgentDividendHandler> logger)
@@ -18,9 +17,6 @@ internal class BrandAgentDividendHandler(
 {
     public async Task<NoSendDividendResponse> Handle(AgentDividendRequest request, CancellationToken cancellationToken)
     {
-        var contracts = await contractRepository.GetBrandAgentDividendContractsAsync(request.BrandId)
-            .ToArrayAsync(cancellationToken);
-
         var brand = await repository.GetBrandAsync(request.BrandId, cancellationToken).ConfigureAwait(false);
 
         var maxId = await repository.GetMaxAgentDividendIdAsync(cancellationToken).ConfigureAwait(false);
@@ -28,17 +24,11 @@ internal class BrandAgentDividendHandler(
         var agentInstances = await repository.GetAgentsCacheAsyncEnumerable(request.BrandId, cancellationToken)
             .Select(x =>
             {
-                var agentContract = contracts.FirstOrDefault(a =>
-                                        a.AgentId == x.Id &&
-                                        a.ContractStatus == (short)ContractStatus.Enabled) ??
-                                    throw new Exception(
-                                        $"Can't find contract agentId: {x.Id}");
-
                 var distributionService =
                     serviceProvider.GetRequiredKeyedService<IDividendCalculator>(
-                        ((ContractDividendType)agentContract.ContractDividendType).ToString());
+                        ((AgentDividendType)brand.AgentDividendType).ToString());
 
-                return (agentContract, distributionService);
+                return (agent: x, distributionService);
             })
             .ToArrayAsync(cancellationToken);
 
@@ -46,11 +36,11 @@ internal class BrandAgentDividendHandler(
 
         var agentPlayerAggregates = new List<AgentPlayerAggregateModel>();
 
-        foreach (var (agentContract, distributionService) in agentInstances)
+        foreach (var (agent, distributionService) in agentInstances)
         {
             var data = await distributionService.GetAgentPlayerAggregateAsync(currentNumber,
                     brand,
-                    agentContract,
+                    agent,
                     cancellationToken)
                 .ToArrayAsync(cancellationToken);
 
@@ -63,13 +53,14 @@ internal class BrandAgentDividendHandler(
 
         foreach (var agentPlayerAggregateModel in agentPlayerAggregates)
         {
-            var (agentContract, distributionService) =
-                agentInstances.First(a => a.agentContract.AgentId == agentPlayerAggregateModel.AgentId);
+            var (agent, distributionService) =
+                agentInstances.First(a => a.agent.Id == agentPlayerAggregateModel.AgentId);
 
             var data = await distributionService.GenerateMultipleLayerAsync(
                     brand,
-                    agentContract,
+                    agent,
                     agentPlayerAggregateModel,
+                    request.PreCalculation,
                     cancellationToken)
                 .ToArrayAsync(cancellationToken);
 
@@ -79,8 +70,8 @@ internal class BrandAgentDividendHandler(
         var agentDividends = agentPlayerAggregates
             .Select(x =>
             {
-                var (agentContract, distributionService) =
-                    agentInstances.First(a => a.agentContract.AgentId == x.AgentId);
+                var (agent, distributionService) =
+                    agentInstances.First(a => a.agent.Id == x.AgentId);
 
                 var parentAgentDividends = distributionService.GetMultipleLayer(x,
                     multipleLayers,
@@ -118,6 +109,7 @@ internal class BrandAgentDividendHandler(
                     NoIncludeNetProfitBonusAdjustAmount = x.NoIncludeNetProfitBonusAdjustAmount,
                     NetProfit = x.NetProfit(brand.PlatformCharge),
                     AgentDividendAmount = x.AgentDividendAmount,
+                    NegativeAgentDividendCarryForward = agent.NegativeAgentDividendCarryForward,
                     AgentDividendMultipleLayerModels = parentAgentDividends.Select(s
                             => new AgentDividendMultipleLayerModel
                             {

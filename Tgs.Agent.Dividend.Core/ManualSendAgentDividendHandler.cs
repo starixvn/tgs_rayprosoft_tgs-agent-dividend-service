@@ -11,14 +11,14 @@ internal class ManualSendAgentDividendHandler(
     IMediator mediator,
     IBackgroundTaskQueue backgroundTaskQueue,
     IRepository repository)
-    : IRequestHandler<ManualSendAgentDividendRequest>
+    : IRequestHandler<ManualSendAgentDividend>
 {
-    public async Task Handle(ManualSendAgentDividendRequest request, CancellationToken cancellationToken)
+    public async Task Handle(ManualSendAgentDividend request, CancellationToken cancellationToken)
     {
         var agentDividendRecord =
             await repository.GetAgentDividendRecordAsync(request.AgentDividendRecordId, cancellationToken);
 
-        if (agentDividendRecord is { SentOn: null })
+        if (agentDividendRecord is { ApprovedOn: null })
         {
             await backgroundTaskQueue.QueueBackgroundWorkItemAsync(async (scope, token) =>
             {
@@ -26,9 +26,10 @@ internal class ManualSendAgentDividendHandler(
 
                 await innerMediator.Publish(new SendAgentDividendByManualEvent(agentDividendRecord.BrandId,
                         agentDividendRecord.AgentId,
-                        agentDividendRecord.AgentDividendAmount,
+                        agentDividendRecord.ActualAgentDividendAmount,
                         agentDividendRecord.AgentDividendId,
-                        "system"),
+                        request.EditorUsername,
+                        request.Remark),
                     token);
             });
         }

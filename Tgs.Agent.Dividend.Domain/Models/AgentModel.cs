@@ -10,4 +10,5 @@ public class AgentModel
     public Guid? ParentAgentId { get; set; }
     public LTree Path { get; set; }
     public decimal DividendPercentage { get; set; }
+    public bool NegativeAgentDividendCarryForward { get; set; }
 }

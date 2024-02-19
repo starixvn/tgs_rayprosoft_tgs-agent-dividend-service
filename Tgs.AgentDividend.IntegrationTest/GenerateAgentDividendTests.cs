@@ -30,7 +30,7 @@ public class GenerateAgentDividendTests
 
         var sut = new AgentDividendClient(httpClient);
 
-        await sut.GenerateAgentDividend(Arg.Any<CancellationToken>());
+        await sut.GenerateAgentDividend(default);
 
         _ = fakeRepository.ReceivedWithAnyArgs().GetNonArchivedBrandIdsAsyncEnumerable(null!);
     }

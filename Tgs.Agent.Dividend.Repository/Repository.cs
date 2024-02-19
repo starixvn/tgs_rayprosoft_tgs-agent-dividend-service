@@ -33,7 +33,8 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IMemoryC
                                      Username = x.Username,
                                      ParentAgentId = x.ParentAgentId,
                                      Path = x.Path,
-                                     DividendPercentage = x.DividendPercentage
+                                     DividendPercentage = x.DividendPercentage,
+                                     NegativeAgentDividendCarryForward = x.NegativeAgentDividendCarryForward
                                  })
                                  .ToArrayAsync(cancellationToken);
                          }) ??
@@ -583,10 +584,8 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IMemoryC
                 x.RebateAmount,
                 x.WinLossAmount -
                 x.BonusAmount -
-                x.DepositHandlingFee -
                 x.WinLossAmount * x.PlatformChargePercentage / 100,
                 x.WinLossAmount - x.BonusAmount,
-                x.DepositHandlingFee,
                 x.WinLossAmount * x.PlatformChargePercentage / 100,
                 x.AgentDividendMultipleLayers.Where(w => w.DividendProviderAgentId == x.AgentId).Sum(s => s.Dividend),
                 x.AgentDividendPercentage,
@@ -611,10 +610,18 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IMemoryC
                     adr.Id,
                     adr.BrandId,
                     adr.AgentId,
+                    adr.Status,
+                    ad.From,
+                    ad.To,
                     adr.AgentDividendId,
                     adr.AgentDividendAmount,
+                    adr.ActualAgentDividendAmount,
+                    adr.NegativeAgentDividendAmount,
+                    adr.NegativeAgentDividendCarryForward,
+                    adr.Remark,
                     adr.CreatedOn,
-                    adr.SentOn
+                    adr.UpdatedOn,
+                    adr.ApprovedOn
                 })
             .Join(context.Agents,
                 adr => adr.AgentId,
@@ -629,18 +636,26 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IMemoryC
                 new AgentDividendRecordModel(x.adr.Id,
                     x.adr.BrandId,
                     x.adr.AgentId,
+                    (DistributeStatus)x.adr.Status,
+                    x.adr.From,
+                    x.adr.To,
                     x.adr.AgentDividendId,
                     x.Username,
                     x.adr.AgentDividendAmount,
+                    x.adr.ActualAgentDividendAmount,
+                    x.adr.NegativeAgentDividendAmount,
+                    x.adr.NegativeAgentDividendCarryForward,
                     x.adr.CreatedOn,
-                    x.adr.SentOn))
+                    x.adr.UpdatedOn,
+                    x.adr.ApprovedOn,
+                    x.adr.Remark))
             .ToAsyncEnumerable();
     }
 
-    public Task<AgentDividendRecordModel?> GetAgentDividendRecordAsync(Guid id,
+    public Task<AgentDividendRecordManuallyModel?> GetAgentDividendRecordAsync(Guid id,
         CancellationToken cancellationToken)
     {
-        return context.AgentDividendRecords.Where(x => x.Id == id && x.SentOn != null)
+        return context.AgentDividendRecords.Where(x => x.Id == id && x.ApprovedOn != null)
             .Join(context.Agents,
                 adr => adr.AgentId,
                 a => a.Id,
@@ -651,19 +666,25 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IMemoryC
                     adr.AgentId,
                     adr.AgentDividendId,
                     adr.AgentDividendAmount,
+                    adr.ActualAgentDividendAmount,
+                    adr.NegativeAgentDividendAmount,
+                    adr.NegativeAgentDividendCarryForward,
                     adr.CreatedOn,
-                    adr.SentOn,
-                    a.Username
+                    adr.UpdatedOn,
+                    adr.ApprovedOn
                 })
             .Select(x =>
-                new AgentDividendRecordModel(x.Id,
+                new AgentDividendRecordManuallyModel(x.Id,
                     x.BrandId,
                     x.AgentId,
                     x.AgentDividendId,
-                    x.Username,
                     x.AgentDividendAmount,
+                    x.ActualAgentDividendAmount,
+                    x.NegativeAgentDividendAmount,
+                    x.NegativeAgentDividendCarryForward,
                     x.CreatedOn,
-                    x.SentOn))
+                    x.UpdatedOn,
+                    x.ApprovedOn))
             .FirstOrDefaultAsync(cancellationToken);
     }
 
@@ -691,7 +712,12 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IMemoryC
                     AgentId = x.AgentId,
                     AgentDividendId = x.Id,
                     AgentDividendAmount = x.AgentDividendAmount,
-                    CreatedOn = DateTime.UtcNow
+                    ActualAgentDividendAmount = x.AgentDividendAmount + x.NegativeAgentDividendAmount,
+                    NegativeAgentDividendAmount = x.NegativeAgentDividendAmount,
+                    NegativeAgentDividendCarryForward = x.NegativeAgentDividendCarryForward,
+                    CreatedOn = DateTime.UtcNow,
+                    UpdatedOn = DateTime.UtcNow,
+                    ApprovedOn = x.AgentDividendAmount + x.NegativeAgentDividendAmount <= 0 ? DateTime.UtcNow : null
                 }),
             cancellationToken);
 
@@ -741,7 +767,10 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IMemoryC
         return context.AgentDividends.MaxAsync(x => x.Id, cancellationToken);
     }
 
-    public async Task UpdateSentOnByManualSendAsync(int agentDividendId, string sendByUsername, CancellationToken cancellationToken)
+    public async Task UpdateSentOnByManualSendAsync(int agentDividendId,
+        string sendByUsername,
+        string? remark,
+        CancellationToken cancellationToken)
     {
         await context.AgentDividends
             .Where(x => x.Id == agentDividendId)
@@ -751,8 +780,9 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IMemoryC
 
         await context.AgentDividendRecords.Where(x => x.AgentDividendId == agentDividendId)
             .ExecuteUpdateAsync(s =>
-                    s.SetProperty(e => e.SentOn, DateTime.UtcNow)
-                        .SetProperty(e => e.SentByUsername, sendByUsername),
+                    s.SetProperty(e => e.ApprovedOn, DateTime.UtcNow)
+                        .SetProperty(e => e.SentByUsername, sendByUsername)
+                        .SetProperty(e => e.Remark, remark),
                 cancellationToken);
 
         await context.SaveChangesAsync(cancellationToken);
@@ -773,7 +803,7 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IMemoryC
 
         await context.AgentDividendRecords.Where(x => agentDividendIds.Contains(x.AgentDividendId))
             .ExecuteUpdateAsync(s =>
-                    s.SetProperty(e => e.SentOn, DateTime.UtcNow)
+                    s.SetProperty(e => e.ApprovedOn, DateTime.UtcNow)
                         .SetProperty(e => e.SentByUsername, sendByUsername),
                 cancellationToken);
 

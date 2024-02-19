@@ -80,6 +80,8 @@ public partial class Agent
 
     public Guid? WalletId { get; set; }
 
+    public bool NegativeAgentDividendCarryForward { get; set; }
+
     public virtual ICollection<AgentDividendCondition> AgentDividendConditions { get; set; } = new List<AgentDividendCondition>();
 
     public virtual Brand Brand { get; set; } = null!;

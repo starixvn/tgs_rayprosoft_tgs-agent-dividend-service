@@ -14,7 +14,6 @@ public partial class tgsContext : DbContext
         : base(options)
     {
     }
-
     public tgsContext()
     {
     }
@@ -25,8 +24,6 @@ public partial class tgsContext : DbContext
 
     public virtual DbSet<AgentDividendCondition> AgentDividendConditions { get; set; }
 
-    public virtual DbSet<AgentDividendContract> AgentDividendContracts { get; set; }
-
     public virtual DbSet<AgentDividendMultipleLayer> AgentDividendMultipleLayers { get; set; }
 
     public virtual DbSet<AgentDividendRecord> AgentDividendRecords { get; set; }
@@ -36,10 +33,6 @@ public partial class tgsContext : DbContext
     public virtual DbSet<Brand> Brands { get; set; }
 
     public virtual DbSet<BrandAgentDividendCondition> BrandAgentDividendConditions { get; set; }
-
-    public virtual DbSet<BrandContract> BrandContracts { get; set; }
-
-    public virtual DbSet<BrandContractCondition> BrandContractConditions { get; set; }
 
     public virtual DbSet<Player> Players { get; set; }
 
@@ -61,14 +54,11 @@ public partial class tgsContext : DbContext
         modelBuilder.ApplyConfiguration(new Configurations.AgentConfiguration());
         modelBuilder.ApplyConfiguration(new Configurations.AgentDividendConfiguration());
         modelBuilder.ApplyConfiguration(new Configurations.AgentDividendConditionConfiguration());
-        modelBuilder.ApplyConfiguration(new Configurations.AgentDividendContractConfiguration());
         modelBuilder.ApplyConfiguration(new Configurations.AgentDividendMultipleLayerConfiguration());
         modelBuilder.ApplyConfiguration(new Configurations.AgentDividendRecordConfiguration());
         modelBuilder.ApplyConfiguration(new Configurations.AgentDividendSnapshotConfiguration());
         modelBuilder.ApplyConfiguration(new Configurations.BrandConfiguration());
         modelBuilder.ApplyConfiguration(new Configurations.BrandAgentDividendConditionConfiguration());
-        modelBuilder.ApplyConfiguration(new Configurations.BrandContractConfiguration());
-        modelBuilder.ApplyConfiguration(new Configurations.BrandContractConditionConfiguration());
         modelBuilder.ApplyConfiguration(new Configurations.PlayerConfiguration());
         modelBuilder.ApplyConfiguration(new Configurations.PlayerAgentRelationConfiguration());
         modelBuilder.ApplyConfiguration(new Configurations.PlayerAggregateConfiguration());
