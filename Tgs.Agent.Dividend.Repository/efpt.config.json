@@ -20,10 +20,6 @@
          "ObjectType": 0
       },
       {
-         "Name": "dbo.agent_dividend_contracts",
-         "ObjectType": 0
-      },
-      {
          "Name": "dbo.agent_dividend_multiple_layers",
          "ObjectType": 0
       },
@@ -45,14 +41,6 @@
       },
       {
          "Name": "dbo.brand_agent_dividend_conditions",
-         "ObjectType": 0
-      },
-      {
-         "Name": "dbo.brand_contract_conditions",
-         "ObjectType": 0
-      },
-      {
-         "Name": "dbo.brand_contracts",
          "ObjectType": 0
       },
       {

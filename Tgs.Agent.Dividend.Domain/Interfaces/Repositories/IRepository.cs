@@ -52,7 +52,7 @@ public interface IRepository
         DateTime to,
         string? agentUsername);
 
-    Task<AgentDividendRecordModel?> GetAgentDividendRecordAsync(Guid id, CancellationToken cancellationToken);
+    Task<AgentDividendRecordManuallyModel?> GetAgentDividendRecordAsync(Guid id, CancellationToken cancellationToken);
 
     Task CreateAgentDividendsAsync(BrandModel brand,
         IEnumerable<AgentDividendModel> agentDividends,
@@ -63,7 +63,7 @@ public interface IRepository
 
     Task<int> GetMaxAgentDividendIdAsync(CancellationToken cancellationToken);
 
-    Task UpdateSentOnByManualSendAsync(int agentDividendId, string sendByUsername, CancellationToken cancellationToken);
+    Task UpdateSentOnByManualSendAsync(int agentDividendId, string sendByUsername, string? remark, CancellationToken cancellationToken);
 
     Task UpdateSentOnByAutoSendAsync(int agentDividendId, string sendByUsername, CancellationToken cancellationToken);
 

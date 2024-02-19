@@ -2,4 +2,4 @@
 
 namespace Tgs.Agent.Dividend.Domain.Models;
 
-public record AgentDividendRequest(Guid BrandId) : IRequest<NoSendDividendResponse>;
+public record AgentDividendRequest(Guid BrandId,bool PreCalculation = true) : IRequest<NoSendDividendResponse>;

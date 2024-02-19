@@ -42,15 +42,7 @@ public class OneLayerDistributionTests
         var from = DateTime.Parse("2023/12/06 00:00:00+8");
         var to = DateTime.Parse("2023/12/06 00:00:00+8");
 
-        var contract = CreateContractFixture(brandId,
-                agentId4,
-                ContractDividendType.MultipleLayer,
-                0,
-                0,
-                0)
-            .Create<AgentDividendContractModel>();
-
-        var brand = CreateBrandFixture(brandId, from, to, 0, AgentDividendType.OnePercentage).Create<BrandModel>();
+        var brand = CreateBrandFixture(brandId, from, to, 0, AgentDividendType.OneLayer).Create<BrandModel>();
 
         var agents = new[]
         {
@@ -131,7 +123,7 @@ public class OneLayerDistributionTests
             .GetAgentPlayerGameAggregatesCacheAsync(brandId, from, to)
             .Returns(agentPlayerGameAggregates.ToAsyncEnumerable());
 
-        var response = await sut.GenerateMultipleLayerAsync(brand, contract, agentPlayerAggregate, default)
+        var response = await sut.GenerateMultipleLayerAsync(brand, new AgentModel(), agentPlayerAggregate, false, default)
             .ToArrayAsync();
 
         Assert.Multiple(() =>
@@ -180,7 +172,7 @@ public class OneLayerDistributionTests
                 0)
             .Create<AgentDividendContractModel>();
 
-        var brand = CreateBrandFixture(brandId, from, to, 0, AgentDividendType.OnePercentage).Create<BrandModel>();
+        var brand = CreateBrandFixture(brandId, from, to, 0, AgentDividendType.OneLayer).Create<BrandModel>();
 
         var agents = new[]
         {
@@ -287,7 +279,7 @@ public class OneLayerDistributionTests
                 fakeRepository);
 
             multipleLayers.AddRange(await sut
-                .GenerateMultipleLayerAsync(brand, contract, agentPlayerAggregateModel, default)
+                .GenerateMultipleLayerAsync(brand, new AgentModel(), agentPlayerAggregateModel, false, default)
                 .ToArrayAsync());
         }
 

@@ -101,7 +101,7 @@ public class MultipleLayerDistributionTests
         fakeContractRepository.GetAgentDividendContractConditionsAsync(contract.Id, Arg.Any<CancellationToken>())
             .Returns(conditions.ToAsyncEnumerable());
 
-        var response = await sut.GetAgentPlayerAggregateAsync(10, brand, contract, default).ToArrayAsync();
+        var response = await sut.GetAgentPlayerAggregateAsync(10, brand, agents.First(), default).ToArrayAsync();
 
         Assert.That(response, Has.Length.EqualTo(1));
     }
@@ -184,10 +184,10 @@ public class MultipleLayerDistributionTests
             .GetAgentPlayerGameAggregatesCacheAsync(brandId, from, to)
             .Returns(agentPlayerGameAggregates.ToAsyncEnumerable());
 
-        fakeContractRepository.GetAgentDividendContractConditionsAsync(contract.Id, Arg.Any<CancellationToken>())
+        fakeContractRepository.GetAgentDividendContractConditionsAsync(agentId, Arg.Any<CancellationToken>())
             .Returns(conditions.ToAsyncEnumerable());
 
-        var response = await sut.GenerateMultipleLayerAsync(brand, contract, agentPlayerAggregate, default)
+        var response = await sut.GenerateMultipleLayerAsync(brand, agents.First(), agentPlayerAggregate, true, default)
             .ToArrayAsync();
 
         Assert.That(response, Has.Length.EqualTo(1));
@@ -311,8 +311,7 @@ public class MultipleLayerDistributionTests
             .With(s => s.WinLossAmount, validBetAmount)
             .With(s => s.ValidNumber, validNumber)
             .With(s => s.NetProfit, netProfit)
-            .With(s => s.Percentage, percentage)
-            .With(s => s.AgentDividendContractId, agentDividendContractId));
+            .With(s => s.Percentage, percentage));
         fixture.Behaviors.Add(new OmitOnRecursionBehavior());
         return fixture;
     }

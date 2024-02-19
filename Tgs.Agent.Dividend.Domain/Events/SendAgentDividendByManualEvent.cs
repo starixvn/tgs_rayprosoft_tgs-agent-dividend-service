@@ -7,5 +7,6 @@ public record SendAgentDividendByManualEvent(
     Guid AgentId,
     decimal Amount,
     int AgentDividendId,
-    string SendByUsername)
+    string SendByUsername,
+    string? Remark)
     : INotification;

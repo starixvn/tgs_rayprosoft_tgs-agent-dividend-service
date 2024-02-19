@@ -54,6 +54,9 @@ namespace Tgs.Agent.Dividend.Repository.Entities.Configurations
             entity.Property(e => e.LotteryRebatePercentage)
             .HasPrecision(18, 6)
             .HasColumnName("lottery_rebate_percentage");
+            entity.Property(e => e.NegativeAgentDividendCarryForward)
+            .HasDefaultValue(true)
+            .HasColumnName("negative_agent_dividend_carry_forward");
             entity.Property(e => e.ParentAgentId).HasColumnName("parent_agent_id");
             entity.Property(e => e.Password).HasColumnName("password");
             entity.Property(e => e.Path)

@@ -91,5 +91,7 @@ public partial class AgentDividend
 
     public decimal PlatformChargePercentage { get; set; }
 
+    public bool NegativeAgentDividendCarryForward { get; set; }
+
     public virtual ICollection<AgentDividendMultipleLayer> AgentDividendMultipleLayers { get; set; } = new List<AgentDividendMultipleLayer>();
 }

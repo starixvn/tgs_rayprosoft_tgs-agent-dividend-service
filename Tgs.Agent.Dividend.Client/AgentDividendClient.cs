@@ -1,4 +1,5 @@
 ﻿using System.Net.Http.Json;
+using System.Net.Mime;
 using System.Text;
 using System.Text.Json;
 using Tgs.Agent.Dividend.Client.Models;
@@ -58,12 +59,26 @@ internal class AgentDividendClient(HttpClient client) : IAgentDividendClient
             JsonSerializerOptions)!;
     }
 
-    public async Task SendAgentDividendsAsync(Guid[] agentDividendRecordIds, CancellationToken cancellationToken)
+    public async Task SendAgentDividendsAsync(Guid[] agentDividendRecordIds,
+        string editorUsername,
+        string? remark,
+        CancellationToken cancellationToken)
     {
+        var data = new
+        {
+            AgentDividendRecordIds = agentDividendRecordIds,
+            EditorUsername = editorUsername,
+            Remark = remark
+        };
+
+        var jsonContent = new StringContent(
+            JsonSerializer.Serialize(data),
+            Encoding.UTF8,
+            MediaTypeNames.Application.Json);
+
         var response = await client
-            .PostAsJsonAsync("/api/agentDividend",
-                new { agentDividendRecordIds },
-                JsonSerializerOptions,
+            .PostAsync("/api/agentDividend/send-agent-dividend",
+                jsonContent,
                 cancellationToken)
             .ConfigureAwait(false);
 

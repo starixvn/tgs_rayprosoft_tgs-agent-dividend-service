@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Diagnostics.Contracts;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Tgs.Agent.Dividend.Domain;
@@ -13,7 +14,7 @@ internal class OneLayerDividendCalculator(IContractRepository contractRepository
 {
     public async IAsyncEnumerable<AgentPlayerAggregateModel> GetAgentPlayerAggregateAsync(int idNumber,
         BrandModel brand,
-        AgentDividendContractModel contract,
+        AgentModel agent,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         var agentAggregates = repository
@@ -21,14 +22,14 @@ internal class OneLayerDividendCalculator(IContractRepository contractRepository
                 brand.CurrentSettlementFrom,
                 brand.CurrentSettlementTo,
                 cancellationToken)
-            .Where(x => x.AgentId == contract.AgentId);
+            .Where(x => x.AgentId == agent.Id);
 
         var betPlayers = await repository
             .GetAgentPlayerBetCountsCacheAsync(brand.Id,
                 brand.CurrentSettlementFrom,
                 brand.CurrentSettlementTo,
                 cancellationToken)
-            .Where(x => x.AgentId == contract.AgentId)
+            .Where(x => x.AgentId == agent.Id)
             .ToArrayAsync(cancellationToken);
         var i = 0;
 
@@ -36,7 +37,7 @@ internal class OneLayerDividendCalculator(IContractRepository contractRepository
             .ToArrayAsync(cancellationToken);
 
         if (!await agentAggregates.AnyAsync(cancellationToken))
-            yield return GetDefaultAggregate(idNumber + 1, contract.AgentId, brand, agents);
+            yield return GetDefaultAggregate(idNumber + 1, agent.Id, brand, agents);
         else
             await foreach (var agentPlayerAggregateModel in agentAggregates)
             {
@@ -49,18 +50,19 @@ internal class OneLayerDividendCalculator(IContractRepository contractRepository
             }
     }
 
-    public async IAsyncEnumerable<AgentDividendMultipleLayerModel> GenerateMultipleLayerAsync(
-        BrandModel brand,
-        AgentDividendContractModel contract,
+    public async IAsyncEnumerable<AgentDividendMultipleLayerModel> GenerateMultipleLayerAsync(BrandModel brand,
+        AgentModel agent,
         AgentPlayerAggregateModel agentPlayerAggregate,
+        bool preCalculation,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         var agentDividendPercentage =
             JsonSerializer.Deserialize<AgentDividendPercentageData[]>(agentPlayerAggregate
                 .AgentDividendPercentageTreeData!);
 
-        var snapshotId =
-            await GenerateAgentDividendSnapshotAsync(contract, agentDividendPercentage!, cancellationToken);
+        var snapshotId = preCalculation
+            ? Guid.Empty
+            : await GenerateAgentDividendSnapshotAsync(agent, agentDividendPercentage!, cancellationToken);
 
         var bonusAdjustAmount = agentPlayerAggregate.BonusAdjustAmount -
                                 agentPlayerAggregate.NoIncludeNetProfitBonusAdjustAmount;
@@ -120,8 +122,8 @@ internal class OneLayerDividendCalculator(IContractRepository contractRepository
 
             yield return new AgentDividendMultipleLayerModel
             {
-                AgentDividendSnapshotId = snapshotId,
                 AgentId = currentAgentId,
+                AgentDividendSnapshotId = snapshotId,
                 DividendProviderAgentId = providerAgentId,
                 DividendProviderId = id,
                 AgentDividendPercentage = agentDividendPercentage,
@@ -166,7 +168,7 @@ internal class OneLayerDividendCalculator(IContractRepository contractRepository
         };
     }
 
-    private async Task<Guid> GenerateAgentDividendSnapshotAsync(AgentDividendContractModel contract,
+    private async Task<Guid> GenerateAgentDividendSnapshotAsync(AgentModel agent,
         IEnumerable<AgentDividendPercentageData> conditions,
         CancellationToken cancellationToken)
     {
@@ -174,15 +176,9 @@ internal class OneLayerDividendCalculator(IContractRepository contractRepository
 
         var data = JsonSerializer.Serialize(new
         {
-            contract.Id,
-            contract.BrandId,
-            contract.AgentId,
-            contract.Name,
-            contract.ContractDividendType,
-            contract.ContractStatus,
-            contract.ValidBetAmount,
-            contract.DepositAmount,
-            contract.BetDays,
+            AgentId = agent.Id,
+            agent.BrandId,
+            agent.NegativeAgentDividendCarryForward,
             Conditions = conditions
         });
 

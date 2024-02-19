@@ -25,14 +25,14 @@ public class AgentDividendController(IMediator mediator, IBackgroundTaskQueue qu
     }
 
     [HttpPost("send-agent-dividend")]
-    public async Task ManualSendAgentDividendAsync(Guid[] agentDividendRecordIds, string editorUsername)
+    public async Task ManualSendAgentDividendAsync([FromBody] ManualSendAgentDividendsRequest request)
     {
-        foreach (var agentDividendRecordId in agentDividendRecordIds)
+        foreach (var agentDividendRecordId in request.AgentDividendRecordIds)
             await queue.QueueBackgroundWorkItemAsync(async (scope, token) =>
             {
                 var innerMediator = scope.ServiceProvider.GetRequiredService<IMediator>();
 
-                await innerMediator.Send(new ManualSendAgentDividendRequest(agentDividendRecordId, editorUsername),
+                await innerMediator.Send(new ManualSendAgentDividend(agentDividendRecordId, request.EditorUsername,request.Remark),
                     token);
             });
     }

@@ -19,7 +19,19 @@ public partial class AgentDividendRecord
 
     public DateTime CreatedOn { get; set; }
 
-    public DateTime? SentOn { get; set; }
+    public DateTime? ApprovedOn { get; set; }
 
     public string? SentByUsername { get; set; }
+
+    public decimal ActualAgentDividendAmount { get; set; }
+
+    public decimal NegativeAgentDividendAmount { get; set; }
+
+    public bool NegativeAgentDividendCarryForward { get; set; }
+
+    public string? Remark { get; set; }
+
+    public short Status { get; set; }
+
+    public DateTime UpdatedOn { get; set; }
 }

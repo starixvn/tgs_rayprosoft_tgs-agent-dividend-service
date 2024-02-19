@@ -1,4 +1,5 @@
 using AutoFixture;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using NSubstitute;
@@ -6,6 +7,7 @@ using Tgs.Agent.Client;
 using Tgs.Agent.Client.Models;
 using Tgs.Agent.Dividend.Client;
 using Tgs.Agent.Dividend.Client.Models;
+using Tgs.Agent.Dividend.Core.Workers;
 using Tgs.Agent.Dividend.Domain.Enums;
 using Tgs.Agent.Dividend.Domain.Interfaces;
 using Tgs.Agent.Dividend.Domain.Interfaces.Repositories;
@@ -29,9 +31,14 @@ public class AgentDividendTests
 
         var brandId = Guid.NewGuid();
         var agentId = Guid.NewGuid();
+        var parentId = Guid.NewGuid();
         var fixture = new Fixture();
 
-        var agents = CreateAgentFixture(agentId).CreateMany<AgentModel>(1);
+        var agents = new[]
+        {
+            CreateAgentFixture(agentId,parentId).Create<AgentModel>(),
+            CreateAgentFixture(parentId, null).Create<AgentModel>(),
+        };
 
         fakeRepository.GetBrandAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(CreateBrandModelFixture(brandId).Create<BrandModel>());
@@ -50,11 +57,6 @@ public class AgentDividendTests
 
         fakeAgentClient.GetChildAgentInfosAsync(Arg.Any<GetChildAgentInfosRequest>(), Arg.Any<CancellationToken>())
             .Returns(Array.Empty<ChildAgentInfoModel>().ToAsyncEnumerable());
-
-        fakeContractRepository.GetBrandAgentDividendContractsAsync(Arg.Any<Guid>())
-            .Returns(CreateAgentDividendContractFixture(brandId, agentId)
-                .CreateMany<AgentDividendContractModel>(1)
-                .ToAsyncEnumerable());
 
         fakeContractRepository.GetAgentDividendContractConditionsAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(new AgentDividendContractConditionModel[]
@@ -91,16 +93,20 @@ public class AgentDividendTests
     public async Task Get_Pre_Calculate_Agent_Dividend()
     {
         var fakeDbContext = Substitute.For<tgsContext>();
-        var fakeContractRepository = Substitute.For<IContractRepository>();
         var fakeRepository = Substitute.For<IRepository>();
         var fakeAgentClient = Substitute.For<IAgentClient>();
         var fakeDividendCalculator = Substitute.For<IDividendCalculator>();
 
         var brandId = Guid.NewGuid();
         var agentId = Guid.NewGuid();
+        var parentId = Guid.NewGuid();
         var fixture = new Fixture();
 
-        var agents = CreateAgentFixture(agentId).CreateMany<AgentModel>(1);
+        var agents = new[]
+        {
+            CreateAgentFixture(agentId,parentId).Create<AgentModel>(),
+            CreateAgentFixture(parentId, null).Create<AgentModel>(),
+        };
 
         fakeRepository.GetBrandAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(CreateBrandModelFixture(brandId).Create<BrandModel>());
@@ -126,28 +132,9 @@ public class AgentDividendTests
         fakeAgentClient.GetAgentInfoAsync(Arg.Any<GetAgentInfoRequest>(), Arg.Any<CancellationToken>())
             .Returns(fixture.Create<AgentInfoModel>());
 
-        fakeContractRepository.GetBrandAgentDividendContractsAsync(Arg.Any<Guid>())
-            .Returns(CreateAgentDividendContractFixture(brandId, agentId)
-                .CreateMany<AgentDividendContractModel>(1)
-                .ToAsyncEnumerable());
-
-        fakeContractRepository.GetAgentDividendContractConditionsAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
-            .Returns(new AgentDividendContractConditionModel[]
-            {
-                new()
-                {
-                    Rank = 1,
-                    NetProfit = 1,
-                    ValidNumber = 1,
-                    WinLossAmount = 1,
-                    Percentage = 10
-                }
-            }.ToAsyncEnumerable());
-
         await using var web = new TestAgentDividendApplication(builder => builder.ConfigureServices(services =>
         {
             services.AddSingleton(fakeDbContext)
-                .AddSingleton(fakeContractRepository)
                 .AddSingleton(fakeRepository)
                 .AddSingleton(fakeAgentClient)
                 .AddSingleton(fakeDividendCalculator);
@@ -159,7 +146,7 @@ public class AgentDividendTests
 
         var response = await sut.GetPreCalculateAgentDividend(brandId, default).ToArrayAsync();
 
-        Assert.That(response, Has.Length.EqualTo(1));
+        Assert.That(response, Has.Length.EqualTo(2));
 
         fakeRepository.ReceivedWithAnyArgs(1).RemoveAllMemoryCache(default);
     }
@@ -204,45 +191,38 @@ public class AgentDividendTests
         _ = fakeRepository.ReceivedWithAnyArgs(1).GetAgentDividendRecordsAsync(default, default, default, null);
     }
 
-    //[Test]
-    //public async Task Manual_Send_Agent_Dividend()
-    //{
-    //    var fakeRepository = Substitute.For<IRepository>();
-    //    var fakeAgentClient = Substitute.For<IAgentClient>();
-    //    var fakeBackgroundTaskQueue = Substitute.For<IBackgroundTaskQueue>();
+    [Test]
+    public async Task Manual_Send_Agent_Dividend()
+    {
+        var fakeRepository = Substitute.For<IRepository>();
+        var fakeMediator = Substitute.For<IMediator>();
+        
+        var id1 = Guid.NewGuid();
+        var id2 = Guid.NewGuid();
+        var agentDividendRecordIds = new Guid[] { id1, id2 };
 
-    //    var id1 = Guid.NewGuid();
-    //    var id2 = Guid.NewGuid();
-    //    var agentDividendRecordIds = new Guid[] { id1, id2 };
-    //    var fixture = new Fixture();
+        await using var web = new TestAgentDividendApplication(builder => builder.ConfigureServices(services =>
+        {
+            services
+                .AddSingleton(fakeRepository)
+                .AddSingleton(fakeMediator);
+        }));
 
-    //    fakeRepository.GetAgentDividendRecordAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
-    //        .Returns(fixture.Create<AgentDividendRecordModel>());
+        var httpClient = web.CreateClient();
 
-    //    await using var web = new TestAgentDividendApplication(builder => builder.ConfigureServices(services =>
-    //    {
-    //        services
-    //            .AddSingleton(fakeRepository)
-    //            .AddSingleton(fakeAgentClient)
-    //            .AddSingleton(fakeBackgroundTaskQueue);
-    //    }));
+        var sut = new AgentDividendClient(httpClient);
 
-    //    var httpClient = web.CreateClient();
-
-    //    var sut = new AgentDividendClient(httpClient);
-
-    //    _ = sut.SendAgentDividendsAsync(agentDividendRecordIds, default);
-
-    //    _ = fakeBackgroundTaskQueue.ReceivedWithAnyArgs(1).QueueBackgroundWorkItemAsync(null!);
-    //}
+        await sut.SendAgentDividendsAsync(agentDividendRecordIds,"user","remark", default);
+    }
 
 
-    private static Fixture CreateAgentFixture(Guid agentId)
+    private static Fixture CreateAgentFixture(Guid agentId,Guid? parentId)
     {
         var fixture = new Fixture();
         fixture.Customize<AgentModel>(u => u
             .With(s => s.Id, agentId)
-            .With(e => e.Path, new LTree($"{agentId:N}")));
+            .With(s => s.ParentAgentId, parentId)
+            .With(e => e.Path, parentId is null ? new LTree($"{agentId:N}") : new LTree($"{parentId:N}.{agentId:N}")));
         fixture.Behaviors.Add(new OmitOnRecursionBehavior());
         return fixture;
     }
@@ -264,7 +244,7 @@ public class AgentDividendTests
         var fixture = new Fixture();
         fixture.Customize<BrandModel>(u => u
             .With(s => s.Id, brandId)
-            .With(s => s.AgentDividendType, (short)AgentDividendType.OnePercentage));
+            .With(s => s.AgentDividendType, (short)AgentDividendType.OneLayer));
         fixture.Behaviors.Add(new OmitOnRecursionBehavior());
         return fixture;
     }

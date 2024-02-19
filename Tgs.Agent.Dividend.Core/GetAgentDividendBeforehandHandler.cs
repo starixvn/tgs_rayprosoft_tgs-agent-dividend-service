@@ -10,10 +10,9 @@ using Tgs.Agent.Dividend.Domain.Models;
 namespace Tgs.Agent.Dividend.Core;
 
 internal class GetAgentDividendBeforehandHandler(
-    IContractRepository contractRepository,
     IRepository repository,
     IAgentClient agentClient,
-    [FromKeyedServices("OnePercentage")] IDividendCalculator dividendCalculator)
+    IServiceProvider serviceProvider)
     : IRequestHandler<GetAgentDividendBeforehandRequest, AgentDividendBeforehandResponse>
 {
     public async Task<AgentDividendBeforehandResponse> Handle(GetAgentDividendBeforehandRequest request,
@@ -39,37 +38,35 @@ internal class GetAgentDividendBeforehandHandler(
     {
         const decimal depositHandlingFee = 0M;
 
-        var agents = await agentClient
+        var childAgents = await agentClient
             .GetChildAgentInfosAsync(new GetChildAgentInfosRequest(agentId), cancellationToken)
             .ToArrayAsync(cancellationToken)
             .ConfigureAwait(false);
 
-        var agentIds = agents.Select(x => x.AgentId).Append(agentId).ToArray();
+        var agentIds = childAgents.Select(x => x.AgentId).Append(agentId).ToArray();
 
-        var contracts = await contractRepository.GetBrandAgentDividendContractsAsync(brand.Id)
-            .Where(x => x.AgentId == agentId || agents.Select(s => s.AgentId).Contains(x.AgentId))
+        var agents = await repository.GetAgentsCacheAsyncEnumerable(brand.Id, cancellationToken)
+            .Where(x => agentIds.Contains(x.Id))
             .ToArrayAsync(cancellationToken);
 
-        var agentContracts = agentIds
-            .Select(id =>
+        var agentInstances = agents
+            .Select(x =>
             {
-                var agentContract = contracts.FirstOrDefault(a =>
-                                        a.AgentId == id &&
-                                        a.ContractStatus == (short)ContractStatus.Enabled) ??
-                                    throw new Exception(
-                                        $"Can't find contract agentId: {id}");
+                var distributionService =
+                    serviceProvider.GetRequiredKeyedService<IDividendCalculator>(
+                        ((AgentDividendType)brand.AgentDividendType).ToString());
 
-                return agentContract;
+                return (agent: x, distributionService);
             })
             .ToArray();
 
         var agentPlayerAggregates = new List<AgentPlayerAggregateModel>();
 
-        foreach (var agentContract in agentContracts)
+        foreach (var instance in agentInstances)
         {
-            var data = await dividendCalculator.GetAgentPlayerAggregateAsync(0,
+            var data = await instance.distributionService.GetAgentPlayerAggregateAsync(0,
                     brand,
-                    agentContract,
+                    instance.agent,
                     cancellationToken)
                 .ToArrayAsync(cancellationToken);
 
@@ -80,12 +77,13 @@ internal class GetAgentDividendBeforehandHandler(
 
         foreach (var agentPlayerAggregateModel in agentPlayerAggregates)
         {
-            var agentContract = agentContracts.First(a => a.AgentId == agentPlayerAggregateModel.AgentId);
+            var instance = agentInstances.First(a => a.agent.Id == agentPlayerAggregateModel.AgentId);
 
-            var data = await dividendCalculator.GenerateMultipleLayerAsync(
+            var data = await instance.distributionService.GenerateMultipleLayerAsync(
                     brand,
-                    agentContract,
+                    instance.agent,
                     agentPlayerAggregateModel,
+                    true,
                     cancellationToken)
                 .ToArrayAsync(cancellationToken);
 
@@ -94,7 +92,9 @@ internal class GetAgentDividendBeforehandHandler(
 
         var agent = agentPlayerAggregates.First(x => x.AgentId == agentId);
 
-        var parentAgentDividends = dividendCalculator.GetMultipleLayer(agent,
+        var (_, mainDistributionService) = agentInstances.First(a => a.agent.Id == agent.AgentId);
+
+        var parentAgentDividends = mainDistributionService.GetMultipleLayer(agent,
             multipleLayers,
             cancellationToken);
 
@@ -103,7 +103,7 @@ internal class GetAgentDividendBeforehandHandler(
         var childAgentDividends = parentAgentDividends.Where(w => w.DividendProviderAgentId != agent.AgentId);
 
 
-        agent.AgentDividendAmount = dividendCalculator.GetAgentDividendAmount(agent, multipleLayers, cancellationToken);
+        agent.AgentDividendAmount = mainDistributionService.GetAgentDividendAmount(agent, multipleLayers, cancellationToken);
 
         return new AgentDividendBeforehand(agent.ActiveNumber,
             agent.WinLossAmount,
@@ -111,10 +111,8 @@ internal class GetAgentDividendBeforehandHandler(
             agent.RebateAmount,
             agent.WinLossAmount -
             agent.BonusAmount -
-            depositHandlingFee -
             agent.WinLossAmount * brand.PlatformCharge / 100,
             agent.WinLossAmount - agent.BonusAmount,
-            depositHandlingFee,
             agent.WinLossAmount * brand.PlatformCharge / 100,
             agentDividend.Dividend,
             agentDividend.AgentDividendPercentage,

@@ -7,7 +7,6 @@ public record AgentDividendBeforehand(
     decimal PlayerRebate,
     decimal SettledProfitLoss,
     decimal PeriodProfitLoss,
-    decimal DepositFee,
     decimal PlatformCharge,
     decimal DividendAmount,
     decimal DividendPercentage,
