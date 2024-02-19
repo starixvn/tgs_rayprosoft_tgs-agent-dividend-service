@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Tgs.Agent.Dividend.Domain.Enums;
 using Tgs.Agent.Dividend.Domain.Models;
 
 namespace Tgs.Agent.Dividend.Domain.Interfaces.Repositories;
@@ -48,9 +49,13 @@ public interface IRepository
     IAsyncEnumerable<AgentDividendBeforehand> GetAgentDividendBeforehandAsync(Guid agentId, DateTime from, DateTime to);
 
     IAsyncEnumerable<AgentDividendRecordModel> GetAgentDividendRecordsAsync(Guid brandId,
-        DateTime from,
-        DateTime to,
-        string? agentUsername);
+        DistributeStatus? status,
+        DateTime? from,
+        DateTime? to,
+        DateTime? approvedFrom,
+        DateTime? approvedTo,
+        string? agentUsername,
+        bool? negativeAgentDividendCarryForward);
 
     Task<AgentDividendRecordManuallyModel?> GetAgentDividendRecordAsync(Guid id, CancellationToken cancellationToken);
 

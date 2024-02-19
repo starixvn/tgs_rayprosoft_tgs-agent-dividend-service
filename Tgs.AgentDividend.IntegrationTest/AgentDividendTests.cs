@@ -166,9 +166,12 @@ public class AgentDividendTests
             .Returns(CreateBrandModelFixture(brandId).Create<BrandModel>());
 
         fakeRepository.GetAgentDividendRecordsAsync(Arg.Any<Guid>(),
-                Arg.Any<DateTime>(),
-                Arg.Any<DateTime>(),
-                Arg.Any<string>())
+                TODO,
+                TODO,
+                TODO,
+                TODO,
+                TODO,
+                TODO)
             .Returns(fixture.CreateMany<AgentDividendRecordModel>(1).ToAsyncEnumerable());
 
         await using var web = new TestAgentDividendApplication(builder => builder.ConfigureServices(services =>
@@ -188,7 +191,7 @@ public class AgentDividendTests
 
         Assert.That(response, Has.Length.EqualTo(1));
 
-        _ = fakeRepository.ReceivedWithAnyArgs(1).GetAgentDividendRecordsAsync(default, default, default, null);
+        _ = fakeRepository.ReceivedWithAnyArgs(1).GetAgentDividendRecordsAsync(default, TODO, TODO, TODO, TODO, TODO, TODO);
     }
 
     [Test]

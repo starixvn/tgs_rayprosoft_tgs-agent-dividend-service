@@ -13,8 +13,11 @@ internal class GetAgentDividendRecordsHandler(
         CancellationToken cancellationToken)
     {
         return repository.GetAgentDividendRecordsAsync(request.BrandId,
-            request.From,
-            request.To,
-            request.AgentUsername);
+            TODO,
+            TODO,
+            TODO,
+            TODO,
+            TODO,
+            TODO);
     }
 }

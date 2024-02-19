@@ -596,12 +596,17 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IMemoryC
     }
 
     public IAsyncEnumerable<AgentDividendRecordModel> GetAgentDividendRecordsAsync(Guid brandId,
-        DateTime from,
-        DateTime to,
-        string? agentUsername)
+        DistributeStatus? status,
+        DateTime? from,
+        DateTime? to,
+        DateTime? approvedFrom,
+        DateTime? approvedTo,
+        string? agentUsername,
+        bool? negativeAgentDividendCarryForward)
     {
         return context.AgentDividends.Where(x => x.BrandId == brandId)
-            .Where(x => x.From == from && x.To == to)
+            .Where(from != null, x => x.From >= from)
+            .Where(to != null, x => x.To < to)
             .Join(context.AgentDividendRecords,
                 ad => ad.Id,
                 adr => adr.AgentDividendId,
@@ -623,6 +628,10 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IMemoryC
                     adr.UpdatedOn,
                     adr.ApprovedOn
                 })
+            .Where(approvedFrom != null, x => x.ApprovedOn >= approvedFrom)
+            .Where(approvedTo != null, x => x.ApprovedOn < approvedTo)
+            .Where(status != null, x => x.Status == (short)status!)
+            .Where(negativeAgentDividendCarryForward != null, x => x.NegativeAgentDividendCarryForward == negativeAgentDividendCarryForward)
             .Join(context.Agents,
                 adr => adr.AgentId,
                 a => a.Id,
