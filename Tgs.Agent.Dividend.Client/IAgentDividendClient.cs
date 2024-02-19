@@ -4,7 +4,7 @@ namespace Tgs.Agent.Dividend.Client;
 
 public interface IAgentDividendClient
 {
-    IAsyncEnumerable<AgentDividendRecordModel?> GetAgentDividendRecordsAsync(GetAgentDividendRecordsRequest request,
+    IAsyncEnumerable<AgentDividendRecordModel?> GetAgentDividendRecordsAsync(GetAgentDividendRecords request,
         CancellationToken cancellationToken);
 
     IAsyncEnumerable<AgentDividendModel?> GetPreCalculateAgentDividend(Guid brandId,

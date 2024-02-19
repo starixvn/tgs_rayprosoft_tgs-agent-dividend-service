@@ -36,7 +36,7 @@ internal class AgentDividendClient(HttpClient client) : IAgentDividendClient
     }
 
     public IAsyncEnumerable<AgentDividendRecordModel?> GetAgentDividendRecordsAsync(
-        GetAgentDividendRecordsRequest request,
+        GetAgentDividendRecords request,
         CancellationToken cancellationToken)
     {
         var path = ClientPath.AppendWithProperties("/api/agentDividend/records?", request);
