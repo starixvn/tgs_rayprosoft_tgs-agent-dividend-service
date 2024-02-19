@@ -50,9 +50,13 @@ public class AgentDividendController(IMediator mediator, IBackgroundTaskQueue qu
         [FromQuery] GetAgentDividendRecordsRequest request)
     {
         return mediator.CreateStream(new GetAgentDividendRecordsRequest(request.BrandId,
+            request.Status,
             request.From,
             request.To,
-            request.AgentUsername));
+            request.ApprovedFrom,
+            request.ApprovedTo,
+            request.AgentUsername,
+            request.NegativeAgentDividendCarryForward));
     }
 
     [HttpGet("{brandId:guid}/pre-calculate")]
