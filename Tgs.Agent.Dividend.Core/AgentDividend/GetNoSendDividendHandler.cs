@@ -27,29 +27,40 @@ internal class GetNoSendDividendHandler(IRepository repository)
                 ? deductedNegativeDividend
                 : agentNoSendDividends.Sum(x => x.AgentDividendAmount);
 
+            var agentDividendCount = request.AgentDividends
+                .Count(x => x.AgentId == dividend.AgentId);
+
             dividend.NegativeAgentDividendAmount = agentNoSendDividend;
 
-            switch (dividend.AgentDividendAmount + agentNoSendDividend)
+            if (agentDividendCount > 1)
             {
-                case > 0M:
-                {
-                    dividend.BeforeDividendAmount = dividend.AgentDividendAmount;
+                deductedNegativeDividends[dividend.AgentId] = dividend.AgentDividendAmount + agentNoSendDividend >= 0
+                    ? 0
+                    : dividend.AgentDividendAmount + agentNoSendDividend;
+            }
 
-                    deductedNegativeDividends[dividend.AgentId] = dividend.AgentDividendAmount + agentNoSendDividend;
+            if (agentNoSendDividend < 0 && dividend.AgentDividendAmount + agentNoSendDividend >= 0)
+            {
+                dividend.BeforeDividendAmount = dividend.AgentDividendAmount;
 
-                    if (dividend.AgentDividendAmount + agentNoSendDividend <= 0M)
-                        dividend.AgentDividendAmount = 0M;
-                    else
-                        dividend.AgentDividendAmount += agentNoSendDividend;
+                if (dividend.AgentDividendAmount + agentNoSendDividend <= 0M)
+                    dividend.AgentDividendAmount = 0M;
+                else
+                    dividend.AgentDividendAmount += agentNoSendDividend;
 
-                    foreach (var negativeDividend in agentNoSendDividends)
-                        if (!noSendDividendIds.ContainsKey(negativeDividend.Id))
-                            noSendDividendIds.Add(negativeDividend.Id, dividend.Id);
-                    break;
-                }
-                case < 0M:
-                    dividend.AutoSend = false;
-                    break;
+                foreach (var negativeDividend in agentNoSendDividends)
+                    if (!noSendDividendIds.ContainsKey(negativeDividend.Id))
+                        noSendDividendIds.Add(negativeDividend.Id, dividend.Id);
+            }
+
+            if ((dividend.BeforeDividendAmount ?? dividend.AgentDividendAmount) + agentNoSendDividend < 0)
+            {
+                dividend.AutoSend = false;
+            }
+
+            if (dividend is { NegativeAgentDividendCarryForward: false, AgentDividendAmount: < 0 })
+            {
+                dividend.AutoSend = true;
             }
         }
 
