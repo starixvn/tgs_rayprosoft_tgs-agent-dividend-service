@@ -133,8 +133,6 @@ public class MultipleLayerDistributionTests
         var agentId2 = Guid.NewGuid();
         var from = DateTime.Parse("2023/12/06 00:00:00+8");
         var to = DateTime.Parse("2023/12/06 00:00:00+8");
-        var player1 = "player1";
-        var player2 = "player2";
 
         var contract = CreateContractFixture(brandId,
                 agentId,

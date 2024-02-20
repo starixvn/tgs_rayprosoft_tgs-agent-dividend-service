@@ -36,8 +36,6 @@ internal class GetAgentDividendBeforehandHandler(
         Guid agentId,
         CancellationToken cancellationToken)
     {
-        const decimal depositHandlingFee = 0M;
-
         var childAgents = await agentClient
             .GetChildAgentInfosAsync(new GetChildAgentInfosRequest(agentId), cancellationToken)
             .ToArrayAsync(cancellationToken)
@@ -114,8 +112,8 @@ internal class GetAgentDividendBeforehandHandler(
             agent.WinLossAmount * brand.PlatformCharge / 100,
             agent.WinLossAmount - agent.BonusAmount,
             agent.WinLossAmount * brand.PlatformCharge / 100,
-            agentDividend.Dividend,
-            agentDividend.AgentDividendPercentage,
+            agentDividend?.Dividend ?? 0M,
+            agentDividend?.AgentDividendPercentage ?? 0M,
             childAgentDividends.Sum(s => s.Dividend),
             agent.AgentDividendAmount,
             null);

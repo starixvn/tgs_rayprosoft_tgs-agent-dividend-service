@@ -123,8 +123,7 @@ public class OneLayerDistributionTests
 
         var sut = new BrandAgentDividendHandler(_fakeRepository,
             _fakeMediator,
-            sp,
-            new NullLogger<BrandAgentDividendHandler>());
+            sp);
 
         await sut.Handle(@event, default);
 

@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using Tgs.Agent.Dividend.Core.Workers;
+using Tgs.Agent.Dividend.Domain.Enums;
 using Tgs.Agent.Dividend.Domain.Events;
 using Tgs.Agent.Dividend.Domain.Interfaces.Repositories;
 using Tgs.Agent.Dividend.Domain.Models;
@@ -8,7 +9,6 @@ using Tgs.Agent.Dividend.Domain.Models;
 namespace Tgs.Agent.Dividend.Core;
 
 internal class ManualSendAgentDividendHandler(
-    IMediator mediator,
     IBackgroundTaskQueue backgroundTaskQueue,
     IRepository repository)
     : IRequestHandler<ManualSendAgentDividend>
@@ -29,6 +29,7 @@ internal class ManualSendAgentDividendHandler(
                         agentDividendRecord.ActualAgentDividendAmount,
                         agentDividendRecord.AgentDividendId,
                         request.EditorUsername,
+                        request.Approve ? DistributeStatus.Sent : DistributeStatus.Rejected,
                         request.Remark),
                     token);
             });

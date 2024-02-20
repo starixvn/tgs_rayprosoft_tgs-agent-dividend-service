@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Tgs.Agent.Client;
 using Tgs.Agent.Client.Models;
-using Tgs.Agent.Dividend.Core.Workers;
 using Tgs.Agent.Dividend.Domain.Models;
 using Tgs.Agent.Dividend.Domain.Models.BrandContract;
 
@@ -10,7 +9,7 @@ namespace Tgs.Agent.Dividend.Service.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-public class AgentDividendController(IMediator mediator, IBackgroundTaskQueue queue) : ControllerBase
+public class AgentDividendController(IMediator mediator) : ControllerBase
 {
     [HttpPost]
     public Task AgentDividendGenerationAsync()
@@ -28,13 +27,16 @@ public class AgentDividendController(IMediator mediator, IBackgroundTaskQueue qu
     public async Task ManualSendAgentDividendAsync([FromBody] ManualSendAgentDividendsRequest request)
     {
         foreach (var agentDividendRecordId in request.AgentDividendRecordIds)
-            await queue.QueueBackgroundWorkItemAsync(async (scope, token) =>
-            {
-                var innerMediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+            await mediator.Send(new ManualSendAgentDividend(agentDividendRecordId,
+                request.Approve,
+                request.EditorUsername,
+                request.Remark));
+    }
 
-                await innerMediator.Send(new ManualSendAgentDividend(agentDividendRecordId, request.EditorUsername,request.Remark),
-                    token);
-            });
+    [HttpPut("{agentId}/clear-negative-dividend/{clearByUserId}")]
+    public Task ClearNegativeDividendAsync(Guid agentId, Guid clearByUserId)
+    {
+        return mediator.Send(new ClearNegativeDividend(agentId, clearByUserId));
     }
 
     [HttpGet("{brandId:guid}/{agentId:guid}/beforehand")]
@@ -70,7 +72,7 @@ public class AgentDividendController(IMediator mediator, IBackgroundTaskQueue qu
         {
             var agent = await agentClient.GetAgentInfoAsync(new GetAgentInfoRequest(model.AgentId));
 
-            model.AgentUsername = agent.Username;
+            model.AgentUsername = agent!.Username;
 
             yield return model;
         }
