@@ -665,7 +665,7 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IMemoryC
     public Task<AgentDividendRecordManuallyModel?> GetAgentDividendRecordAsync(Guid id,
         CancellationToken cancellationToken)
     {
-        return context.AgentDividendRecords.Where(x => x.Id == id && x.ApprovedOn != null)
+        return context.AgentDividendRecords.Where(x => x.Id == id && x.ApprovedOn == null)
             .Join(context.Agents,
                 adr => adr.AgentId,
                 a => a.Id,

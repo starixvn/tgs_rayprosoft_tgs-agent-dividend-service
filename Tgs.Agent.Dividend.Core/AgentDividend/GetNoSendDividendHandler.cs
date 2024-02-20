@@ -7,7 +7,8 @@ namespace Tgs.Agent.Dividend.Core.AgentDividend;
 internal class GetNoSendDividendHandler(IRepository repository)
     : IRequestHandler<GetNoSendDividendRequest, NoSendDividendResponse>
 {
-    public async Task<NoSendDividendResponse> Handle(GetNoSendDividendRequest request, CancellationToken cancellationToken)
+    public async Task<NoSendDividendResponse> Handle(GetNoSendDividendRequest request,
+        CancellationToken cancellationToken)
     {
         var deductedNegativeDividends = new Dictionary<Guid, decimal>();
         var noSendDividendIds = new Dictionary<int, int>();
@@ -18,7 +19,8 @@ internal class GetNoSendDividendHandler(IRepository repository)
                 .ToArrayAsync(cancellationToken)
                 .ConfigureAwait(false);
 
-            var agentNoSendDividend = CalculateAgentNoSendDividend(dividend, deductedNegativeDividends, agentNoSendDividends);
+            var agentNoSendDividend =
+                CalculateAgentNoSendDividend(dividend, deductedNegativeDividends, agentNoSendDividends);
 
             dividend.NegativeAgentDividendAmount = agentNoSendDividend;
 
@@ -38,30 +40,36 @@ internal class GetNoSendDividendHandler(IRepository repository)
         return new NoSendDividendResponse { Model = request.AgentDividends, NegativeDividendsIds = noSendDividendIds };
     }
 
-    private static decimal CalculateAgentNoSendDividend(AgentDividendModel dividend, Dictionary<Guid, decimal> deductedNegativeDividends, IEnumerable<NegativeAgentDividendModel> agentNoSendDividends)
+    private static decimal CalculateAgentNoSendDividend(AgentDividendModel dividend,
+        Dictionary<Guid, decimal> deductedNegativeDividends,
+        IEnumerable<NegativeAgentDividendModel> agentNoSendDividends)
     {
-        var haveDeductedNegativeDividend = deductedNegativeDividends.TryGetValue(dividend.AgentId, out var deductedNegativeDividend);
-        return haveDeductedNegativeDividend ? deductedNegativeDividend : agentNoSendDividends.Sum(x => x.AgentDividendAmount);
+        var negativeAmount = agentNoSendDividends.Sum(x => x.AgentDividendAmount);
+        negativeAmount = Math.Min(0, negativeAmount);
+        var haveDeductedNegativeDividend =
+            deductedNegativeDividends.TryGetValue(dividend.AgentId, out var deductedNegativeDividend);
+        return haveDeductedNegativeDividend ? deductedNegativeDividend : negativeAmount;
     }
 
-    private static void DeductNegativeDividend(AgentDividendModel dividend, decimal agentNoSendDividend, Dictionary<Guid, decimal> deductedNegativeDividends, IEnumerable<AgentDividendModel> agentDividendModels)
+    private static void DeductNegativeDividend(AgentDividendModel dividend,
+        decimal agentNoSendDividend,
+        Dictionary<Guid, decimal> deductedNegativeDividends,
+        IEnumerable<AgentDividendModel> agentDividendModels)
     {
         var agentDividendCount = agentDividendModels.Count(x => x.AgentId == dividend.AgentId);
 
         if (agentDividendCount > 1)
-        {
             deductedNegativeDividends[dividend.AgentId] = dividend.AgentDividendAmount + agentNoSendDividend >= 0
                 ? 0
                 : dividend.AgentDividendAmount + agentNoSendDividend;
-        }
     }
 
-    private static void UpdateNoSendDividendIds(IEnumerable<NegativeAgentDividendModel> agentNoSendDividends, Dictionary<int, int> noSendDividendIds, AgentDividendModel dividend)
+    private static void UpdateNoSendDividendIds(IEnumerable<NegativeAgentDividendModel> agentNoSendDividends,
+        Dictionary<int, int> noSendDividendIds,
+        AgentDividendModel dividend)
     {
         foreach (var negativeDividend in agentNoSendDividends.Where(nd => !noSendDividendIds.ContainsKey(nd.Id)))
-        {
             noSendDividendIds.Add(negativeDividend.Id, dividend.Id);
-        }
     }
 
     private static void AdjustDividendAmount(AgentDividendModel dividend, decimal agentNoSendDividend)
@@ -73,16 +81,12 @@ internal class GetNoSendDividendHandler(IRepository repository)
     private static void HandleAutoSend(AgentDividendModel dividend, decimal agentNoSendDividend)
     {
         if ((dividend.BeforeDividendAmount ?? dividend.AgentDividendAmount) + agentNoSendDividend < 0)
-        {
             dividend.AutoSend = false;
-        }
     }
 
     private static void HandleNegativeDividendCarryForward(AgentDividendModel dividend)
     {
         if (dividend is { NegativeAgentDividendCarryForward: false, AgentDividendAmount: < 0 })
-        {
             dividend.AutoSend = true;
-        }
     }
 }
