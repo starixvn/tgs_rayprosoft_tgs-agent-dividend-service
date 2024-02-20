@@ -19,7 +19,10 @@ public interface IAgentDividendClient
     Task GenerateAgentDividend(Guid brandId, CancellationToken cancellationToken);
 
     Task SendAgentDividendsAsync(Guid[] agentDividendRecordIds,
+        bool approve,
         string editorUsername,
         string? remark,
         CancellationToken cancellationToken);
+
+    Task ClearAgentNegativeDividendAsync(Guid agentId, Guid clearByUserId, CancellationToken cancellationToken = default);
 }

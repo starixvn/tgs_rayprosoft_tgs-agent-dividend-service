@@ -16,6 +16,10 @@
    "T4TemplatePath": null,
    "Tables": [
       {
+         "Name": "dbo.agent_clear_commission_records",
+         "ObjectType": 0
+      },
+      {
          "Name": "dbo.agent_dividend_conditions",
          "ObjectType": 0
       },

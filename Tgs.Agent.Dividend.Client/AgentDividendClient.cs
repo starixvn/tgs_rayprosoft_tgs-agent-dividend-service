@@ -60,6 +60,7 @@ internal class AgentDividendClient(HttpClient client) : IAgentDividendClient
     }
 
     public async Task SendAgentDividendsAsync(Guid[] agentDividendRecordIds,
+        bool approve,
         string editorUsername,
         string? remark,
         CancellationToken cancellationToken)
@@ -67,6 +68,7 @@ internal class AgentDividendClient(HttpClient client) : IAgentDividendClient
         var data = new
         {
             AgentDividendRecordIds = agentDividendRecordIds,
+            Approve = approve,
             EditorUsername = editorUsername,
             Remark = remark
         };
@@ -80,6 +82,15 @@ internal class AgentDividendClient(HttpClient client) : IAgentDividendClient
             .PostAsync("/api/agentDividend/send-agent-dividend",
                 jsonContent,
                 cancellationToken)
+            .ConfigureAwait(false);
+
+        _ = response.EnsureSuccessStatusCode();
+    }
+
+    public async Task ClearAgentNegativeDividendAsync(Guid agentId, Guid clearByUserId, CancellationToken cancellationToken = default)
+    {
+        var response = await client
+            .PutAsync($"/api/agentDividend/{agentId}/clear-negative-dividend/{clearByUserId}", null, cancellationToken)
             .ConfigureAwait(false);
 
         _ = response.EnsureSuccessStatusCode();

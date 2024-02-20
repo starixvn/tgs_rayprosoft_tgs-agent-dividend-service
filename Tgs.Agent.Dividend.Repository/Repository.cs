@@ -568,6 +568,7 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IMemoryC
     public IAsyncEnumerable<NegativeAgentDividendModel> GetNegativeAgentDividendsAsync(Guid agentId)
     {
         return context.AgentDividends.Where(x => x.AgentId == agentId && x.SentOn == null)
+            .Where(x => x.BeforeDividendAmount == null && x.ReferencedAgentDividendId == null)
             .Select(x => new NegativeAgentDividendModel(x.Id, x.AgentId, x.AgentDividendAmount))
             .ToAsyncEnumerable();
     }
@@ -726,7 +727,7 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IMemoryC
                     NegativeAgentDividendCarryForward = x.NegativeAgentDividendCarryForward,
                     CreatedOn = DateTime.UtcNow,
                     UpdatedOn = DateTime.UtcNow,
-                    ApprovedOn = x.AgentDividendAmount + x.NegativeAgentDividendAmount <= 0 ? DateTime.UtcNow : null
+                    ApprovedOn = null
                 }),
             cancellationToken);
 
@@ -777,6 +778,7 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IMemoryC
     }
 
     public async Task UpdateSentOnByManualSendAsync(int agentDividendId,
+        DistributeStatus status,
         string sendByUsername,
         string? remark,
         CancellationToken cancellationToken)
@@ -790,6 +792,7 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IMemoryC
         await context.AgentDividendRecords.Where(x => x.AgentDividendId == agentDividendId)
             .ExecuteUpdateAsync(s =>
                     s.SetProperty(e => e.ApprovedOn, DateTime.UtcNow)
+                        .SetProperty(e => e.Status, (short)status)
                         .SetProperty(e => e.SentByUsername, sendByUsername)
                         .SetProperty(e => e.Remark, remark),
                 cancellationToken);
@@ -822,6 +825,34 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IMemoryC
     public void RemoveAllMemoryCache(CancellationToken cancellationToken)
     {
         memoryCacheKeyMapper.ClearAll();
+    }
+
+    public async Task ClearNegativeCommissionAsync(Guid agentId, Guid clearByUserId, CancellationToken cancellationToken = default)
+    {
+        var commissions = context.AgentDividends
+            .Where(x => x.AgentId == agentId && x.SentOn == null)
+            .ToAsyncEnumerable();
+
+        await context.AddRangeAsync(
+                commissions.Select(x => new AgentClearCommissionRecord
+                    {
+                        Id = GuidExtensions.NewSequentialGuid(),
+                        AgentDividendId = x.Id,
+                        CommissionAmount = x.AgentDividendAmount,
+                        ClearByUserId = clearByUserId,
+                        CreatedOn = DateTime.UtcNow,
+                    })
+                    .ToEnumerable(),
+                cancellationToken)
+            .ConfigureAwait(false);
+
+        await commissions.ForEachAsync(x => x.SentOn = DateTime.UtcNow, cancellationToken)
+            .ConfigureAwait(false);
+
+        context.AgentDividends.UpdateRange(commissions.ToEnumerable());
+
+        _ = await context.SaveChangesAsync(cancellationToken)
+            .ConfigureAwait(false);
     }
 
     private async ValueTask CreateAgentDividendsAsync(IEnumerable<AgentDividendModel> models)

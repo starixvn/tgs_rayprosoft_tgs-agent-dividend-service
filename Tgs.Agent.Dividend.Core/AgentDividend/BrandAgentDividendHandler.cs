@@ -11,8 +11,7 @@ namespace Tgs.Agent.Dividend.Core.AgentDividend;
 internal class BrandAgentDividendHandler(
     IRepository repository,
     IMediator mediator,
-    IServiceProvider serviceProvider,
-    ILogger<BrandAgentDividendHandler> logger)
+    IServiceProvider serviceProvider)
     : IRequestHandler<AgentDividendRequest, NoSendDividendResponse>
 {
     public async Task<NoSendDividendResponse> Handle(AgentDividendRequest request, CancellationToken cancellationToken)

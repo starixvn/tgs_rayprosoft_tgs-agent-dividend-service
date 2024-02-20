@@ -7,7 +7,6 @@ using Tgs.Agent.Client;
 using Tgs.Agent.Client.Models;
 using Tgs.Agent.Dividend.Client;
 using Tgs.Agent.Dividend.Client.Models;
-using Tgs.Agent.Dividend.Core.Workers;
 using Tgs.Agent.Dividend.Domain.Enums;
 using Tgs.Agent.Dividend.Domain.Interfaces;
 using Tgs.Agent.Dividend.Domain.Interfaces.Repositories;
@@ -216,7 +215,31 @@ public class AgentDividendTests
 
         var sut = new AgentDividendClient(httpClient);
 
-        await sut.SendAgentDividendsAsync(agentDividendRecordIds,"user","remark", default);
+        await sut.SendAgentDividendsAsync(agentDividendRecordIds, true,"user","remark", default);
+    }
+
+    [Test]
+    public async Task Clear_Negative_Agent_Dividend()
+    {
+        var fakeRepository = Substitute.For<IRepository>();
+        var fakeMediator = Substitute.For<IMediator>();
+
+        var agentId = Guid.NewGuid();
+
+        await using var web = new TestAgentDividendApplication(builder => builder.ConfigureServices(services =>
+        {
+            services
+                .AddSingleton(fakeRepository)
+                .AddSingleton(fakeMediator);
+        }));
+
+        var httpClient = web.CreateClient();
+
+        var sut = new AgentDividendClient(httpClient);
+
+        await sut.ClearAgentNegativeDividendAsync(agentId, Guid.NewGuid(), default);
+
+        _ = fakeMediator.Received(1).Send(Arg.Any<ClearNegativeDividend>());
     }
 
 

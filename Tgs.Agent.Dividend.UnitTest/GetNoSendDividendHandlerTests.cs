@@ -55,8 +55,9 @@ public class GetNoSendDividendHandlerTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(Actual, Does.Contain(response.NegativeDividendsIds[11]));
-            Assert.That(ActualArray, Does.Contain(response.NegativeDividendsIds[33]));
+            Assert.That(response.NegativeDividendsIds[11], Is.EqualTo(102));
+            Assert.That(response.NegativeDividendsIds[22], Is.EqualTo(102));
+            Assert.That(response.NegativeDividendsIds[33], Is.EqualTo(102));
             Assert.That(response.NegativeDividendsIds[34], Is.EqualTo(103));
             Assert.That(response.NegativeDividendsIds[35], Is.EqualTo(103));
             Assert.That(response.Model.First(x => x.Id == 101).AutoSend, Is.EqualTo(false));
@@ -115,6 +116,8 @@ public class GetNoSendDividendHandlerTests
 
         Assert.Multiple(() =>
         {
+            Assert.That(response.NegativeDividendsIds[34], Is.EqualTo(103));
+            Assert.That(response.NegativeDividendsIds[35], Is.EqualTo(103));
             Assert.That(response.Model.First(x => x.Id == 101).AutoSend, Is.EqualTo(false));
             Assert.That(response.Model.First(x => x.Id == 102).AutoSend, Is.EqualTo(false));
             Assert.That(response.Model.First(x => x.Id == 104).AutoSend, Is.EqualTo(false));
@@ -171,6 +174,10 @@ public class GetNoSendDividendHandlerTests
 
         Assert.Multiple(() =>
         {
+            Assert.That(response.NegativeDividendsIds[11], Is.EqualTo(101));
+            Assert.That(response.NegativeDividendsIds[33], Is.EqualTo(101));
+            Assert.That(response.NegativeDividendsIds[34], Is.EqualTo(103));
+            Assert.That(response.NegativeDividendsIds[35], Is.EqualTo(103));
             Assert.That(response.Model.First(x => x.Id == 101).AutoSend, Is.EqualTo(true));
             Assert.That(response.Model.First(x => x.Id == 102).AutoSend, Is.EqualTo(false));
             Assert.That(response.Model.First(x => x.Id == 104).AutoSend, Is.EqualTo(false));

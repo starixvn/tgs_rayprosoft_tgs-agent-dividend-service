@@ -11,8 +11,7 @@ namespace Tgs.Agent.Dividend.Core.AgentDividend;
 
 internal class CreateAgentDividendHandler(
     IRepository repository,
-    IBackgroundTaskQueue backgroundTaskQueue,
-    IPublisher mediator)
+    IBackgroundTaskQueue backgroundTaskQueue)
     : IRequestHandler<CreateAgentDividendRequest>
 {
     public async Task Handle(CreateAgentDividendRequest request, CancellationToken cancellationToken)

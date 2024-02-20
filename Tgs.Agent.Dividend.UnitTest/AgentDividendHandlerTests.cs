@@ -167,8 +167,7 @@ public class AgentDividendHandlerTests
 
         var sut = new CreateAgentDividendHandler(
             fakeRepository,
-            fakeBackgroundTaskQueue,
-            fakeMediator);
+            fakeBackgroundTaskQueue);
 
         await sut.Handle(request, default);
 

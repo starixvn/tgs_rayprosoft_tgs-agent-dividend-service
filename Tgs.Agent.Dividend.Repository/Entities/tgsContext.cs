@@ -20,6 +20,8 @@ public partial class tgsContext : DbContext
 
     public virtual DbSet<Agent> Agents { get; set; }
 
+    public virtual DbSet<AgentClearCommissionRecord> AgentClearCommissionRecords { get; set; }
+
     public virtual DbSet<AgentDividend> AgentDividends { get; set; }
 
     public virtual DbSet<AgentDividendCondition> AgentDividendConditions { get; set; }
@@ -52,6 +54,7 @@ public partial class tgsContext : DbContext
             .HasPostgresExtension("uuid-ossp");
 
         modelBuilder.ApplyConfiguration(new Configurations.AgentConfiguration());
+        modelBuilder.ApplyConfiguration(new Configurations.AgentClearCommissionRecordConfiguration());
         modelBuilder.ApplyConfiguration(new Configurations.AgentDividendConfiguration());
         modelBuilder.ApplyConfiguration(new Configurations.AgentDividendConditionConfiguration());
         modelBuilder.ApplyConfiguration(new Configurations.AgentDividendMultipleLayerConfiguration());
