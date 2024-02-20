@@ -190,6 +190,40 @@ public class GetNoSendDividendHandlerTests
         });
     }
 
+    [Test]
+    public async Task Get_No_Send_Dividends_Scenario4()
+    {
+        var fakeRepository = Substitute.For<IRepository>();
+
+        var brandId = Guid.NewGuid();
+        var agentId = Guid.Parse("1d6f6c96-c0f6-ec11-8db1-70b5e82b6b7c");
+
+        var models = new[]
+        {
+            CreateCreateAgentDividendModelFixture(101, brandId, agentId, 50, 50).Create<AgentDividendModel>(),
+        };
+
+        var agentNegatives = new[]
+        {
+            CreateNegativeAgentDividendModelFixture(11, agentId, 40).Create<NegativeAgentDividendModel>(),
+        };
+
+        fakeRepository.GetNegativeAgentDividendsAsync(agentId).Returns(agentNegatives.ToAsyncEnumerable());
+
+        var request = new GetNoSendDividendRequest(models);
+
+        var sut = new GetNoSendDividendHandler(fakeRepository);
+
+        var response = await sut.Handle(request, default);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(response.Model.First(x => x.Id == 101).AutoSend, Is.EqualTo(true));
+            Assert.That(response.Model.Where(x => x.AgentId == agentId).Sum(s => s.BeforeDividendAmount ?? s.AgentDividendAmount),
+                Is.EqualTo(50));
+        });
+    }
+
     private static Fixture CreateCreateAgentDividendModelFixture(int id,
         Guid brandId,
         Guid agentId,
