@@ -52,6 +52,8 @@ internal class MultipleLayerDividendCalculator(IContractRepository contractRepos
         agentAggregate.ESportsWinLoss = agentPlayerGameAggregate?.ESportsWinLoss ?? 0M;
         agentAggregate.VirtualSportsWinLoss = agentPlayerGameAggregate?.VirtualSportsWinLoss ?? 0M;
         agentAggregate.ActiveNumber = validPlayerCount;
+        agentAggregate.PlatformChargePercentage = brand.PlatformCharge;
+
         agentAggregate.Id = idNumber + 1;
 
         yield return agentAggregate;

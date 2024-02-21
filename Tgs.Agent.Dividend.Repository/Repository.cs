@@ -715,19 +715,32 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IMemoryC
             negativeDividend.ReferencedAgentDividendId = sendNegativeDividendIds[negativeDividend.Id];
 
         await context.AgentDividendRecords.AddRangeAsync(agentDividends
-                .Select(x => new AgentDividendRecord
+                .Select(x =>
                 {
-                    Id = GuidExtensions.NewSequentialGuid(),
-                    BrandId = brand.Id,
-                    AgentId = x.AgentId,
-                    AgentDividendId = x.Id,
-                    AgentDividendAmount = x.AgentDividendAmount,
-                    ActualAgentDividendAmount = x.AgentDividendAmount + x.NegativeAgentDividendAmount,
-                    NegativeAgentDividendAmount = x.NegativeAgentDividendAmount,
-                    NegativeAgentDividendCarryForward = x.NegativeAgentDividendCarryForward,
-                    CreatedOn = DateTime.UtcNow,
-                    UpdatedOn = DateTime.UtcNow,
-                    ApprovedOn = null
+                    var status = x is { AgentDividendAmount: <= 0, NegativeAgentDividendCarryForward: false }
+                        ? DistributeStatus.Sent
+                        : DistributeStatus.ReadyToApprove;
+
+                    var approvedOn = x is { AgentDividendAmount: <= 0, NegativeAgentDividendCarryForward: false }
+                        ? DateTime.UtcNow
+                        : (DateTime?)null;
+
+                    return new AgentDividendRecord
+                    {
+                        Id = GuidExtensions.NewSequentialGuid(),
+                        BrandId = brand.Id,
+                        AgentId = x.AgentId,
+                        Status = (short)status,
+                        AgentDividendId = x.Id,
+                        AgentDividendAmount = x.AgentDividendAmount,
+                        ActualAgentDividendAmount = x.AgentDividendAmount + x.NegativeAgentDividendAmount,
+                        NegativeAgentDividendAmount = x.NegativeAgentDividendAmount,
+                        NegativeAgentDividendCarryForward = x.NegativeAgentDividendCarryForward,
+                        CreatedOn = DateTime.UtcNow,
+                        UpdatedOn = DateTime.UtcNow,
+                        ApprovedOn = approvedOn,
+                        SentByUsername = approvedOn is not null ? "system" : null
+                    };
                 }),
             cancellationToken);
 
@@ -897,6 +910,9 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IMemoryC
                 SentOn = null,
                 BeforeDividendAmount = model.BeforeDividendAmount,
                 ReferencedAgentDividendId = model.ReferencedAgentDividendId,
+                ActiveNumber = model.ActiveNumber,
+                PlatformChargePercentage = model.PlatformChargePercentage,
+                NegativeAgentDividendCarryForward = model.NegativeAgentDividendCarryForward,
                 AgentDividendMultipleLayers = model.AgentDividendMultipleLayerModels.Select(x
                         => new AgentDividendMultipleLayer
                         {

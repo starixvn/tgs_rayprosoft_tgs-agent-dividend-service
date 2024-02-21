@@ -108,6 +108,8 @@ internal class BrandAgentDividendHandler(
                     NoIncludeNetProfitBonusAdjustAmount = x.NoIncludeNetProfitBonusAdjustAmount,
                     NetProfit = x.NetProfit(brand.PlatformCharge),
                     AgentDividendAmount = x.AgentDividendAmount,
+                    ActiveNumber = x.ActiveNumber,
+                    PlatformChargePercentage = x.PlatformChargePercentage,
                     NegativeAgentDividendCarryForward = agent.NegativeAgentDividendCarryForward,
                     AgentDividendMultipleLayerModels = parentAgentDividends.Select(s
                             => new AgentDividendMultipleLayerModel
