@@ -700,6 +700,7 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IMemoryC
 
     public async Task CreateAgentDividendsAsync(BrandModel brand,
         IEnumerable<AgentDividendModel> agentDividends,
+        IEnumerable<CreateAgentDividendRecordsModel> records,
         IDictionary<int, int> sendNegativeDividendIds,
         CancellationToken cancellationToken)
     {
@@ -714,20 +715,22 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IMemoryC
         foreach (var negativeDividend in negativeDividends)
             negativeDividend.ReferencedAgentDividendId = sendNegativeDividendIds[negativeDividend.Id];
 
-        await context.AgentDividendRecords.AddRangeAsync(agentDividends
+        await context.AgentDividendRecords.AddRangeAsync(records
                 .Select(x => new AgentDividendRecord
                 {
                     Id = GuidExtensions.NewSequentialGuid(),
                     BrandId = brand.Id,
                     AgentId = x.AgentId,
-                    AgentDividendId = x.Id,
+                    Status = (short)x.Status,
+                    AgentDividendId = x.AgentDividendId,
                     AgentDividendAmount = x.AgentDividendAmount,
                     ActualAgentDividendAmount = x.AgentDividendAmount + x.NegativeAgentDividendAmount,
                     NegativeAgentDividendAmount = x.NegativeAgentDividendAmount,
                     NegativeAgentDividendCarryForward = x.NegativeAgentDividendCarryForward,
-                    CreatedOn = DateTime.UtcNow,
-                    UpdatedOn = DateTime.UtcNow,
-                    ApprovedOn = null
+                    CreatedOn = x.CreatedOn,
+                    UpdatedOn = x.UpdatedOn,
+                    ApprovedOn = x.ApprovedOn,
+                    SentByUsername = x.SentByUsername
                 }),
             cancellationToken);
 
@@ -897,6 +900,9 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IMemoryC
                 SentOn = null,
                 BeforeDividendAmount = model.BeforeDividendAmount,
                 ReferencedAgentDividendId = model.ReferencedAgentDividendId,
+                ActiveNumber = model.ActiveNumber,
+                PlatformChargePercentage = model.PlatformChargePercentage,
+                NegativeAgentDividendCarryForward = model.NegativeAgentDividendCarryForward,
                 AgentDividendMultipleLayers = model.AgentDividendMultipleLayerModels.Select(x
                         => new AgentDividendMultipleLayer
                         {

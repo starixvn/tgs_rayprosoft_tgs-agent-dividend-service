@@ -30,12 +30,40 @@ internal class CreateAgentDividendHandler(
         brand.NextSettlementFrom = nextFrom.UtcDateTime;
         brand.NextSettlementTo = nextTo.UtcDateTime;
 
+        var records = request.Models.Select(x =>
+        {
+            var status = x is { AgentDividendAmount: <= 0, NegativeAgentDividendCarryForward: false }
+                ? DistributeStatus.Sent
+                : DistributeStatus.ReadyToApprove;
+
+            var approvedOn = x is { AgentDividendAmount: <= 0, NegativeAgentDividendCarryForward: false }
+                ? DateTime.UtcNow
+                : (DateTime?)null;
+
+            return new CreateAgentDividendRecordsModel
+            {
+                BrandId = brand.Id,
+                AgentId = x.AgentId,
+                Status = status,
+                AgentDividendId = x.Id,
+                AgentDividendAmount = x.AgentDividendAmount,
+                ActualAgentDividendAmount = x.AgentDividendAmount + x.NegativeAgentDividendAmount,
+                NegativeAgentDividendAmount = x.NegativeAgentDividendAmount,
+                NegativeAgentDividendCarryForward = x.NegativeAgentDividendCarryForward,
+                CreatedOn = DateTime.UtcNow,
+                UpdatedOn = DateTime.UtcNow,
+                ApprovedOn = approvedOn,
+                SentByUsername = approvedOn is not null ? "system" : null
+            };
+        });
+
         await repository.CreateAgentDividendsAsync(brand,
-            request.Model,
+            request.Models,
+            records,
             request.NegativeDividendsIds,
             cancellationToken);
 
-        foreach (var createAgentDividendModel in request.Model.Where(x => x.AutoSend))
+        foreach (var createAgentDividendModel in request.Models.Where(x => x.AutoSend))
         {
             await backgroundTaskQueue.QueueBackgroundWorkItemAsync(async (scope, token) =>
             {

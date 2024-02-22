@@ -43,7 +43,7 @@ internal class OneLayerDividendCalculator(IContractRepository contractRepository
             {
                 agentPlayerAggregateModel.Id = idNumber + i + 1;
                 agentPlayerAggregateModel.ActiveNumber = betPlayers.Length;
-
+                agentPlayerAggregateModel.PlatformChargePercentage = brand.PlatformCharge;
                 i++;
 
                 yield return agentPlayerAggregateModel;
