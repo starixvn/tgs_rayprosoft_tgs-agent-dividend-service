@@ -700,6 +700,7 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IMemoryC
 
     public async Task CreateAgentDividendsAsync(BrandModel brand,
         IEnumerable<AgentDividendModel> agentDividends,
+        IEnumerable<CreateAgentDividendRecordsModel> records,
         IDictionary<int, int> sendNegativeDividendIds,
         CancellationToken cancellationToken)
     {
@@ -714,33 +715,22 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IMemoryC
         foreach (var negativeDividend in negativeDividends)
             negativeDividend.ReferencedAgentDividendId = sendNegativeDividendIds[negativeDividend.Id];
 
-        await context.AgentDividendRecords.AddRangeAsync(agentDividends
-                .Select(x =>
+        await context.AgentDividendRecords.AddRangeAsync(records
+                .Select(x => new AgentDividendRecord
                 {
-                    var status = x is { AgentDividendAmount: <= 0, NegativeAgentDividendCarryForward: false }
-                        ? DistributeStatus.Sent
-                        : DistributeStatus.ReadyToApprove;
-
-                    var approvedOn = x is { AgentDividendAmount: <= 0, NegativeAgentDividendCarryForward: false }
-                        ? DateTime.UtcNow
-                        : (DateTime?)null;
-
-                    return new AgentDividendRecord
-                    {
-                        Id = GuidExtensions.NewSequentialGuid(),
-                        BrandId = brand.Id,
-                        AgentId = x.AgentId,
-                        Status = (short)status,
-                        AgentDividendId = x.Id,
-                        AgentDividendAmount = x.AgentDividendAmount,
-                        ActualAgentDividendAmount = x.AgentDividendAmount + x.NegativeAgentDividendAmount,
-                        NegativeAgentDividendAmount = x.NegativeAgentDividendAmount,
-                        NegativeAgentDividendCarryForward = x.NegativeAgentDividendCarryForward,
-                        CreatedOn = DateTime.UtcNow,
-                        UpdatedOn = DateTime.UtcNow,
-                        ApprovedOn = approvedOn,
-                        SentByUsername = approvedOn is not null ? "system" : null
-                    };
+                    Id = GuidExtensions.NewSequentialGuid(),
+                    BrandId = brand.Id,
+                    AgentId = x.AgentId,
+                    Status = (short)x.Status,
+                    AgentDividendId = x.AgentDividendId,
+                    AgentDividendAmount = x.AgentDividendAmount,
+                    ActualAgentDividendAmount = x.AgentDividendAmount + x.NegativeAgentDividendAmount,
+                    NegativeAgentDividendAmount = x.NegativeAgentDividendAmount,
+                    NegativeAgentDividendCarryForward = x.NegativeAgentDividendCarryForward,
+                    CreatedOn = x.CreatedOn,
+                    UpdatedOn = x.UpdatedOn,
+                    ApprovedOn = x.ApprovedOn,
+                    SentByUsername = x.SentByUsername
                 }),
             cancellationToken);
 

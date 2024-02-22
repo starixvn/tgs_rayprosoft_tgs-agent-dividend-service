@@ -171,7 +171,7 @@ public class AgentDividendHandlerTests
 
         await sut.Handle(request, default);
 
-        _ = fakeRepository.ReceivedWithAnyArgs(1).CreateAgentDividendsAsync(null!, null!, null!, default);
+        _ = fakeRepository.ReceivedWithAnyArgs(1).CreateAgentDividendsAsync(null!, null!, null!, null!, default);
     }
 
     //[TestCase(false)]
