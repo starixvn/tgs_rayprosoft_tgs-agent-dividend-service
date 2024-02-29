@@ -9,6 +9,7 @@ public class AgentDividendModel
     public Guid BrandId { get; set; }
     public DateTimeOffset From { get; set; }
     public DateTimeOffset To { get; set; }
+    public DateTimeOffset? SentOn { get; set; }
     public decimal PromotionAmount { get; set; }
     public decimal RebateAmount { get; set; }
     public decimal DepositAmount { get; set; }

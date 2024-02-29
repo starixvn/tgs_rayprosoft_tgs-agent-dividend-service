@@ -88,6 +88,7 @@ internal class BrandAgentDividendHandler(
                     AgentId = x.AgentId,
                     From = x.From.UtcDateTime,
                     To = x.To.UtcDateTime,
+                    SentOn = !agent.NegativeAgentDividendCarryForward && x.AgentDividendAmount <= 0 ? DateTimeOffset.UtcNow : null,
                     AutoSend = brand.AutoSentAgentBonus,
                     AgentDividendPercentage = x.AgentDividendPercentage,
                     PromotionAmount = x.PromotionAmount,
