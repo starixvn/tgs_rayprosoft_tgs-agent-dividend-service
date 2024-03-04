@@ -786,13 +786,18 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IMemoryC
         string? remark,
         CancellationToken cancellationToken)
     {
+        var agentDividendIds = await context.AgentDividends
+            .Where(x => x.Id == agentDividendId || x.ReferencedAgentDividendId == agentDividendId)
+            .Select(x => x.Id)
+            .ToArrayAsync(cancellationToken);
+
         await context.AgentDividends
-            .Where(x => x.Id == agentDividendId)
+            .Where(x => x.Id == agentDividendId || x.ReferencedAgentDividendId == agentDividendId)
             .ExecuteUpdateAsync(s =>
                     s.SetProperty(e => e.SentOn, DateTime.UtcNow),
                 cancellationToken);
 
-        await context.AgentDividendRecords.Where(x => x.AgentDividendId == agentDividendId)
+        await context.AgentDividendRecords.Where(x => agentDividendIds.Contains(x.AgentDividendId))
             .ExecuteUpdateAsync(s =>
                     s.SetProperty(e => e.ApprovedOn, DateTime.UtcNow)
                         .SetProperty(e => e.Status, (short)status)
