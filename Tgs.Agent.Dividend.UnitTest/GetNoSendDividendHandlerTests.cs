@@ -145,7 +145,7 @@ public class GetNoSendDividendHandlerTests
             CreateCreateAgentDividendModelFixture(101, brandId, agentId, 50, 50).Create<AgentDividendModel>(),
             CreateCreateAgentDividendModelFixture(102, brandId, agentId, 40, -10).Create<AgentDividendModel>(),
             CreateCreateAgentDividendModelFixture(103, brandId, agentId2, 33, 100).Create<AgentDividendModel>(),
-            CreateCreateAgentDividendModelFixture(104, brandId, agentId3, 33, -100).Create<AgentDividendModel>()
+            CreateCreateAgentDividendModelFixture(104, brandId, agentId3, 33, -100, false).Create<AgentDividendModel>()
         };
 
         var agentNegatives = new[]
