@@ -33,8 +33,6 @@ internal class GetNoSendDividendHandler(IRepository repository)
             }
 
             HandleAutoSend(dividend, agentNoSendDividend);
-
-            HandleNegativeDividendCarryForward(dividend);
         }
 
         return new NoSendDividendResponse { Model = request.AgentDividends, NegativeDividendsIds = noSendDividendIds };
@@ -82,11 +80,5 @@ internal class GetNoSendDividendHandler(IRepository repository)
     {
         if ((dividend.BeforeDividendAmount ?? dividend.AgentDividendAmount) + agentNoSendDividend < 0)
             dividend.AutoSend = false;
-    }
-
-    private static void HandleNegativeDividendCarryForward(AgentDividendModel dividend)
-    {
-        if (dividend is { NegativeAgentDividendCarryForward: false, AgentDividendAmount: < 0 })
-            dividend.AutoSend = true;
     }
 }
