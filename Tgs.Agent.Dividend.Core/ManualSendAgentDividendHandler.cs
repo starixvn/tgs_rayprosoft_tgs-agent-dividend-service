@@ -9,30 +9,21 @@ using Tgs.Agent.Dividend.Domain.Models;
 namespace Tgs.Agent.Dividend.Core;
 
 internal class ManualSendAgentDividendHandler(
-    IBackgroundTaskQueue backgroundTaskQueue,
-    IRepository repository)
+    IBackgroundTaskQueue backgroundTaskQueue)
     : IRequestHandler<ManualSendAgentDividend>
 {
     public async Task Handle(ManualSendAgentDividend request, CancellationToken cancellationToken)
     {
-        var agentDividendRecord =
-            await repository.GetAgentDividendRecordAsync(request.AgentDividendRecordId, cancellationToken);
-
-        if (agentDividendRecord is { ApprovedOn: null })
+        await backgroundTaskQueue.QueueBackgroundWorkItemAsync(async (scope, token) =>
         {
-            await backgroundTaskQueue.QueueBackgroundWorkItemAsync(async (scope, token) =>
-            {
-                var innerMediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+            var innerMediator = scope.ServiceProvider.GetRequiredService<IMediator>();
 
-                await innerMediator.Publish(new SendAgentDividendByManualEvent(agentDividendRecord.BrandId,
-                        agentDividendRecord.AgentId,
-                        agentDividendRecord.ActualAgentDividendAmount,
-                        agentDividendRecord.AgentDividendId,
-                        request.EditorUsername,
-                        request.Approve ? DistributeStatus.Sent : DistributeStatus.Rejected,
-                        request.Remark),
-                    token);
-            });
-        }
+            await innerMediator.Publish(new SendAgentDividendByManualEvent(
+                    request.AgentDividendRecordId,
+                    request.EditorUsername,
+                    request.Approve ? DistributeStatus.Sent : DistributeStatus.Rejected,
+                    request.Remark),
+                token);
+        });
     }
 }
