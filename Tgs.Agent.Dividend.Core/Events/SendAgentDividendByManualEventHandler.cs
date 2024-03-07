@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using Tgs.Agent.Client;
 using Tgs.Agent.Client.Models;
+using Tgs.Agent.Dividend.Domain.Enums;
 using Tgs.Agent.Dividend.Domain.Events;
 using Tgs.Agent.Dividend.Domain.Interfaces.Repositories;
 using Tgs.CashService.Client;
@@ -30,7 +31,7 @@ internal class SendAgentDividendByManualEventHandler(
         {
             await repository.UpdateSentOnByManualSendAsync(@event.AgentDividendId, @event.Status, @event.SendByUsername, @event.Remark, cancellationToken);
 
-            if (@event.Amount > 0)
+            if (@event is { Amount: > 0, Status: DistributeStatus.Sent })
                 _ = await cashServiceClient.AgentDividendAsync(agent.WalletId.Value,
                     @event.Amount,
                     "",
