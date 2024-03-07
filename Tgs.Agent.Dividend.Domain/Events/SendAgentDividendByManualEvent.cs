@@ -4,10 +4,7 @@ using Tgs.Agent.Dividend.Domain.Enums;
 namespace Tgs.Agent.Dividend.Domain.Events;
 
 public record SendAgentDividendByManualEvent(
-    Guid BrandId,
-    Guid AgentId,
-    decimal Amount,
-    int AgentDividendId,
+    Guid AgentDividendRecordId,
     string SendByUsername,
     DistributeStatus Status,
     string? Remark)

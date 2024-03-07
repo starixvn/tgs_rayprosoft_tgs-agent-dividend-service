@@ -18,7 +18,18 @@ internal class SendAgentDividendByManualEventHandler(
 {
     public async Task Handle(SendAgentDividendByManualEvent @event, CancellationToken cancellationToken)
     {
-        var agent = await agentClient.GetAgentInfoAsync(new GetAgentInfoRequest(@event.AgentId), cancellationToken);
+        var agentDividendRecord =
+            await repository.GetAgentDividendRecordAsync(@event.AgentDividendRecordId, cancellationToken);
+
+        if (agentDividendRecord == null)
+        {
+            logger.LogError("Can't found agentDividendRecord:{request}", @event);
+
+            return;
+        }
+
+        var agent = await agentClient.GetAgentInfoAsync(new GetAgentInfoRequest(agentDividendRecord.AgentId),
+            cancellationToken);
 
         if (agent?.WalletId == null)
         {
@@ -29,13 +40,17 @@ internal class SendAgentDividendByManualEventHandler(
 
         try
         {
-            await repository.UpdateSentOnByManualSendAsync(@event.AgentDividendId, @event.Status, @event.SendByUsername, @event.Remark, cancellationToken);
+            await repository.UpdateSentOnByManualSendAsync(agentDividendRecord.AgentDividendId,
+                @event.Status,
+                @event.SendByUsername,
+                @event.Remark,
+                cancellationToken);
 
-            if (@event is { Amount: > 0, Status: DistributeStatus.Sent })
+            if (agentDividendRecord.ActualAgentDividendAmount > 0 && @event.Status == DistributeStatus.Sent)
                 _ = await cashServiceClient.AgentDividendAsync(agent.WalletId.Value,
-                    @event.Amount,
+                    agentDividendRecord.ActualAgentDividendAmount,
                     "",
-                    @event.AgentDividendId.ToString(),
+                    agentDividendRecord.AgentDividendId.ToString(),
                     cancellationToken);
         }
         catch (Exception e)
