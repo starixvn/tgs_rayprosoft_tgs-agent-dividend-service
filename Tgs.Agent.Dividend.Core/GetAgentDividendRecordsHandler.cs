@@ -1,4 +1,5 @@
-﻿using MediatR;
+﻿using System.Runtime.CompilerServices;
+using MediatR;
 using Tgs.Agent.Dividend.Domain.Interfaces.Repositories;
 using Tgs.Agent.Dividend.Domain.Models;
 using Tgs.Agent.Dividend.Domain.Models.BrandContract;
@@ -9,10 +10,10 @@ internal class GetAgentDividendRecordsHandler(
     IRepository repository)
     : IStreamRequestHandler<GetAgentDividendRecordsRequest, AgentDividendRecordModel>
 {
-    public IAsyncEnumerable<AgentDividendRecordModel> Handle(GetAgentDividendRecordsRequest request,
-        CancellationToken cancellationToken)
+    public async IAsyncEnumerable<AgentDividendRecordModel> Handle(GetAgentDividendRecordsRequest request,
+        [EnumeratorCancellation] CancellationToken cancellationToken)
     {
-        return repository.GetAgentDividendRecordsAsync(request.BrandId,
+        var records = await repository.GetAgentDividendRecordsAsync(request.BrandId,
             request.Status,
             request.From,
             request.To,
@@ -20,5 +21,10 @@ internal class GetAgentDividendRecordsHandler(
             request.ApprovedTo,
             request.AgentUsername,
             request.NegativeAgentDividendCarryForward);
+
+        foreach (var agentDividendRecordModel in records)
+        {
+            yield return agentDividendRecordModel;
+        }
     }
 }

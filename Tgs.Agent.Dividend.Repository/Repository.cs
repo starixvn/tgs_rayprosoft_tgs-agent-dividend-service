@@ -596,7 +596,7 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IMemoryC
             .ToAsyncEnumerable();
     }
 
-    public IAsyncEnumerable<AgentDividendRecordModel> GetAgentDividendRecordsAsync(Guid brandId,
+    public async Task<IEnumerable<AgentDividendRecordModel>> GetAgentDividendRecordsAsync(Guid brandId,
         DistributeStatus? status,
         DateTime? from,
         DateTime? to,
@@ -605,7 +605,7 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IMemoryC
         string? agentUsername,
         bool? negativeAgentDividendCarryForward)
     {
-        return context.AgentDividends.Where(x => x.BrandId == brandId)
+        return await context.AgentDividends.Where(x => x.BrandId == brandId)
             .Where(from != null, x => x.From >= from)
             .Where(to != null, x => x.To < to)
             .Join(context.AgentDividendRecords,
@@ -659,7 +659,7 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IMemoryC
                     x.adr.UpdatedOn,
                     x.adr.ApprovedOn,
                     x.adr.Remark))
-            .ToAsyncEnumerable();
+            .ToArrayAsync();
     }
 
     public Task<AgentDividendRecordManuallyModel?> GetAgentDividendRecordAsync(Guid id,
@@ -786,18 +786,13 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IMemoryC
         string? remark,
         CancellationToken cancellationToken)
     {
-        var agentDividendIds = await context.AgentDividends
-            .Where(x => x.Id == agentDividendId || x.ReferencedAgentDividendId == agentDividendId)
-            .Select(x => x.Id)
-            .ToArrayAsync(cancellationToken);
-
         await context.AgentDividends
             .Where(x => x.Id == agentDividendId || x.ReferencedAgentDividendId == agentDividendId)
             .ExecuteUpdateAsync(s =>
                     s.SetProperty(e => e.SentOn, DateTime.UtcNow),
                 cancellationToken);
 
-        await context.AgentDividendRecords.Where(x => agentDividendIds.Contains(x.AgentDividendId))
+        await context.AgentDividendRecords.Where(x => x.AgentDividendId == agentDividendId)
             .ExecuteUpdateAsync(s =>
                     s.SetProperty(e => e.ApprovedOn, DateTime.UtcNow)
                         .SetProperty(e => e.Status, (short)status)

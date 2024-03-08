@@ -3,7 +3,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Tgs.Agent.Dividend.Core.Workers;
 using Tgs.Agent.Dividend.Domain.Enums;
 using Tgs.Agent.Dividend.Domain.Events;
-using Tgs.Agent.Dividend.Domain.Interfaces.Repositories;
 using Tgs.Agent.Dividend.Domain.Models;
 
 namespace Tgs.Agent.Dividend.Core;
