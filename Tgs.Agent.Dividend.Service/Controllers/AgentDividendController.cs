@@ -31,6 +31,8 @@ public class AgentDividendController(IMediator mediator) : ControllerBase
                 request.Approve,
                 request.EditorUsername,
                 request.Remark));
+
+        await Task.Delay(2000, HttpContext.RequestAborted);
     }
 
     [HttpPut("{agentId}/clear-negative-dividend/{clearByUserId}")]

@@ -172,7 +172,7 @@ public class AgentDividendTests
                 Arg.Any<DateTime?>(),
                 Arg.Any<string?>(),
                 Arg.Any<bool?>())
-            .Returns(fixture.CreateMany<AgentDividendRecordModel>(1).ToAsyncEnumerable());
+            .Returns(fixture.CreateMany<AgentDividendRecordModel>(1));
 
         await using var web = new TestAgentDividendApplication(builder => builder.ConfigureServices(services =>
         {

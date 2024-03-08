@@ -32,13 +32,13 @@ internal class CreateAgentDividendHandler(
 
         var records = request.Models.Select(x =>
         {
-            var status = x.AgentDividendAmount <= 0
-                ? DistributeStatus.Sent
-                : DistributeStatus.ReadyToApprove;
+            var actualAmount = x.BeforeDividendAmount == null
+                ? x.AgentDividendAmount + x.NegativeAgentDividendAmount
+                : x.AgentDividendAmount;
 
-            var approvedOn = x.AgentDividendAmount <= 0
-                ? DateTime.UtcNow
-                : (DateTime?)null;
+            var status = actualAmount <= 0 ? DistributeStatus.Sent : DistributeStatus.ReadyToApprove;
+
+            var approvedOn = actualAmount <= 0 ? DateTime.UtcNow : (DateTime?)null;
 
             return new CreateAgentDividendRecordsModel
             {
@@ -47,9 +47,7 @@ internal class CreateAgentDividendHandler(
                 Status = status,
                 AgentDividendId = x.Id,
                 AgentDividendAmount = x.BeforeDividendAmount ?? x.AgentDividendAmount,
-                ActualAgentDividendAmount = x.BeforeDividendAmount == null
-                    ? x.AgentDividendAmount + x.NegativeAgentDividendAmount
-                    : x.AgentDividendAmount,
+                ActualAgentDividendAmount = actualAmount,
                 NegativeAgentDividendAmount = x.NegativeAgentDividendAmount,
                 NegativeAgentDividendCarryForward = x.NegativeAgentDividendCarryForward,
                 CreatedOn = DateTime.UtcNow,
