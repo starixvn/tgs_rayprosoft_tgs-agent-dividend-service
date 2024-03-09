@@ -31,13 +31,16 @@ internal class OneLayerDividendCalculator(IContractRepository contractRepository
                 cancellationToken)
             .Where(x => x.AgentId == agent.Id)
             .ToArrayAsync(cancellationToken);
+
         var i = 0;
 
-        var agents = await repository.GetAgentsCacheAsyncEnumerable(brand.Id, cancellationToken)
-            .ToArrayAsync(cancellationToken);
-
         if (!await agentAggregates.AnyAsync(cancellationToken))
+        {
+            var agents = await repository.GetAgentsCacheAsyncEnumerable(brand.Id, cancellationToken)
+                .ToArrayAsync(cancellationToken);
+
             yield return GetDefaultAggregate(idNumber + 1, agent.Id, brand, agents);
+        }
         else
             await foreach (var agentPlayerAggregateModel in agentAggregates)
             {
@@ -94,8 +97,13 @@ internal class OneLayerDividendCalculator(IContractRepository contractRepository
         CancellationToken cancellation)
     {
         return multipleLayer.Where(p
-            => p.AgentId == agentPlayerAggregate.AgentId &&
-               p.AgentDividendPercentage == agentPlayerAggregate.AgentDividendPercentage);
+            => (p.AgentId == agentPlayerAggregate.AgentId &&
+                p.AgentDividendPercentage == agentPlayerAggregate.AgentDividendPercentage &&
+                p.AgentId != p.DividendProviderAgentId) ||
+               (p.AgentId == agentPlayerAggregate.AgentId &&
+                p.AgentDividendPercentage == agentPlayerAggregate.AgentDividendPercentage &&
+                p.AgentId == p.DividendProviderAgentId &&
+                agentPlayerAggregate.Id == p.DividendProviderId));
     }
 
     private static IEnumerable<AgentDividendMultipleLayerModel> GetAgentDividends(
