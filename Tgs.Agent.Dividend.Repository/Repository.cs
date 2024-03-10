@@ -1,4 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
+using System.Text.Json;
 using System.Transactions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
@@ -207,10 +208,19 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IMemoryC
                                          list
                                      })
                                  .SelectMany(x => x.list.DefaultIfEmpty(),
-                                     (x, gameAgg) => new
+                                     (x, gameAgg) =>
                                      {
-                                         x.agg,
-                                         gameAgg
+                                         var treeData = JsonSerializer.Deserialize<AgentDividendPercentageData[]>(x.agg
+                                             .AgentDividendPercentageTreeData!)!;
+
+                                         var treeDataString = JsonSerializer.Serialize(treeData.OrderBy(t => t.AgentId));
+
+                                         return new
+                                         {
+                                             x.agg,
+                                             gameAgg,
+                                             FormatAgentDividendPercentageTreeData = treeDataString
+                                         };
                                      })
                                  .GroupBy(x => new
                                      {
@@ -219,7 +229,7 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IMemoryC
                                          x.agg.BrandId,
                                          x.agg.AgentId,
                                          x.agg.AgentDividendPercentage,
-                                         x.agg.AgentDividendPercentageTreeData,
+                                         x.FormatAgentDividendPercentageTreeData,
                                          x.agg.PromotionAmount,
                                          x.agg.RebateAmount,
                                          x.agg.DepositAmount,
@@ -244,7 +254,7 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IMemoryC
                                          groupItem.AgentId,
                                          groupItem.BrandId,
                                          groupItem.AgentDividendPercentage,
-                                         groupItem.AgentDividendPercentageTreeData,
+                                         groupItem.FormatAgentDividendPercentageTreeData,
                                          groupItem.PromotionAmount,
                                          groupItem.RebateAmount,
                                          groupItem.DepositAmount,
@@ -277,8 +287,8 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IMemoryC
                                          x.BrandId,
                                          x.AgentId,
                                          x.AgentDividendPercentage,
-                                         x.AgentDividendPercentageTreeData
-                                     },
+                                         x.FormatAgentDividendPercentageTreeData
+                                 },
                                      (groupItem, list) => new AgentPlayerAggregateModel
                                      {
                                          AgentId = groupItem.AgentId,
@@ -286,7 +296,7 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IMemoryC
                                          From = from,
                                          To = to,
                                          AgentDividendPercentage = groupItem.AgentDividendPercentage,
-                                         AgentDividendPercentageTreeData = groupItem.AgentDividendPercentageTreeData,
+                                         AgentDividendPercentageTreeData = groupItem.FormatAgentDividendPercentageTreeData,
                                          PromotionAmount = list.Sum(x => x.PromotionAmount),
                                          RebateAmount = list.Sum(x => x.RebateAmount),
                                          DepositAmount = list.Sum(x => x.DepositAmount),

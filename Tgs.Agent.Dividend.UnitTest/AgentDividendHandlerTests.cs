@@ -691,30 +691,4 @@ public class AgentDividendHandlerTests
         fixture.Behaviors.Add(new OmitOnRecursionBehavior());
         return fixture;
     }
-
-    private static Fixture CreateAgentPlayerAggregateFixture(Guid brandId,
-        Guid agentId,
-        DateTime from,
-        DateTime to,
-        decimal winLoss,
-        decimal agentDividendPercentage,
-        string path)
-    {
-        var fixture = new Fixture();
-        fixture.Customize<AgentPlayerAggregateModel>(u => u
-            .With(s => s.BrandId, brandId)
-            .With(s => s.AgentId, agentId)
-            .With(s => s.From, from)
-            .With(s => s.To, to)
-            .With(s => s.WinLossAmount, winLoss)
-            .With(s => s.BonusAmount, 0)
-            .With(s => s.AgentAdjustAmount, 0)
-            .With(s => s.NoIncludeNetProfitAgentAdjustAmount, 0)
-            .With(s => s.BonusAdjustAmount, 0)
-            .With(s => s.NoIncludeNetProfitBonusAdjustAmount, 0)
-            .With(s => s.AgentDividendPercentage, agentDividendPercentage)
-            .With(s => s.AgentDividendPercentageTreeData, path));
-        fixture.Behaviors.Add(new OmitOnRecursionBehavior());
-        return fixture;
-    }
 }
