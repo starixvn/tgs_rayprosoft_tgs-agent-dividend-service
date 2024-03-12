@@ -29,7 +29,7 @@ internal class GetNoSendDividendHandler(IRepository repository)
             if (agentNoSendDividend < 0 && dividend.AgentDividendAmount + agentNoSendDividend >= 0)
             {
                 AdjustDividendAmount(dividend, agentNoSendDividend);
-                UpdateNoSendDividendIds(agentNoSendDividends, noSendDividendIds, dividend);
+                UpdateNoSendDividendIds(agentNoSendDividends, noSendDividendIds, dividend, request.AgentDividends);
             }
 
             HandleAutoSend(dividend, agentNoSendDividend);
@@ -57,17 +57,36 @@ internal class GetNoSendDividendHandler(IRepository repository)
         var agentDividendCount = agentDividendModels.Count(x => x.AgentId == dividend.AgentId);
 
         if (agentDividendCount > 1)
-            deductedNegativeDividends[dividend.AgentId] = dividend.AgentDividendAmount + agentNoSendDividend >= 0
-                ? 0
-                : dividend.AgentDividendAmount + agentNoSendDividend;
+        {
+            var actualAmount = dividend.AgentDividendAmount + agentNoSendDividend;
+
+            var changeToPositiveNumber = actualAmount >= 0;
+
+            deductedNegativeDividends[dividend.AgentId] = changeToPositiveNumber ? 0 : actualAmount;
+
+            if (!changeToPositiveNumber)
+            {
+                dividend.ShouldReferToNextRecord = true;
+            }
+        }
     }
 
     private static void UpdateNoSendDividendIds(IEnumerable<NegativeAgentDividendModel> agentNoSendDividends,
         Dictionary<int, int> noSendDividendIds,
-        AgentDividendModel dividend)
+        AgentDividendModel dividend,
+        IEnumerable<AgentDividendModel> agentDividendModels)
     {
         foreach (var negativeDividend in agentNoSendDividends.Where(nd => !noSendDividendIds.ContainsKey(nd.Id)))
+        {
             noSendDividendIds.Add(negativeDividend.Id, dividend.Id);
+        }
+
+        foreach (var agentDividendModel in agentDividendModels.Where(x =>
+                     x.AgentId == dividend.AgentId && x.ShouldReferToNextRecord))
+        {
+            agentDividendModel.ReferencedAgentDividendId = dividend.Id;
+            agentDividendModel.ShouldReferToNextRecord = false;
+        }
     }
 
     private static void AdjustDividendAmount(AgentDividendModel dividend, decimal agentNoSendDividend)
