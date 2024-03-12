@@ -86,8 +86,13 @@ internal class OneLayerDividendCalculator(IContractRepository contractRepository
         CancellationToken cancellation)
     {
         return multipleLayer.Where(p
-                       => p.AgentId == agentPlayerAggregate.AgentId &&
-                          p.AgentDividendPercentage == agentPlayerAggregate.AgentDividendPercentage)
+                       => (p.AgentId == agentPlayerAggregate.AgentId &&
+                           p.AgentDividendPercentage == agentPlayerAggregate.AgentDividendPercentage &&
+                           p.AgentId != p.DividendProviderAgentId) ||
+                          (p.AgentId == agentPlayerAggregate.AgentId &&
+                           p.AgentDividendPercentage == agentPlayerAggregate.AgentDividendPercentage &&
+                           p.AgentId == p.DividendProviderAgentId &&
+                           agentPlayerAggregate.Id == p.DividendProviderId))
                    .Sum(s => s.Dividend) -
                (agentPlayerAggregate.AgentAdjustAmount - agentPlayerAggregate.NoIncludeNetProfitAgentAdjustAmount);
     }
