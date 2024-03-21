@@ -36,9 +36,11 @@ internal class CreateAgentDividendHandler(
                 ? x.AgentDividendAmount + x.NegativeAgentDividendAmount
                 : x.AgentDividendAmount;
 
-            var status = actualAmount <= 0 ? DistributeStatus.Sent : DistributeStatus.ReadyToApprove;
+            var status = actualAmount <= 0 || brand.AutoSentAgentBonus
+                ? DistributeStatus.Sent
+                : DistributeStatus.ReadyToApprove;
 
-            var approvedOn = actualAmount <= 0 ? DateTime.UtcNow : (DateTime?)null;
+            var approvedOn = status == DistributeStatus.Sent ? DateTime.UtcNow : (DateTime?)null;
 
             return new CreateAgentDividendRecordsModel
             {
