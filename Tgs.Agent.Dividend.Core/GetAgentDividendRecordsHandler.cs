@@ -2,7 +2,6 @@
 using MediatR;
 using Tgs.Agent.Dividend.Domain.Interfaces.Repositories;
 using Tgs.Agent.Dividend.Domain.Models;
-using Tgs.Agent.Dividend.Domain.Models.BrandContract;
 
 namespace Tgs.Agent.Dividend.Core;
 

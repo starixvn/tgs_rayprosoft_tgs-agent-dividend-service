@@ -10,16 +10,6 @@ public static class ServiceCollectionExtensions
     {
         return services.AddOptions<AgentDividnedOptions>()
             .Configure(configure)
-            .Services.AddHttpClient<IBrandContractClient, BrandContractClient>((sp, c) =>
-            {
-                var options = sp.GetRequiredService<IOptions<AgentDividnedOptions>>().Value;
-                c.BaseAddress = options.BaseUrl;
-            })
-            .Services.AddHttpClient<IAgentContractClient, AgentContractClient>((sp, c) =>
-            {
-                var options = sp.GetRequiredService<IOptions<AgentDividnedOptions>>().Value;
-                c.BaseAddress = options.BaseUrl;
-            })
             .Services.AddHttpClient<IAgentDividendClient, AgentDividendClient>((sp, c) =>
             {
                 var options = sp.GetRequiredService<IOptions<AgentDividnedOptions>>().Value;
