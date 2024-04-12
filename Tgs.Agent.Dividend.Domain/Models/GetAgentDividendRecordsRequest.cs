@@ -1,7 +1,7 @@
 ﻿using MediatR;
 using Tgs.Agent.Dividend.Domain.Enums;
 
-namespace Tgs.Agent.Dividend.Domain.Models.BrandContract;
+namespace Tgs.Agent.Dividend.Domain.Models;
 
 public record GetAgentDividendRecordsRequest(
     Guid BrandId,

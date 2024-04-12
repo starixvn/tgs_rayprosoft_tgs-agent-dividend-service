@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using Tgs.Agent.Client;
 using Tgs.Agent.Client.Models;
 using Tgs.Agent.Dividend.Domain.Models;
-using Tgs.Agent.Dividend.Domain.Models.BrandContract;
 
 namespace Tgs.Agent.Dividend.Service.Controllers;
 
