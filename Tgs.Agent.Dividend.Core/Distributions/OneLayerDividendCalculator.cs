@@ -1,5 +1,4 @@
-﻿using System.Diagnostics.Contracts;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Tgs.Agent.Dividend.Domain;
@@ -46,7 +45,35 @@ internal class OneLayerDividendCalculator(IContractRepository contractRepository
             {
                 agentPlayerAggregateModel.Id = idNumber + i + 1;
                 agentPlayerAggregateModel.ActiveNumber = betPlayers.Length;
-                agentPlayerAggregateModel.PlatformChargePercentage = brand.PlatformCharge;
+
+                agentPlayerAggregateModel.AgentDividendPlatformCharges = await repository
+                    .GetAgentPlatformChargeCacheAsync(brand.Id,
+                        agentPlayerAggregateModel.AgentDividendPercentage,
+                        brand.CurrentSettlementFrom,
+                        brand.CurrentSettlementTo,
+                        cancellationToken)
+                    .Where(x => x.AgentId == agent.Id)
+                    .ToArrayAsync(cancellationToken);
+
+                foreach (var agentDividendPlatformChargeModel in agentPlayerAggregateModel.AgentDividendPlatformCharges)
+                {
+                    agentDividendPlatformChargeModel.AgentDividendId = agentPlayerAggregateModel.Id;
+                }
+
+                agentPlayerAggregateModel.AgentDividendProductFees = await repository
+                    .GetAgentProductFeeCacheAsync(brand.Id,
+                        agentPlayerAggregateModel.AgentDividendPercentage,
+                        brand.CurrentSettlementFrom,
+                        brand.CurrentSettlementTo,
+                        cancellationToken)
+                    .Where(x => x.AgentId == agent.Id)
+                    .ToArrayAsync(cancellationToken);
+
+                foreach (var agentDividendProductFeeModel in agentPlayerAggregateModel.AgentDividendProductFees)
+                {
+                    agentDividendProductFeeModel.AgentDividendId = agentPlayerAggregateModel.Id;
+                }
+
                 i++;
 
                 yield return agentPlayerAggregateModel;
@@ -77,7 +104,7 @@ internal class OneLayerDividendCalculator(IContractRepository contractRepository
                      agentPlayerAggregate.AgentId,
                      agentPlayerAggregate.BonusAmount,
                      bonusAdjustAmount,
-                     agentPlayerAggregate.NetProfit(brand.PlatformCharge)))
+                     agentPlayerAggregate.NetProfit()))
             yield return agentDividendMultipleLayerModel;
     }
 

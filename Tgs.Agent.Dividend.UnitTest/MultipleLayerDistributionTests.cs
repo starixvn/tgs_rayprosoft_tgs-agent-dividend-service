@@ -15,19 +15,16 @@ public class MultipleLayerDistributionTests
     {
     }
 
-    [TestCase(-110, 0, 0, 0, 1, 2, 0)]
-    [TestCase(-100, 0, 0, 0, 1, 2, 0)]
-    [TestCase(-100, 2, 2, 2, 1, 2, 0)]
-    [TestCase(110, 0, 0, 0, 1, 2, 13.2)]
-    [TestCase(100, 0, 0, 0, 1, 2, 10.0)]
-    [TestCase(100, 2, 2, 2, 1, 2, 0)]
-    [TestCase(110, 0, 0, 0, 1, 2, 13.2)]
-    [TestCase(100, 0, 0, 0, 1, 2, 10.0)]
-    [TestCase(100, 2, 2, 2, 1, 2, 0)]
+    [TestCase(-110, 1, 2, 0)]
+    [TestCase(-100, 1, 2, 0)]
+    [TestCase(-100, 1, 2, 0)]
+    [TestCase(110, 1, 2, 13.2)]
+    [TestCase(100, 1, 2, 10.0)]
+    [TestCase(100, 1, 2, 0)]
+    [TestCase(110, 1, 2, 13.2)]
+    [TestCase(100, 1, 2, 10.0)]
+    [TestCase(100, 1, 2, 0)]
     public async Task Generate_Agent_Dividend(decimal winLossAmount,
-        decimal contractValidBetAmount,
-        decimal contractDepositAmount,
-        int contractBetDays,
         int player1BetDays,
         int player2BetDays,
         decimal dividend)
@@ -46,14 +43,6 @@ public class MultipleLayerDistributionTests
         var to = DateTime.Parse("2023/12/06 00:00:00+8");
         var player1 = "player1";
         var player2 = "player2";
-
-        var contract = CreateContractFixture(brandId,
-                agentId,
-                ContractDividendType.MultipleLayer,
-                contractValidBetAmount,
-                contractDepositAmount,
-                contractBetDays)
-            .Create<AgentDividendContractModel>();
 
         var brand = CreateBrandFixture(brandId, from, to, 0, AgentDividendType.OneLayer).Create<BrandModel>();
 
@@ -80,10 +69,10 @@ public class MultipleLayerDistributionTests
 
         var conditions = new[]
         {
-            CreateAgentContractConditionFixture(1, contract.Id, 2, 0, 100, 10)
-                .Create<AgentDividendContractConditionModel>(),
-            CreateAgentContractConditionFixture(2, contract.Id, 2, 0, 110, 12)
-                .Create<AgentDividendContractConditionModel>()
+            CreateAgentContractConditionFixture(1, 2, 0, 100, 10)
+                .Create<AgentDividendConditionModel>(),
+            CreateAgentContractConditionFixture(2, 2, 0, 110, 12)
+                .Create<AgentDividendConditionModel>()
         };
 
         fakeRepository.GetBrandAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(brand);
@@ -92,13 +81,13 @@ public class MultipleLayerDistributionTests
             .Returns(agents.ToAsyncEnumerable());
 
         fakeRepository
-            .GetAgentPlayerGameAggregatesCacheAsync(brandId, from, to)
+            .GetAgentPlayerGameAggregatesCacheAsync(brandId, from, to, default)
             .Returns(agentPlayerGameAggregates.ToAsyncEnumerable());
 
         fakeRepository.GetAgentPlayerBetCountsCacheAsync(brandId, from, to, Arg.Any<CancellationToken>())
             .Returns(playerBetDays.ToAsyncEnumerable());
 
-        fakeContractRepository.GetAgentDividendContractConditionsAsync(contract.Id, Arg.Any<CancellationToken>())
+        fakeContractRepository.GetAgentDividendConditionsAsync(agentId, Arg.Any<CancellationToken>())
             .Returns(conditions.ToAsyncEnumerable());
 
         var response = await sut.GetAgentPlayerAggregateAsync(10, brand, agents.First(), default).ToArrayAsync();
@@ -106,18 +95,15 @@ public class MultipleLayerDistributionTests
         Assert.That(response, Has.Length.EqualTo(1));
     }
 
-    [TestCase(-110, 0, 0, 0, 2, 0)]
-    [TestCase(-100, 0, 0, 0, 2, 0)]
-    [TestCase(-100, 2, 2, 2, 2, 0)]
-    [TestCase(110, 0, 0, 0, 2, 13.2)]
-    [TestCase(100, 0, 0, 0, 2, 10.0)]
-    [TestCase(100, 2, 2, 2, 2, 10.0)]
-    [TestCase(110, 0, 0, 0, 2, 13.2)]
-    [TestCase(100, 0, 0, 0, 2, 10.0)]
+    [TestCase(-110, 2, 0)]
+    [TestCase(-100, 2, 0)]
+    [TestCase(-100, 2, 0)]
+    [TestCase(140, 2, 13.44)]
+    [TestCase(140, 1, 0)]
+    [TestCase(130, 2, 10.4)]
+    [TestCase(110, 2, 0)]
+    [TestCase(100, 2, 0)]
     public async Task Generate_Agent_Dividend2(decimal winLossAmount,
-        decimal contractValidBetAmount,
-        decimal contractDepositAmount,
-        int contractBetDays,
         int activeNumber,
         decimal dividend)
     {
@@ -134,14 +120,6 @@ public class MultipleLayerDistributionTests
         var from = DateTime.Parse("2023/12/06 00:00:00+8");
         var to = DateTime.Parse("2023/12/06 00:00:00+8");
 
-        var contract = CreateContractFixture(brandId,
-                agentId,
-                ContractDividendType.MultipleLayer,
-                contractValidBetAmount,
-                contractDepositAmount,
-                contractBetDays)
-            .Create<AgentDividendContractModel>();
-
         var brand = CreateBrandFixture(brandId, from, to, 0, AgentDividendType.MultipleLayer).Create<BrandModel>();
 
         var agents = new[]
@@ -155,6 +133,20 @@ public class MultipleLayerDistributionTests
             CreateAgentPlayerAggregateFixture(brandId, agentId, from, to, winLossAmount, activeNumber)
                 .Create<AgentPlayerAggregateModel>();
 
+        agentPlayerAggregate.AgentDividendPlatformCharges =
+        [
+            CreateAgentDividendPlatformChargeFixture(agentPlayerAggregate.Id, agentPlayerAggregate.AgentId,10, winLossAmount)
+                .Create<AgentDividendPlatformChargeModel>()
+        ];
+
+        agentPlayerAggregate.AgentDividendProductFees =
+        [
+            CreateAgentDividendProductFeeFixture(agentPlayerAggregate.Id, agentPlayerAggregate.AgentId,10, winLossAmount/2)
+                .Create<AgentDividendProductFeeModel>(),
+            CreateAgentDividendProductFeeFixture(agentPlayerAggregate.Id, agentPlayerAggregate.AgentId,10, winLossAmount/2)
+                .Create<AgentDividendProductFeeModel>()
+        ];
+
         var agentPlayerGameAggregates = new[]
         {
             CreateAgentPlayerGameAggregateFixture(brandId, agentId, from, to)
@@ -163,10 +155,10 @@ public class MultipleLayerDistributionTests
 
         var conditions = new[]
         {
-            CreateAgentContractConditionFixture(1, contract.Id, 2, 0, 100, 10)
-                .Create<AgentDividendContractConditionModel>(),
-            CreateAgentContractConditionFixture(2, contract.Id, 2, 0, 110, 12)
-                .Create<AgentDividendContractConditionModel>()
+            CreateAgentContractConditionFixture(1, 2, 0, 100, 10)
+                .Create<AgentDividendConditionModel>(),
+            CreateAgentContractConditionFixture(2, 2, 0, 110, 12)
+                .Create<AgentDividendConditionModel>()
         };
 
         fakeRepository.GetBrandAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(brand);
@@ -179,10 +171,10 @@ public class MultipleLayerDistributionTests
             .Returns(new[] { agentPlayerAggregate }.ToAsyncEnumerable());
 
         fakeRepository
-            .GetAgentPlayerGameAggregatesCacheAsync(brandId, from, to)
+            .GetAgentPlayerGameAggregatesCacheAsync(brandId, from, to, default)
             .Returns(agentPlayerGameAggregates.ToAsyncEnumerable());
 
-        fakeContractRepository.GetAgentDividendContractConditionsAsync(agentId, Arg.Any<CancellationToken>())
+        fakeContractRepository.GetAgentDividendConditionsAsync(agentId, Arg.Any<CancellationToken>())
             .Returns(conditions.ToAsyncEnumerable());
 
         var response = await sut.GenerateMultipleLayerAsync(brand, agents.First(), agentPlayerAggregate, true, default)
@@ -191,26 +183,6 @@ public class MultipleLayerDistributionTests
         Assert.That(response, Has.Length.EqualTo(1));
 
         Assert.That(response.First().Dividend, Is.EqualTo(dividend));
-    }
-
-    private static Fixture CreateContractFixture(Guid brandId,
-        Guid agentId,
-        ContractDividendType contractDividendType,
-        decimal validBetAmount,
-        decimal depositAmount,
-        int betDays)
-    {
-        var fixture = new Fixture();
-        fixture.Customize<AgentDividendContractModel>(u => u
-            .With(s => s.BrandId, brandId)
-            .With(s => s.AgentId, agentId)
-            .With(s => s.ContractStatus, 0)
-            .With(s => s.ContractDividendType, (short)contractDividendType)
-            .With(s => s.DepositAmount, depositAmount)
-            .With(s => s.BetDays, betDays)
-            .With(s => s.ValidBetAmount, validBetAmount));
-        fixture.Behaviors.Add(new OmitOnRecursionBehavior());
-        return fixture;
     }
 
     private static Fixture CreateBrandFixture(Guid brandId,
@@ -265,6 +237,30 @@ public class MultipleLayerDistributionTests
         return fixture;
     }
 
+    private static Fixture CreateAgentDividendPlatformChargeFixture(int agentDividendId, Guid agentId, decimal percentage, decimal winLoss)
+    {
+        var fixture = new Fixture();
+        fixture.Customize<AgentDividendPlatformChargeModel>(u => u
+            .With(s => s.AgentId, agentId)
+            .With(s => s.AgentDividendId, agentDividendId)
+            .With(s => s.PlatformChargePercentage, percentage)
+            .With(s => s.WinLossAmount, winLoss));
+        fixture.Behaviors.Add(new OmitOnRecursionBehavior());
+        return fixture;
+    }
+
+    private static Fixture CreateAgentDividendProductFeeFixture(int agentDividendId, Guid agentId, decimal percentage, decimal winLoss)
+    {
+        var fixture = new Fixture();
+        fixture.Customize<AgentDividendProductFeeModel>(u => u
+            .With(s => s.AgentId, agentId)
+            .With(s => s.AgentDividendId, agentDividendId)
+            .With(s => s.Percentage, percentage)
+            .With(s => s.WinLossAmount, winLoss));
+        fixture.Behaviors.Add(new OmitOnRecursionBehavior());
+        return fixture;
+    }
+
     private static Fixture CreateAgentPlayerGameAggregateFixture(Guid brandId, Guid agentId, DateTime from, DateTime to)
     {
         var fixture = new Fixture();
@@ -297,14 +293,13 @@ public class MultipleLayerDistributionTests
     }
 
     private static Fixture CreateAgentContractConditionFixture(int rank,
-        Guid agentDividendContractId,
         int validNumber,
         decimal validBetAmount,
         decimal netProfit,
         decimal percentage)
     {
         var fixture = new Fixture();
-        fixture.Customize<AgentDividendContractConditionModel>(u => u
+        fixture.Customize<AgentDividendConditionModel>(u => u
             .With(s => s.Rank, rank)
             .With(s => s.WinLossAmount, validBetAmount)
             .With(s => s.ValidNumber, validNumber)

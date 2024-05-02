@@ -56,14 +56,6 @@ public class OneLayerDistributionTests
         _fakeRepository.GetNonArchivedBrandIdsAsyncEnumerable(Arg.Any<Guid?>())
             .Returns(new[] { Guid.NewGuid() }.ToAsyncEnumerable());
 
-        var contracts = new[]
-        {
-            CreateContractFixture(brandId, agentId, ContractDividendType.OneLayer, 0, 0, 0)
-                .Create<AgentDividendContractModel>(),
-            CreateContractFixture(brandId, agentId2, ContractDividendType.OneLayer, 0, 0, 0)
-                .Create<AgentDividendContractModel>()
-        };
-
         var brand = CreateBrandFixture(brandId, from, to, 0, AgentDividendType.OneLayer).Create<BrandModel>();
 
         var agents = new[]
@@ -132,44 +124,6 @@ public class OneLayerDistributionTests
         _ = _fakeMediator.Received(1)
             .Send(Arg.Any<GetNoSendDividendRequest>(),
                 Arg.Any<CancellationToken>());
-    }
-
-    private Fixture CreateContractFixture(Guid brandId,
-        Guid agentId,
-        ContractDividendType contractDividendType,
-        decimal validBetAmount,
-        decimal depositAmount,
-        int betDays)
-    {
-        var fixture = new Fixture();
-        fixture.Customize<AgentDividendContractModel>(u => u
-            .With(s => s.BrandId, brandId)
-            .With(s => s.AgentId, agentId)
-            .With(s => s.ContractStatus, 0)
-            .With(s => s.ContractDividendType, (short)contractDividendType)
-            .With(s => s.DepositAmount, depositAmount)
-            .With(s => s.BetDays, betDays)
-            .With(s => s.ValidBetAmount, validBetAmount));
-        fixture.Behaviors.Add(new OmitOnRecursionBehavior());
-        return fixture;
-    }
-
-    private Fixture CreateContractFixture(Guid brandId,
-        ContractDividendType contractDividendType,
-        decimal validBetAmount,
-        decimal depositAmount,
-        int betDays)
-    {
-        var fixture = new Fixture();
-        fixture.Customize<AgentDividendContractModel>(u => u
-            .With(s => s.BrandId, brandId)
-            .With(s => s.ContractStatus, 0)
-            .With(s => s.ContractDividendType, (short)contractDividendType)
-            .With(s => s.DepositAmount, depositAmount)
-            .With(s => s.BetDays, betDays)
-            .With(s => s.ValidBetAmount, validBetAmount));
-        fixture.Behaviors.Add(new OmitOnRecursionBehavior());
-        return fixture;
     }
 
     private Fixture CreateBrandFixture(Guid brandId,

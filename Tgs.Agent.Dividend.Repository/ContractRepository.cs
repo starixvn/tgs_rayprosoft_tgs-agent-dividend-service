@@ -6,13 +6,13 @@ namespace Tgs.Agent.Dividend.Repository;
 
 internal class ContractRepository(tgsContext context) : IContractRepository
 {
-    public IAsyncEnumerable<AgentDividendContractConditionModel> GetAgentDividendContractConditionsAsync(
-        Guid agentDividendContractId,
+    public IAsyncEnumerable<AgentDividendConditionModel> GetAgentDividendConditionsAsync(
+        Guid agentId,
         CancellationToken cancellationToken)
     {
         return context.AgentDividendConditions
-            .Where(x => x.ContractId == agentDividendContractId)
-            .Select(x => new AgentDividendContractConditionModel
+            .Where(x => x.AgentId == agentId)
+            .Select(x => new AgentDividendConditionModel
             {
                 Rank = x.Rank,
                 ValidNumber = x.ActiveNumber,

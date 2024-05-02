@@ -1,4 +1,5 @@
 using AutoFixture;
+using AutoFixture.NUnit3;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -14,6 +15,7 @@ using Tgs.Agent.Dividend.Domain.Models;
 using Tgs.Agent.Dividend.Repository.Entities;
 using AgentDividendBeforehand = Tgs.Agent.Dividend.Domain.Models.AgentDividendBeforehand;
 using AgentDividendRecordModel = Tgs.Agent.Dividend.Domain.Models.AgentDividendRecordModel;
+using GetAgentNegativeDividendRequest = Tgs.Agent.Dividend.Domain.Models.GetNegativeAgentDividendRequest;
 
 namespace Tgs.Agent.Dividend.IntegrationTest;
 
@@ -56,19 +58,6 @@ public class AgentDividendTests
 
         fakeAgentClient.GetChildAgentInfosAsync(Arg.Any<GetChildAgentInfosRequest>(), Arg.Any<CancellationToken>())
             .Returns(Array.Empty<ChildAgentInfoModel>().ToAsyncEnumerable());
-
-        fakeContractRepository.GetAgentDividendContractConditionsAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
-            .Returns(new AgentDividendContractConditionModel[]
-            {
-                new()
-                {
-                    Rank = 1,
-                    NetProfit = 1,
-                    ValidNumber = 1,
-                    WinLossAmount = 1,
-                    Percentage = 10
-                }
-            }.ToAsyncEnumerable());
 
         await using var web = new TestAgentDividendApplication(builder => builder.ConfigureServices(services =>
         {
@@ -242,6 +231,31 @@ public class AgentDividendTests
         _ = fakeMediator.Received(1).Send(Arg.Any<ClearNegativeDividend>());
     }
 
+    [Test]
+    [AutoData]
+    public async Task Get_Negative_Agent_Dividend(NegativeAgentDividendModel[] negativeAgentDividendModels)
+    {
+        var fakeRepository = Substitute.For<IRepository>();
+
+        var agentId = Guid.NewGuid();
+
+        await using var web = new TestAgentDividendApplication(builder => builder.ConfigureServices(services =>
+        {
+            services
+                .AddSingleton(fakeRepository);
+        }));
+
+        var httpClient = web.CreateClient();
+
+        fakeRepository.GetNegativeAgentDividendsAsync(Arg.Any<Guid>())
+            .Returns(negativeAgentDividendModels.ToAsyncEnumerable());
+
+        var sut = new AgentDividendClient(httpClient);
+
+        var amount = await sut.GetNegativeAgentDividendAsync(agentId);
+
+        Assert.That(amount, Is.EqualTo(negativeAgentDividendModels.Sum(x => x.AgentDividendAmount)));
+    }
 
     private static Fixture CreateAgentFixture(Guid agentId,Guid? parentId)
     {
@@ -250,18 +264,6 @@ public class AgentDividendTests
             .With(s => s.Id, agentId)
             .With(s => s.ParentAgentId, parentId)
             .With(e => e.Path, parentId is null ? new LTree($"{agentId:N}") : new LTree($"{parentId:N}.{agentId:N}")));
-        fixture.Behaviors.Add(new OmitOnRecursionBehavior());
-        return fixture;
-    }
-
-    private static Fixture CreateAgentDividendContractFixture(Guid brandId, Guid agentId)
-    {
-        var fixture = new Fixture();
-        fixture.Customize<AgentDividendContractModel>(u => u
-            .With(s => s.BrandId, brandId)
-            .With(s => s.AgentId, agentId)
-            .With(s => s.ContractStatus, (short)ContractStatus.Enabled)
-            .With(s => s.ContractDividendType, (short)ContractDividendType.OnePercentage));
         fixture.Behaviors.Add(new OmitOnRecursionBehavior());
         return fixture;
     }

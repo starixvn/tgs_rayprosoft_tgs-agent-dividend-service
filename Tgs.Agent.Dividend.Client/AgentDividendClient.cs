@@ -96,6 +96,17 @@ internal class AgentDividendClient(HttpClient client) : IAgentDividendClient
         _ = response.EnsureSuccessStatusCode();
     }
 
+    public async Task<decimal> GetNegativeAgentDividendAsync(Guid agentId, CancellationToken cancellationToken = default)
+    {
+        var response = await client
+            .GetAsync($"/api/agentDividend/{agentId}/negative-dividend", cancellationToken)
+            .ConfigureAwait(false);
+
+        _ = response.EnsureSuccessStatusCode();
+
+        return Convert.ToDecimal(await response.Content.ReadAsStringAsync(cancellationToken));
+    }
+
     public IAsyncEnumerable<AgentDividendModel?> GetPreCalculateAgentDividend(Guid brandId,
         CancellationToken cancellationToken)
     {

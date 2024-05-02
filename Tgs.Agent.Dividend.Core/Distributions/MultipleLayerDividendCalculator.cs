@@ -27,7 +27,8 @@ internal class MultipleLayerDividendCalculator(IContractRepository contractRepos
         var agentPlayerGameAggregate =
             await repository.GetAgentPlayerGameAggregatesCacheAsync(brand.Id,
                     brand.CurrentSettlementFrom,
-                    brand.CurrentSettlementTo)
+                    brand.CurrentSettlementTo,
+                    cancellationToken)
                 .FirstOrDefaultAsync(x => x.AgentId == agent.Id, cancellationToken);
 
         var validPlayerCount = await repository
@@ -41,6 +42,8 @@ internal class MultipleLayerDividendCalculator(IContractRepository contractRepos
 
         agentAggregate ??= GetDefaultAggregate(brand, agent.Id);
 
+        agentAggregate.Id = idNumber + 1;
+
         agentAggregate.LiveDealerWinLoss = agentPlayerGameAggregate?.LiveDealerWinLoss ?? 0M;
         agentAggregate.SlotWinLoss = agentPlayerGameAggregate?.SlotWinLoss ?? 0M;
         agentAggregate.FishingWinLoss = agentPlayerGameAggregate?.FishingWinLoss ?? 0M;
@@ -52,9 +55,34 @@ internal class MultipleLayerDividendCalculator(IContractRepository contractRepos
         agentAggregate.ESportsWinLoss = agentPlayerGameAggregate?.ESportsWinLoss ?? 0M;
         agentAggregate.VirtualSportsWinLoss = agentPlayerGameAggregate?.VirtualSportsWinLoss ?? 0M;
         agentAggregate.ActiveNumber = validPlayerCount;
-        agentAggregate.PlatformChargePercentage = brand.PlatformCharge;
 
-        agentAggregate.Id = idNumber + 1;
+        agentAggregate.AgentDividendPlatformCharges = await repository
+            .GetAgentPlatformChargeCacheAsync(brand.Id,
+                agentAggregate.AgentDividendPercentage,
+                brand.CurrentSettlementFrom,
+                brand.CurrentSettlementTo,
+                cancellationToken)
+            .Where(x => x.AgentId == agent.Id)
+            .ToArrayAsync(cancellationToken);
+
+        foreach (var agentAggregateAgentDividendPlatformCharge in agentAggregate.AgentDividendPlatformCharges)
+        {
+            agentAggregateAgentDividendPlatformCharge.AgentDividendId = agentAggregate.Id;
+        }
+
+        agentAggregate.AgentDividendProductFees = await repository
+            .GetAgentProductFeeCacheAsync(brand.Id,
+                agentAggregate.AgentDividendPercentage,
+                brand.CurrentSettlementFrom,
+                brand.CurrentSettlementTo,
+                cancellationToken)
+            .Where(x => x.AgentId == agent.Id)
+            .ToArrayAsync(cancellationToken);
+
+        foreach (var agentAggregateAgentDividendProductFee in agentAggregate.AgentDividendProductFees)
+        {
+            agentAggregateAgentDividendProductFee.AgentDividendId = agentAggregate.Id;
+        }
 
         yield return agentAggregate;
     }
@@ -66,7 +94,7 @@ internal class MultipleLayerDividendCalculator(IContractRepository contractRepos
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         var conditions = await contractRepository
-            .GetAgentDividendContractConditionsAsync(agent.Id, cancellationToken)
+            .GetAgentDividendConditionsAsync(agent.Id, cancellationToken)
             .ToArrayAsync(cancellationToken);
 
         var snapshotId = preCalculation ? Guid.Empty : await GenerateAgentDividendSnapshotAsync(agent, conditions, cancellationToken);
@@ -79,7 +107,7 @@ internal class MultipleLayerDividendCalculator(IContractRepository contractRepos
             {
                 ValidNumber = agentPlayerAggregate.ActiveNumber,
                 WinLossAmount = agentPlayerAggregate.WinLossAmount,
-                NetProfit = agentPlayerAggregate.NetProfit(brand.PlatformCharge)
+                NetProfit = agentPlayerAggregate.NetProfit()
             },
             conditions);
 
@@ -110,7 +138,7 @@ internal class MultipleLayerDividendCalculator(IContractRepository contractRepos
         Guid snapshotId,
         bool checkDividendActiveCount,
         AgentConditionModel agentCurrentCondition,
-        IEnumerable<AgentDividendContractConditionModel> agentDividendConditions)
+        IEnumerable<AgentDividendConditionModel> agentDividendConditions)
     {
         var layer = agentId.ToString();
 
@@ -135,7 +163,7 @@ internal class MultipleLayerDividendCalculator(IContractRepository contractRepos
     }
 
     private static decimal GetAgentDividendPercentage(
-        IEnumerable<AgentDividendContractConditionModel> agentDividendCondition,
+        IEnumerable<AgentDividendConditionModel> agentDividendCondition,
         AgentConditionModel currentCondition,
         bool checkDividendActiveCount)
     {
@@ -162,7 +190,7 @@ internal class MultipleLayerDividendCalculator(IContractRepository contractRepos
     }
 
     private async Task<Guid> GenerateAgentDividendSnapshotAsync(AgentModel agent,
-        IEnumerable<AgentDividendContractConditionModel> conditions,
+        IEnumerable<AgentDividendConditionModel> conditions,
         CancellationToken cancellationToken)
     {
         var snapshotId = Guid.NewGuid();

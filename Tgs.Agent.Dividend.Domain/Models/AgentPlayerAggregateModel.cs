@@ -38,14 +38,17 @@ public class AgentPlayerAggregateModel
     public decimal VirtualSportsWinLoss { get; set; }
     public decimal AgentDividendAmount { get; set; }
     public int ActiveNumber { get; set; }
-    public decimal PlatformChargePercentage { get; set; }
+    //public decimal PlatformChargePercentage { get; set; }
+    public AgentDividendPlatformChargeModel[]? AgentDividendPlatformCharges { get; set; }
+    public AgentDividendProductFeeModel[]? AgentDividendProductFees { get; set; }
 
-    public decimal NetProfit(decimal platformCharge)
+    public decimal NetProfit()
     {
         return WinLossAmount -
                (BonusAdjustAmount -
                 NoIncludeNetProfitBonusAdjustAmount) -
                BonusAmount -
-               WinLossAmount * platformCharge / 100;
+               (AgentDividendPlatformCharges?.Sum(x => x.PlatformChargePercentage * x.WinLossAmount / 100) ?? 0M) -
+               (AgentDividendProductFees?.Sum(x => x.Percentage * x.WinLossAmount / 100) ?? 0M);
     }
 }
