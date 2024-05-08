@@ -28,6 +28,14 @@
          "ObjectType": 0
       },
       {
+         "Name": "dbo.agent_dividend_platform_charges",
+         "ObjectType": 0
+      },
+      {
+         "Name": "dbo.agent_dividend_product_fees",
+         "ObjectType": 0
+      },
+      {
          "Name": "dbo.agent_dividend_records",
          "ObjectType": 0
       },

@@ -19,6 +19,18 @@ public interface IRepository
         DateTime to,
         CancellationToken cancellationToken);
 
+    IAsyncEnumerable<AgentDividendPlatformChargeModel> GetAgentPlatformChargeCacheAsync(Guid brandId,
+        decimal agentDividendPercentage,
+        DateTime from,
+        DateTime to,
+        CancellationToken cancellationToken);
+
+    IAsyncEnumerable<AgentDividendProductFeeModel> GetAgentProductFeeCacheAsync(Guid brandId,
+        decimal agentDividendPercentage,
+        DateTime from,
+        DateTime to,
+        CancellationToken cancellationToken);
+
     IAsyncEnumerable<AgentPlayerAggregateModel> GetAgentPlayerAggregatesForMultipleLayerCacheAsync(Guid brandId,
         DateTime from,
         DateTime to,
@@ -27,7 +39,8 @@ public interface IRepository
 
     IAsyncEnumerable<AgentPlayerGameAggregateModel> GetAgentPlayerGameAggregatesCacheAsync(Guid brandId,
         DateTime from,
-        DateTime to);
+        DateTime to,
+        CancellationToken cancellationToken);
 
     IAsyncEnumerable<AgentPlayerDepositModel> GetAgentPlayerDepositsCacheAsync(Guid brandId,
         DateOnly from,

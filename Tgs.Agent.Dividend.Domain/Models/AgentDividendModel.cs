@@ -43,8 +43,9 @@ public class AgentDividendModel
     public bool AutoSend { get; set; }
     public decimal NegativeAgentDividendAmount { get; set; }
     public int ActiveNumber { get; set; }
-    public decimal PlatformChargePercentage { get; set; }
     public bool NegativeAgentDividendCarryForward { get; set; }
     public bool ShouldReferToNextRecord { get; set; }
     public AgentDividendMultipleLayerModel[] AgentDividendMultipleLayerModels { get; set; } = default!;
+    public AgentDividendPlatformChargeModel[] AgentDividendPlatformCharges { get; set; } = default!;
+    public AgentDividendProductFeeModel[] AgentDividendProductFees { get; set; } = default!;
 }

@@ -9,17 +9,17 @@ public partial class PlayerGameRebateAggregate
 {
     public int Id { get; set; }
 
-    public Guid BrandId { get; set; }
-
     public Guid? AgentId { get; set; }
 
-    public Guid GameProviderId { get; set; }
+    public decimal BetAmount { get; set; }
+
+    public Guid BrandId { get; set; }
+
+    public DateTime CreatedOn { get; set; }
 
     public int GameId { get; set; }
 
-    public string PlayerCode { get; set; } = null!;
-
-    public int? VipLevel { get; set; }
+    public Guid GameProviderId { get; set; }
 
     public short GameType { get; set; }
 
@@ -27,35 +27,39 @@ public partial class PlayerGameRebateAggregate
 
     public int Minute { get; set; }
 
-    public DateTime CreatedOn { get; set; }
+    public decimal OriginalTurnover { get; set; }
+
+    public string PlayerCode { get; set; } = null!;
 
     public DateTime ReportDate { get; set; }
 
+    public DateTime? ReportDateTime { get; set; }
+
     public decimal Turnover { get; set; }
 
-    public decimal WinLoss { get; set; }
-
-    public decimal VipLiveDealerRebatePercentage { get; set; }
-
-    public decimal VipSlotRebatePercentage { get; set; }
+    public decimal ValidBetAmount { get; set; }
 
     public decimal VipCardGameRebatePercentage { get; set; }
 
-    public decimal VipSportsRebatePercentage { get; set; }
+    public int? VipLevel { get; set; }
 
-    public decimal VipVirtualSportsRebatePercentage { get; set; }
+    public decimal VipLiveDealerRebatePercentage { get; set; }
 
     public decimal VipLotteryRebatePercentage { get; set; }
 
     public decimal VipRebateAmount { get; set; }
 
-    public decimal BetAmount { get; set; }
+    public decimal VipSlotRebatePercentage { get; set; }
 
-    public decimal OriginalTurnover { get; set; }
+    public decimal VipSportsRebatePercentage { get; set; }
 
-    public decimal ValidBetAmount { get; set; }
+    public decimal VipVirtualSportsRebatePercentage { get; set; }
 
-    public DateTime? ReportDateTime { get; set; }
+    public decimal WinLoss { get; set; }
 
     public int RoundCount { get; set; }
+
+    public decimal PlatformChargePercentage { get; set; }
+
+    public decimal ProductFeePercentage { get; set; }
 }

@@ -78,4 +78,9 @@ public class AgentDividendController(IMediator mediator) : ControllerBase
             yield return model;
         }
     }
+
+    [HttpGet("{agentId:guid}/negative-dividend")]
+    public Task<decimal> GetAgentNegativeDividendAsync(
+        Guid agentId)
+    => mediator.Send(new GetNegativeAgentDividendRequest(agentId));
 }

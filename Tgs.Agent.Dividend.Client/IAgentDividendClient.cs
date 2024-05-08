@@ -25,4 +25,6 @@ public interface IAgentDividendClient
         CancellationToken cancellationToken);
 
     Task ClearAgentNegativeDividendAsync(Guid agentId, Guid clearByUserId, CancellationToken cancellationToken = default);
+
+    Task<decimal> GetNegativeAgentDividendAsync(Guid agentId, CancellationToken cancellationToken = default);
 }
