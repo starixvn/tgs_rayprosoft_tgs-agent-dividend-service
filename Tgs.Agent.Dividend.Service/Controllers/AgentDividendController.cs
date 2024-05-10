@@ -40,6 +40,23 @@ public class AgentDividendController(IMediator mediator) : ControllerBase
         return mediator.Send(new ClearNegativeDividend(agentId, clearByUserId));
     }
 
+    [HttpGet("{brandId:guid}/pre-calculate")]
+    public async IAsyncEnumerable<AgentDividendModel> GetPreCalculateAgentDividendAsync(
+        [FromServices] IAgentClient agentClient,
+        Guid brandId)
+    {
+        var response = await mediator.Send(new AgentDividendRequest(brandId));
+
+        foreach (var model in response.Model)
+        {
+            var agent = await agentClient.GetAgentInfoAsync(new GetAgentInfoRequest(model.AgentId));
+
+            model.AgentUsername = agent!.Username;
+
+            yield return model;
+        }
+    }
+
     [HttpGet("{brandId:guid}/{agentId:guid}/beforehand")]
     public Task<AgentDividendBeforehandResponse> GetAgentDividendBeforehandAsync(
         Guid brandId,
@@ -60,23 +77,6 @@ public class AgentDividendController(IMediator mediator) : ControllerBase
             request.ApprovedTo,
             request.AgentUsername,
             request.NegativeAgentDividendCarryForward));
-    }
-
-    [HttpGet("{brandId:guid}/pre-calculate")]
-    public async IAsyncEnumerable<AgentDividendModel> GetPreCalculateAgentDividendAsync(
-        [FromServices] IAgentClient agentClient,
-        Guid brandId)
-    {
-        var response = await mediator.Send(new AgentDividendRequest(brandId));
-
-        foreach (var model in response.Model)
-        {
-            var agent = await agentClient.GetAgentInfoAsync(new GetAgentInfoRequest(model.AgentId));
-
-            model.AgentUsername = agent!.Username;
-
-            yield return model;
-        }
     }
 
     [HttpGet("{agentId:guid}/negative-dividend")]
