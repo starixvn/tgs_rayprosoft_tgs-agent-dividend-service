@@ -49,6 +49,7 @@ public class AgentPlayerAggregateModel
                 NoIncludeNetProfitBonusAdjustAmount) -
                BonusAmount -
                (AgentDividendPlatformCharges?.Sum(x => x.PlatformChargePercentage * x.WinLossAmount / 100) ?? 0M) -
-               (AgentDividendProductFees?.Sum(x => x.Percentage * x.WinLossAmount / 100) ?? 0M);
+               (AgentDividendProductFees?.Sum(x => x.Percentage * (x.WinLossAmount < 0 ? 0 : x.WinLossAmount) / 100) ??
+                0M);
     }
 }

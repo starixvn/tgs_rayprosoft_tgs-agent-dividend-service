@@ -109,6 +109,8 @@ public class OneLayerDistributionTests
             CreateAgentDividendProductFeeFixture(agentPlayerAggregate.Id, agentPlayerAggregate.AgentId, 10, winLossAmount / 2)
                 .Create<AgentDividendProductFeeModel>(),
             CreateAgentDividendProductFeeFixture(agentPlayerAggregate.Id, agentPlayerAggregate.AgentId, 10, winLossAmount / 2)
+                .Create<AgentDividendProductFeeModel>(),
+            CreateAgentDividendProductFeeFixture(agentPlayerAggregate.Id, agentPlayerAggregate.AgentId, 10, -100)
                 .Create<AgentDividendProductFeeModel>()
         ];
 
