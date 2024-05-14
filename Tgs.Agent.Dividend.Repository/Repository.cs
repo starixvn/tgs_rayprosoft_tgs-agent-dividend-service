@@ -402,7 +402,7 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IMemoryC
         DateTime to,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
-        var key = $"AgentPlatformChargeCache{brandId}{from}{to}";
+        var key = $"AgentPlatformChargeCache{brandId}{from}{to}{agentDividendPercentage}";
 
     memoryCacheKeyMapper.AddCacheKey(key);
 
@@ -440,7 +440,7 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IMemoryC
         DateTime to,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
-        var key = $"AgentProductFeeCache{brandId}{from}{to}";
+        var key = $"AgentProductFeeCache{brandId}{from}{to}{agentDividendPercentage}";
 
         memoryCacheKeyMapper.AddCacheKey(key);
 
