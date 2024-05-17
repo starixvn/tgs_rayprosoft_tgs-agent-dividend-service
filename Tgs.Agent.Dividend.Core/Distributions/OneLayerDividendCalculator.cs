@@ -48,7 +48,6 @@ internal class OneLayerDividendCalculator(IContractRepository contractRepository
 
                 agentPlayerAggregateModel.AgentDividendPlatformCharges = await repository
                     .GetAgentPlatformChargeCacheAsync(brand.Id,
-                        agentPlayerAggregateModel.AgentDividendPercentage,
                         brand.CurrentSettlementFrom,
                         brand.CurrentSettlementTo,
                         cancellationToken)
@@ -62,7 +61,6 @@ internal class OneLayerDividendCalculator(IContractRepository contractRepository
 
                 agentPlayerAggregateModel.AgentDividendProductFees = await repository
                     .GetAgentProductFeeCacheAsync(brand.Id,
-                        agentPlayerAggregateModel.AgentDividendPercentage,
                         brand.CurrentSettlementFrom,
                         brand.CurrentSettlementTo,
                         cancellationToken)
@@ -104,7 +102,9 @@ internal class OneLayerDividendCalculator(IContractRepository contractRepository
                      agentPlayerAggregate.AgentId,
                      agentPlayerAggregate.BonusAmount,
                      bonusAdjustAmount,
-                     agentPlayerAggregate.NetProfit()))
+                     agentPlayerAggregate.NetProfit(),
+                     agentPlayerAggregate.PlatformChargeAmount(),
+                     agentPlayerAggregate.ProductFeeAmount()))
             yield return agentDividendMultipleLayerModel;
     }
 
@@ -145,7 +145,9 @@ internal class OneLayerDividendCalculator(IContractRepository contractRepository
         Guid agentId,
         decimal bonusAmount,
         decimal bonusAdjustAmount,
-        decimal netProfit)
+        decimal netProfit,
+        decimal platformChargeAmount,
+        decimal productFeeAmount)
     {
         bool hasParentAgentId;
 
@@ -160,6 +162,10 @@ internal class OneLayerDividendCalculator(IContractRepository contractRepository
             var agentDividendPercentage = agent.DividendPercentage < 0 ? 0 : agent.DividendPercentage;
             var actualDividendPercentage = agentDividendPercentage - (childDividendPercentage < 0 ? 0 : childDividendPercentage);
 
+            var agentDividendAmount = currentAgentId == providerAgentId
+                ? (netProfit * actualDividendPercentage / 100M - platformChargeAmount - productFeeAmount)
+                : (netProfit * actualDividendPercentage / 100M);
+
             yield return new AgentDividendMultipleLayerModel
             {
                 AgentId = currentAgentId,
@@ -171,7 +177,7 @@ internal class OneLayerDividendCalculator(IContractRepository contractRepository
                 Layer = layer,
                 AgentCoveredBonus = (bonusAmount * actualDividendPercentage / 100M).Truncate(2),
                 AgentCoveredBonusAdjust = (bonusAdjustAmount * actualDividendPercentage / 100M).Truncate(2),
-                Dividend = (netProfit * actualDividendPercentage / 100M).Truncate(2)
+                Dividend = agentDividendAmount.Truncate(2)
             };
 
             hasParentAgentId = agent.ParentAgentId != null;

@@ -16,11 +16,11 @@ public class OneLayerDistributionTests
     {
     }
 
-    [TestCase(100, 77, 60, 33, 11, 61.6)]
-    [TestCase(100, 90, 60, 33, 22, 72)]
-    [TestCase(100, 90, 80, 70, 60, 72)]
+    [TestCase(100, 77, 60, 33, 11, 57)]
+    [TestCase(100, 90, 60, 33, 22, 70)]
+    [TestCase(100, 90, 80, 70, 60, 70)]
     public async Task Generate_Agent_Dividend(
-        decimal winLossAmount,
+        decimal agent4WinLossAmount,
         decimal agentDividendPercentage,
         decimal agent2DividendPercentage,
         decimal agent3DividendPercentage,
@@ -93,24 +93,24 @@ public class OneLayerDistributionTests
                 agentId4,
                 from,
                 to,
-                winLossAmount,
+                agent4WinLossAmount,
                 agent4DividendPercentage,
                 JsonSerializer.Serialize(agent4Path))
             .Create<AgentPlayerAggregateModel>();
 
         agentPlayerAggregate.AgentDividendPlatformCharges =
         [
-            CreateAgentDividendPlatformChargeFixture(agentPlayerAggregate.Id, agentPlayerAggregate.AgentId, 10, winLossAmount)
+            CreateAgentDividendPlatformChargeFixture(agentPlayerAggregate.Id, agentPlayerAggregate.AgentId, 10, agent4WinLossAmount)
                 .Create<AgentDividendPlatformChargeModel>()
         ];
 
         agentPlayerAggregate.AgentDividendProductFees =
         [
-            CreateAgentDividendProductFeeFixture(agentPlayerAggregate.Id, agentPlayerAggregate.AgentId, 10, winLossAmount / 2)
+            CreateAgentDividendProductFeeFixture(agentPlayerAggregate.Id, GameType.Arcade, agentPlayerAggregate.AgentId, 10, agent4WinLossAmount / 2)
                 .Create<AgentDividendProductFeeModel>(),
-            CreateAgentDividendProductFeeFixture(agentPlayerAggregate.Id, agentPlayerAggregate.AgentId, 10, winLossAmount / 2)
+            CreateAgentDividendProductFeeFixture(agentPlayerAggregate.Id, GameType.Slot, agentPlayerAggregate.AgentId, 10, agent4WinLossAmount / 2)
                 .Create<AgentDividendProductFeeModel>(),
-            CreateAgentDividendProductFeeFixture(agentPlayerAggregate.Id, agentPlayerAggregate.AgentId, 10, -100)
+            CreateAgentDividendProductFeeFixture(agentPlayerAggregate.Id, GameType.VirtualSports, agentPlayerAggregate.AgentId, 10, -100)
                 .Create<AgentDividendProductFeeModel>()
         ];
 
@@ -153,12 +153,11 @@ public class OneLayerDistributionTests
         });
     }
 
-
-    [TestCase(100, 77, 27.2, 60, 43.2, 33, 36, 11, 10, 16.8)]
-    [TestCase(100, 90, 48, 60, 43.2, 33, 19.2, 22, 20, 33.6)]
-    [TestCase(100, 90, 16, 80, 16, 70, 20, 60, 55, 92)]
+    [TestCase(100, 77, 17, 60, 27, 33, 22, 11, -9)]
+    [TestCase(100, 90, 30, 60, 27, 33, 11, 22, 2)]
+    [TestCase(100, 90, 10, 80, 10, 70, 10, 60, 40)]
     public async Task Generate_Agent_Dividend_Difference_Percentage_With_Same_Interval(
-        decimal winLossAmount,
+        decimal agent4WinLossAmount,
         decimal agentDividendPercentage,
         decimal agentDividendAmount,
         decimal agent2DividendPercentage,
@@ -166,7 +165,6 @@ public class OneLayerDistributionTests
         decimal agent3DividendPercentage,
         decimal agent3DividendAmount,
         decimal agent4FirstDividendPercentage,
-        decimal agent4SecondDividendPercentage,
         decimal agent4DividendAmount)
     {
         var fakeRepository = Substitute.For<IRepository>();
@@ -227,30 +225,15 @@ public class OneLayerDistributionTests
             DividendPercentage = agent4FirstDividendPercentage
         });
 
-        var agent4SecondPath = agent3Path.Append(new AgentDividendPercentageData
-        {
-            AgentId = agentId4,
-            ParentAgentId = agentId3,
-            DividendPercentage = agent4SecondDividendPercentage
-        });
-
         var agentPlayerAggregates = new[]
         {
             CreateAgentPlayerAggregateFixture(brandId,
                     agentId4,
                     from,
                     to,
-                    winLossAmount,
+                    agent4WinLossAmount,
                     agent4FirstDividendPercentage,
                     JsonSerializer.Serialize(agent4FirstPath))
-                .Create<AgentPlayerAggregateModel>(),
-            CreateAgentPlayerAggregateFixture(brandId,
-                    agentId4,
-                    from,
-                    to,
-                    winLossAmount,
-                    agent4SecondDividendPercentage,
-                    JsonSerializer.Serialize(agent4SecondPath))
                 .Create<AgentPlayerAggregateModel>()
         };
 
@@ -258,15 +241,15 @@ public class OneLayerDistributionTests
         {
             agentPlayerAggregateModel.AgentDividendPlatformCharges =
             [
-                CreateAgentDividendPlatformChargeFixture(agentPlayerAggregateModel.Id, agentPlayerAggregateModel.AgentId, 10, winLossAmount)
+                CreateAgentDividendPlatformChargeFixture(agentPlayerAggregateModel.Id, agentPlayerAggregateModel.AgentId, 10, agent4WinLossAmount)
                     .Create<AgentDividendPlatformChargeModel>()
             ];
 
             agentPlayerAggregateModel.AgentDividendProductFees =
             [
-                CreateAgentDividendProductFeeFixture(agentPlayerAggregateModel.Id, agentPlayerAggregateModel.AgentId, 10, winLossAmount / 2)
+                CreateAgentDividendProductFeeFixture(agentPlayerAggregateModel.Id, GameType.Slot, agentPlayerAggregateModel.AgentId, 10, agent4WinLossAmount / 2)
                     .Create<AgentDividendProductFeeModel>(),
-                CreateAgentDividendProductFeeFixture(agentPlayerAggregateModel.Id, agentPlayerAggregateModel.AgentId, 10, winLossAmount / 2)
+                CreateAgentDividendProductFeeFixture(agentPlayerAggregateModel.Id, GameType.Slot, agentPlayerAggregateModel.AgentId, 10, agent4WinLossAmount / 2)
                     .Create<AgentDividendProductFeeModel>()
             ];
         }
@@ -310,11 +293,11 @@ public class OneLayerDistributionTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(multipleLayers, Has.Count.EqualTo(8));
-            Assert.That(multipleLayers.Count(x => x.AgentId == agentId), Is.EqualTo(2));
-            Assert.That(multipleLayers.Count(x => x.AgentId == agentId2), Is.EqualTo(2));
-            Assert.That(multipleLayers.Count(x => x.AgentId == agentId3), Is.EqualTo(2));
-            Assert.That(multipleLayers.Count(x => x.AgentId == agentId4), Is.EqualTo(2));
+            Assert.That(multipleLayers, Has.Count.EqualTo(4));
+            Assert.That(multipleLayers.Count(x => x.AgentId == agentId), Is.EqualTo(1));
+            Assert.That(multipleLayers.Count(x => x.AgentId == agentId2), Is.EqualTo(1));
+            Assert.That(multipleLayers.Count(x => x.AgentId == agentId3), Is.EqualTo(1));
+            Assert.That(multipleLayers.Count(x => x.AgentId == agentId4), Is.EqualTo(1));
             Assert.That(multipleLayers.Where(x => x.AgentId == agentId).Sum(x => x.Dividend),
                 Is.EqualTo(agentDividendAmount));
             Assert.That(multipleLayers.Where(x => x.AgentId == agentId2).Sum(x => x.Dividend),
@@ -404,13 +387,14 @@ public class OneLayerDistributionTests
         return fixture;
     }
 
-    private static Fixture CreateAgentDividendProductFeeFixture(int agentDividendId, Guid agentId, decimal percentage, decimal winLoss)
+    private static Fixture CreateAgentDividendProductFeeFixture(int agentDividendId, GameType gameType, Guid agentId, decimal percentage, decimal winLoss)
     {
         var fixture = new Fixture();
         fixture.Customize<AgentDividendProductFeeModel>(u => u
             .With(s => s.AgentId, agentId)
+            .With(s => s.GameType, gameType)
             .With(s => s.AgentDividendId, agentDividendId)
-            .With(s => s.Percentage, percentage)
+            .With(s => s.ProductFeePercentage, percentage)
             .With(s => s.WinLossAmount, winLoss));
         fixture.Behaviors.Add(new OmitOnRecursionBehavior());
         return fixture;

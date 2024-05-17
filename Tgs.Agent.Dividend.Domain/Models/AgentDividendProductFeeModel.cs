@@ -7,7 +7,7 @@ public class AgentDividendProductFeeModel
     public int AgentDividendId { get; set; }
     public Guid AgentId { get; set; }
     public GameType GameType { get; set; }
-    public decimal Percentage { get; set; }
+    public decimal ProductFeePercentage { get; set; }
     public decimal WinLossAmount { get; set; }
 
     public GameGroupType GameGroupType => GameType switch

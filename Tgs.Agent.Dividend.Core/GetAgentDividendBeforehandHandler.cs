@@ -10,6 +10,7 @@ using Tgs.Agent.Dividend.Domain.Models;
 namespace Tgs.Agent.Dividend.Core;
 
 internal class GetAgentDividendBeforehandHandler(
+    IMediator mediator,
     IRepository repository,
     IAgentClient agentClient,
     IServiceProvider serviceProvider)
@@ -22,7 +23,6 @@ internal class GetAgentDividendBeforehandHandler(
 
         var previousAgentDividend = await repository
             .GetAgentDividendBeforehandAsync(request.AgentId, brand.PreviousSettlementFrom, brand.PreviousSettlementTo)
-            .FirstOrDefaultAsync(cancellationToken)
             .ConfigureAwait(false);
 
         return new AgentDividendBeforehandResponse
@@ -60,13 +60,17 @@ internal class GetAgentDividendBeforehandHandler(
 
         var agentPlayerAggregates = new List<AgentPlayerAggregateModel>();
 
+        var currentNumber = 0;
+
         foreach (var instance in agentInstances)
         {
-            var data = await instance.distributionService.GetAgentPlayerAggregateAsync(0,
+            var data = await instance.distributionService.GetAgentPlayerAggregateAsync(currentNumber,
                     brand,
                     instance.agent,
                     cancellationToken)
                 .ToArrayAsync(cancellationToken);
+
+            currentNumber += data.Length;
 
             agentPlayerAggregates.AddRange(data);
         }
@@ -94,7 +98,7 @@ internal class GetAgentDividendBeforehandHandler(
 
         var parentAgentDividends = mainDistributionService.GetMultipleLayer(agent,
             multipleLayers,
-            cancellationToken);
+            cancellationToken).ToArray();
 
         var agentDividend = parentAgentDividends.FirstOrDefault(w => w.DividendProviderAgentId == agent.AgentId);
 
@@ -103,19 +107,46 @@ internal class GetAgentDividendBeforehandHandler(
 
         agent.AgentDividendAmount = mainDistributionService.GetAgentDividendAmount(agent, multipleLayers, cancellationToken);
 
-        return new AgentDividendBeforehand(agent.ActiveNumber,
+        var agentDividends = agentPlayerAggregates
+            .Select(x =>
+            {
+                var (_, distributionService) =
+                    agentInstances.First(a => a.agent.Id == x.AgentId);
+
+                x.AgentDividendAmount =
+                    distributionService.GetAgentDividendAmount(x,
+                        multipleLayers,
+                        cancellationToken);
+
+                return new AgentDividendModel
+                {
+                    Id = x.Id,
+                    BrandId = x.BrandId,
+                    AgentId = x.AgentId,
+                    AgentDividendAmount = x.AgentDividendAmount
+                };
+            });
+
+        var sendDividend =
+            await mediator.Send(new GetNoSendDividendRequest(agentDividends.ToArray()), cancellationToken);
+
+        return new AgentDividendBeforehand(
+            brand.CurrentSettlementFrom,
+            brand.CurrentSettlementTo,
+            agent.ActiveNumber,
             agent.WinLossAmount,
             agent.BonusAmount - agent.RebateAmount,
             agent.RebateAmount,
-            agent.WinLossAmount -
-            agent.BonusAmount -
-            agent.WinLossAmount * brand.PlatformCharge / 100,
-            agent.WinLossAmount - agent.BonusAmount,
-            agent.WinLossAmount * brand.PlatformCharge / 100,
             agentDividend?.Dividend ?? 0M,
             agentDividend?.AgentDividendPercentage ?? 0M,
             childAgentDividends.Sum(s => s.Dividend),
             agent.AgentDividendAmount,
+            agent.BonusAdjustAmount,
+            parentAgentDividends.Sum(s => s.AgentCoveredBonus),
+            parentAgentDividends.Sum(s => s.AgentCoveredBonusAdjust),
+            agent.PlatformChargeAmount(),
+            agent.ProductFeeAmount(),
+            sendDividend.Model.Where(m => m.AgentId == agentId).Sum(s => s.NegativeAgentDividendAmount),
             null);
     }
 }
