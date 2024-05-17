@@ -21,9 +21,6 @@ internal class GetAgentDividendRecordsHandler(
             request.AgentUsername,
             request.NegativeAgentDividendCarryForward);
 
-        foreach (var agentDividendRecordModel in records)
-        {
-            yield return agentDividendRecordModel;
-        }
+        foreach (var agentDividendRecordModel in records) yield return agentDividendRecordModel;
     }
 }

@@ -13,10 +13,8 @@ internal class GenerateAgentDividendQueueHandler(
     public Task Handle(GenerateAgentDividendRequest request, CancellationToken cancellationToken)
     {
         return repository.GetNonArchivedBrandIdsAsyncEnumerable(request.BrandId)
-            .ForEachAwaitAsync(async brandId =>
-                {
-                    await queue.QueueAgentDividendAsync(new AgentDividendQueueModel(brandId));
-                },
+            .ForEachAwaitAsync(
+                async brandId => { await queue.QueueAgentDividendAsync(new AgentDividendQueueModel(brandId)); },
                 cancellationToken);
     }
 }

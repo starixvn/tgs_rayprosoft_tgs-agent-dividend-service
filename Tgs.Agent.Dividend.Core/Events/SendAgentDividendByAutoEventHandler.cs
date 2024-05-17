@@ -28,7 +28,8 @@ internal class SendAgentDividendByAutoEventHandler(
 
         try
         {
-            await repository.UpdateSentOnByAutoSendAsync(@event.AgentDividendId, @event.SendByUsername, cancellationToken);
+            await repository.UpdateSentOnByAutoSendAsync(@event.AgentDividendId, @event.SendByUsername,
+                cancellationToken);
 
             if (@event.Amount != 0)
                 _ = await cashServiceClient.AgentDividendAsync(agent.WalletId.Value,

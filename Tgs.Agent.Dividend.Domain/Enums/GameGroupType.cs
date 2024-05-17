@@ -9,5 +9,5 @@ public enum GameGroupType
     LiveDealer = 5,
     CardGame = 7,
     Lottery = 13,
-    Slot = 15,
+    Slot = 15
 }

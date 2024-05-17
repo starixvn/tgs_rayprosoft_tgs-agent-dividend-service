@@ -62,37 +62,37 @@ public class RepositoryTests
         };
 
         var agentPlayerAggregates = new[]
-        {
-            CreateAgentPlayerAggregateFixture(brandId,
-                    agentId2,
-                    from,
-                    to,
-                    5,
-                    0,
-                    10,
-                    JsonSerializer.Serialize(agent2Path))
-                .Create<PlayerAggregate>(),
-            CreateAgentPlayerAggregateFixture(brandId,
-                    agentId2,
-                    from,
-                    to,
-                    5,
-                    0,
-                    10,
-                    JsonSerializer.Serialize(agent2Path2))
-                .Create<PlayerAggregate>()
-        }.AsQueryable()
-        .BuildMock();
+            {
+                CreateAgentPlayerAggregateFixture(brandId,
+                        agentId2,
+                        from,
+                        to,
+                        5,
+                        0,
+                        10,
+                        JsonSerializer.Serialize(agent2Path))
+                    .Create<PlayerAggregate>(),
+                CreateAgentPlayerAggregateFixture(brandId,
+                        agentId2,
+                        from,
+                        to,
+                        5,
+                        0,
+                        10,
+                        JsonSerializer.Serialize(agent2Path2))
+                    .Create<PlayerAggregate>()
+            }.AsQueryable()
+            .BuildMock();
 
         var agentPlayerGameAggregates = new[]
-        {
-            CreateAgentPlayerGameAggregateFixture(brandId,
-                    agentId2,
-                    from,
-                    to)
-                .Create<PlayerGameRebateAggregate>()
-        }.AsQueryable()
-        .BuildMock();
+            {
+                CreateAgentPlayerGameAggregateFixture(brandId,
+                        agentId2,
+                        from,
+                        to)
+                    .Create<PlayerGameRebateAggregate>()
+            }.AsQueryable()
+            .BuildMock();
 
         var mockPlayerAggregates = GetDbSet(agentPlayerAggregates);
         var mockPlayerGameAggregates = GetDbSet(agentPlayerGameAggregates);

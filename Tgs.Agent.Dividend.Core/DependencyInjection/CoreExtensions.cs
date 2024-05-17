@@ -18,8 +18,8 @@ public static class CoreExtensions
                 AgentDividendType.OneLayerV2.ToString())
             .AddKeyedTransient<IDividendCalculator, MultipleLayerDividendCalculator>(
                 AgentDividendType.MultipleLayer.ToString());
-            //.AddKeyedTransient<IDividendCalculator, OnePercentageDividendCalculator>(
-            //    ContractDividendType.OnePercentage.ToString());
+        //.AddKeyedTransient<IDividendCalculator, OnePercentageDividendCalculator>(
+        //    ContractDividendType.OnePercentage.ToString());
 
         return services;
     }

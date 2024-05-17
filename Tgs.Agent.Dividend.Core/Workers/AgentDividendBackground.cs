@@ -1,5 +1,4 @@
-﻿using System.Threading;
-using MediatR;
+﻿using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -48,10 +47,8 @@ public class AgentDividendBackground(
                 var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
                 var repository = scope.ServiceProvider.GetRequiredService<IRepository>();
 
-                if (!await repository.GetNonArchivedBrandIdsAsyncEnumerable(model.BrandId).AnyAsync(stoppingToken))
-                {
-                    continue;
-                }
+                if (!await repository.GetNonArchivedBrandIdsAsyncEnumerable(model.BrandId)
+                        .AnyAsync(stoppingToken)) continue;
 
                 var response = await mediator.Send(new AgentDividendRequest(model.BrandId, false), stoppingToken);
 
