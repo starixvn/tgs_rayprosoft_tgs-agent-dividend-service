@@ -80,7 +80,8 @@ public interface IRepository
 
     Task<int> GetMaxAgentDividendIdAsync(CancellationToken cancellationToken);
 
-    Task UpdateSentOnByManualSendAsync(int agentDividendId, DistributeStatus status, string sendByUsername, string? remark, CancellationToken cancellationToken);
+    Task UpdateSentOnByManualSendAsync(int agentDividendId, DistributeStatus status, string sendByUsername,
+        string? remark, CancellationToken cancellationToken);
 
     Task UpdateSentOnByAutoSendAsync(int agentDividendId, string sendByUsername, CancellationToken cancellationToken);
 
