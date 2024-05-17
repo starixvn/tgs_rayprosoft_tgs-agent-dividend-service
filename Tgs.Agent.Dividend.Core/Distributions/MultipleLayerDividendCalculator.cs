@@ -58,7 +58,6 @@ internal class MultipleLayerDividendCalculator(IContractRepository contractRepos
 
         agentAggregate.AgentDividendPlatformCharges = await repository
             .GetAgentPlatformChargeCacheAsync(brand.Id,
-                agentAggregate.AgentDividendPercentage,
                 brand.CurrentSettlementFrom,
                 brand.CurrentSettlementTo,
                 cancellationToken)
@@ -72,7 +71,6 @@ internal class MultipleLayerDividendCalculator(IContractRepository contractRepos
 
         agentAggregate.AgentDividendProductFees = await repository
             .GetAgentProductFeeCacheAsync(brand.Id,
-                agentAggregate.AgentDividendPercentage,
                 brand.CurrentSettlementFrom,
                 brand.CurrentSettlementTo,
                 cancellationToken)
@@ -109,7 +107,9 @@ internal class MultipleLayerDividendCalculator(IContractRepository contractRepos
                 WinLossAmount = agentPlayerAggregate.WinLossAmount,
                 NetProfit = agentPlayerAggregate.NetProfit()
             },
-            conditions);
+            conditions,
+            agentPlayerAggregate.PlatformChargeAmount(),
+            agentPlayerAggregate.ProductFeeAmount());
 
         agentPlayerAggregate.AgentDividendPercentage = agentDividend.AgentDividendPercentage;
 
@@ -138,7 +138,9 @@ internal class MultipleLayerDividendCalculator(IContractRepository contractRepos
         Guid snapshotId,
         bool checkDividendActiveCount,
         AgentConditionModel agentCurrentCondition,
-        IEnumerable<AgentDividendConditionModel> agentDividendConditions)
+        IEnumerable<AgentDividendConditionModel> agentDividendConditions,
+        decimal platformChargeAmount,
+        decimal productFeeAmount)
     {
         var layer = agentId.ToString();
 
@@ -158,7 +160,7 @@ internal class MultipleLayerDividendCalculator(IContractRepository contractRepos
             AgentCoveredBonusAdjust =
                 (agentCurrentCondition.BonusAdjustAmount * agentDividendPercentage / 100M).Truncate(2),
             Layer = layer,
-            Dividend = (agentCurrentCondition.NetProfit * agentDividendPercentage / 100M).Truncate(2)
+            Dividend = (agentCurrentCondition.NetProfit * agentDividendPercentage / 100M - platformChargeAmount - productFeeAmount).Truncate(2)
         };
     }
 

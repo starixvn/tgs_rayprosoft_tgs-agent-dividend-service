@@ -64,10 +64,7 @@ internal class GetNoSendDividendHandler(IRepository repository)
 
             deductedNegativeDividends[dividend.AgentId] = changeToPositiveNumber ? 0 : actualAmount;
 
-            if (!changeToPositiveNumber)
-            {
-                dividend.ShouldReferToNextRecord = true;
-            }
+            if (!changeToPositiveNumber) dividend.ShouldReferToNextRecord = true;
         }
     }
 
@@ -77,9 +74,7 @@ internal class GetNoSendDividendHandler(IRepository repository)
         IEnumerable<AgentDividendModel> agentDividendModels)
     {
         foreach (var negativeDividend in agentNoSendDividends.Where(nd => !noSendDividendIds.ContainsKey(nd.Id)))
-        {
             noSendDividendIds.Add(negativeDividend.Id, dividend.Id);
-        }
 
         foreach (var agentDividendModel in agentDividendModels.Where(x =>
                      x.AgentId == dividend.AgentId && x.ShouldReferToNextRecord))

@@ -65,8 +65,8 @@ internal class CreateAgentDividendHandler(
             request.NegativeDividendsIds,
             cancellationToken);
 
-        foreach (var createAgentDividendModel in request.Models.Where(x => x is { AutoSend: true, AgentDividendAmount: > 0 }))
-        {
+        foreach (var createAgentDividendModel in request.Models.Where(x => x is
+                     { AutoSend: true, AgentDividendAmount: > 0 }))
             await backgroundTaskQueue.QueueBackgroundWorkItemAsync(async (scope, token) =>
             {
                 var innerMediator = scope.ServiceProvider.GetRequiredService<IMediator>();
@@ -78,6 +78,5 @@ internal class CreateAgentDividendHandler(
                         "system"),
                     token);
             });
-        }
     }
 }

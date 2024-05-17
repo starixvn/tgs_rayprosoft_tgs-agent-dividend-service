@@ -98,11 +98,11 @@ public class MultipleLayerDistributionTests
     [TestCase(-110, 2, 0)]
     [TestCase(-100, 2, 0)]
     [TestCase(-100, 2, 0)]
-    [TestCase(140, 2, 13.44)]
-    [TestCase(140, 1, 0)]
-    [TestCase(130, 2, 10.4)]
-    [TestCase(110, 2, 0)]
-    [TestCase(100, 2, 0)]
+    [TestCase(140, 2, -11.2)]
+    [TestCase(140, 1, -28)]
+    [TestCase(130, 2, -10.4)]
+    [TestCase(110, 2, -8.8)]
+    [TestCase(100, 2, -10)]
     public async Task Generate_Agent_Dividend2(decimal winLossAmount,
         int activeNumber,
         decimal dividend)
@@ -255,7 +255,7 @@ public class MultipleLayerDistributionTests
         fixture.Customize<AgentDividendProductFeeModel>(u => u
             .With(s => s.AgentId, agentId)
             .With(s => s.AgentDividendId, agentDividendId)
-            .With(s => s.Percentage, percentage)
+            .With(s => s.ProductFeePercentage, percentage)
             .With(s => s.WinLossAmount, winLoss));
         fixture.Behaviors.Add(new OmitOnRecursionBehavior());
         return fixture;

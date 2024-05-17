@@ -1,16 +1,20 @@
 ﻿namespace Tgs.Agent.Dividend.Client.Models;
 
 public record AgentDividendBeforehand(
+    DateTime From,
+    DateTime To,
     int ActiveNumber,
     decimal CompanyWinLossAmount,
     decimal Bonus,
     decimal PlayerRebate,
-    decimal SettledProfitLoss,
-    decimal PeriodProfitLoss,
-    decimal DepositFee,
-    decimal PlatformCharge,
-    decimal DividendAmount,
+    decimal DirectDividendAmount,
     decimal DividendPercentage,
-    decimal DownLineContributionAmount,
+    decimal TeamContributionAmount,
     decimal TotalDividendAmount,
+    decimal BonusAdjustAmount,
+    decimal AgentCoveredBonusAmount,
+    decimal AgentCoveredBonusAdjustAmount,
+    decimal PlatformChargeAmount,
+    decimal ProductFeeAmount,
+    decimal NegativeAgentDividendAmount,
     DateTime? SentOn);

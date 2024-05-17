@@ -20,13 +20,11 @@ public interface IRepository
         CancellationToken cancellationToken);
 
     IAsyncEnumerable<AgentDividendPlatformChargeModel> GetAgentPlatformChargeCacheAsync(Guid brandId,
-        decimal agentDividendPercentage,
         DateTime from,
         DateTime to,
         CancellationToken cancellationToken);
 
     IAsyncEnumerable<AgentDividendProductFeeModel> GetAgentProductFeeCacheAsync(Guid brandId,
-        decimal agentDividendPercentage,
         DateTime from,
         DateTime to,
         CancellationToken cancellationToken);
@@ -59,7 +57,7 @@ public interface IRepository
 
     IAsyncEnumerable<NegativeAgentDividendModel> GetNegativeAgentDividendsAsync(Guid agentId);
 
-    IAsyncEnumerable<AgentDividendBeforehand> GetAgentDividendBeforehandAsync(Guid agentId, DateTime from, DateTime to);
+    Task<AgentDividendBeforehand?> GetAgentDividendBeforehandAsync(Guid agentId, DateTime from, DateTime to);
 
     Task<IEnumerable<AgentDividendRecordModel>> GetAgentDividendRecordsAsync(Guid brandId,
         DistributeStatus? status,

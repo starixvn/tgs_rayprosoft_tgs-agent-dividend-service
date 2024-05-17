@@ -63,10 +63,12 @@ public class GetNoSendDividendHandlerTests
             Assert.That(response.Model.First(x => x.Id == 101).AutoSend, Is.EqualTo(false));
             Assert.That(response.Model.First(x => x.Id == 102).AutoSend, Is.EqualTo(true));
             Assert.That(response.Model.First(x => x.Id == 104).AutoSend, Is.EqualTo(false));
-            Assert.That(response.Model.Where(x => x.AgentId == agentId).Sum(s => s.BeforeDividendAmount ?? s.AgentDividendAmount) +
+            Assert.That(response.Model.Where(x => x.AgentId == agentId)
+                            .Sum(s => s.BeforeDividendAmount ?? s.AgentDividendAmount) +
                         agentNegatives.Sum(s => s.AgentDividendAmount),
                 Is.EqualTo(58));
-            Assert.That(response.Model.Where(x => x.AgentId == agentId2).Sum(s => s.BeforeDividendAmount ?? s.AgentDividendAmount) +
+            Assert.That(response.Model.Where(x => x.AgentId == agentId2)
+                            .Sum(s => s.BeforeDividendAmount ?? s.AgentDividendAmount) +
                         agent2Negatives.Sum(s => s.AgentDividendAmount),
                 Is.EqualTo(34));
         });
@@ -121,10 +123,12 @@ public class GetNoSendDividendHandlerTests
             Assert.That(response.Model.First(x => x.Id == 101).AutoSend, Is.EqualTo(false));
             Assert.That(response.Model.First(x => x.Id == 102).AutoSend, Is.EqualTo(false));
             Assert.That(response.Model.First(x => x.Id == 104).AutoSend, Is.EqualTo(false));
-            Assert.That(response.Model.Where(x => x.AgentId == agentId).Sum(s => s.BeforeDividendAmount ?? s.AgentDividendAmount) +
+            Assert.That(response.Model.Where(x => x.AgentId == agentId)
+                            .Sum(s => s.BeforeDividendAmount ?? s.AgentDividendAmount) +
                         agentNegatives.Sum(s => s.AgentDividendAmount),
                 Is.EqualTo(-22));
-            Assert.That(response.Model.Where(x => x.AgentId == agentId2).Sum(s => s.BeforeDividendAmount ?? s.AgentDividendAmount) +
+            Assert.That(response.Model.Where(x => x.AgentId == agentId2)
+                            .Sum(s => s.BeforeDividendAmount ?? s.AgentDividendAmount) +
                         agent2Negatives.Sum(s => s.AgentDividendAmount),
                 Is.EqualTo(34));
         });
@@ -181,10 +185,12 @@ public class GetNoSendDividendHandlerTests
             Assert.That(response.Model.First(x => x.Id == 101).AutoSend, Is.EqualTo(true));
             Assert.That(response.Model.First(x => x.Id == 102).AutoSend, Is.EqualTo(false));
             Assert.That(response.Model.First(x => x.Id == 104).AutoSend, Is.EqualTo(false));
-            Assert.That(response.Model.Where(x => x.AgentId == agentId).Sum(s => s.BeforeDividendAmount ?? s.AgentDividendAmount) +
+            Assert.That(response.Model.Where(x => x.AgentId == agentId)
+                            .Sum(s => s.BeforeDividendAmount ?? s.AgentDividendAmount) +
                         agentNegatives.Sum(s => s.AgentDividendAmount),
                 Is.EqualTo(6));
-            Assert.That(response.Model.Where(x => x.AgentId == agentId2).Sum(s => s.BeforeDividendAmount ?? s.AgentDividendAmount) +
+            Assert.That(response.Model.Where(x => x.AgentId == agentId2)
+                            .Sum(s => s.BeforeDividendAmount ?? s.AgentDividendAmount) +
                         agent2Negatives.Sum(s => s.AgentDividendAmount),
                 Is.EqualTo(34));
         });
@@ -200,12 +206,12 @@ public class GetNoSendDividendHandlerTests
 
         var models = new[]
         {
-            CreateCreateAgentDividendModelFixture(101, brandId, agentId, 50, 50).Create<AgentDividendModel>(),
+            CreateCreateAgentDividendModelFixture(101, brandId, agentId, 50, 50).Create<AgentDividendModel>()
         };
 
         var agentNegatives = new[]
         {
-            CreateNegativeAgentDividendModelFixture(11, agentId, 40).Create<NegativeAgentDividendModel>(),
+            CreateNegativeAgentDividendModelFixture(11, agentId, 40).Create<NegativeAgentDividendModel>()
         };
 
         fakeRepository.GetNegativeAgentDividendsAsync(agentId).Returns(agentNegatives.ToAsyncEnumerable());
@@ -219,7 +225,9 @@ public class GetNoSendDividendHandlerTests
         Assert.Multiple(() =>
         {
             Assert.That(response.Model.First(x => x.Id == 101).AutoSend, Is.EqualTo(true));
-            Assert.That(response.Model.Where(x => x.AgentId == agentId).Sum(s => s.BeforeDividendAmount ?? s.AgentDividendAmount),
+            Assert.That(
+                response.Model.Where(x => x.AgentId == agentId)
+                    .Sum(s => s.BeforeDividendAmount ?? s.AgentDividendAmount),
                 Is.EqualTo(50));
         });
     }
@@ -277,10 +285,12 @@ public class GetNoSendDividendHandlerTests
             Assert.That(response.Model.First(x => x.Id == 101).AutoSend, Is.EqualTo(false));
             Assert.That(response.Model.First(x => x.Id == 102).AutoSend, Is.EqualTo(true));
             Assert.That(response.Model.First(x => x.Id == 104).AutoSend, Is.EqualTo(false));
-            Assert.That(response.Model.Where(x => x.AgentId == agentId).Sum(s => s.BeforeDividendAmount ?? s.AgentDividendAmount) +
+            Assert.That(response.Model.Where(x => x.AgentId == agentId)
+                            .Sum(s => s.BeforeDividendAmount ?? s.AgentDividendAmount) +
                         agentNegatives.Sum(s => s.AgentDividendAmount),
                 Is.EqualTo(6));
-            Assert.That(response.Model.Where(x => x.AgentId == agentId2).Sum(s => s.BeforeDividendAmount ?? s.AgentDividendAmount) +
+            Assert.That(response.Model.Where(x => x.AgentId == agentId2)
+                            .Sum(s => s.BeforeDividendAmount ?? s.AgentDividendAmount) +
                         agent2Negatives.Sum(s => s.AgentDividendAmount),
                 Is.EqualTo(34));
         });
@@ -339,10 +349,12 @@ public class GetNoSendDividendHandlerTests
             Assert.That(response.Model.First(x => x.Id == 101).AutoSend, Is.EqualTo(false));
             Assert.That(response.Model.First(x => x.Id == 102).AutoSend, Is.EqualTo(false));
             Assert.That(response.Model.First(x => x.Id == 104).AutoSend, Is.EqualTo(false));
-            Assert.That(response.Model.Where(x => x.AgentId == agentId).Sum(s => s.BeforeDividendAmount ?? s.AgentDividendAmount) +
+            Assert.That(response.Model.Where(x => x.AgentId == agentId)
+                            .Sum(s => s.BeforeDividendAmount ?? s.AgentDividendAmount) +
                         agentNegatives.Sum(s => s.AgentDividendAmount),
                 Is.EqualTo(-74));
-            Assert.That(response.Model.Where(x => x.AgentId == agentId2).Sum(s => s.BeforeDividendAmount ?? s.AgentDividendAmount) +
+            Assert.That(response.Model.Where(x => x.AgentId == agentId2)
+                            .Sum(s => s.BeforeDividendAmount ?? s.AgentDividendAmount) +
                         agent2Negatives.Sum(s => s.AgentDividendAmount),
                 Is.EqualTo(34));
         });
@@ -365,7 +377,7 @@ public class GetNoSendDividendHandlerTests
             CreateCreateAgentDividendModelFixture(103, brandId, agentId2, 33, 100).Create<AgentDividendModel>(),
             CreateCreateAgentDividendModelFixture(104, brandId, agentId3, 33, -100, false).Create<AgentDividendModel>(),
             CreateCreateAgentDividendModelFixture(105, brandId, agentId, 50, 20).Create<AgentDividendModel>(),
-            CreateCreateAgentDividendModelFixture(106, brandId, agentId, 40, -10).Create<AgentDividendModel>(),
+            CreateCreateAgentDividendModelFixture(106, brandId, agentId, 40, -10).Create<AgentDividendModel>()
         };
 
         var agentNegatives = new[]
@@ -405,10 +417,12 @@ public class GetNoSendDividendHandlerTests
             Assert.That(response.Model.First(x => x.Id == 104).AutoSend, Is.EqualTo(false));
             Assert.That(response.Model.First(x => x.Id == 105).AutoSend, Is.EqualTo(true));
             Assert.That(response.Model.First(x => x.Id == 106).AutoSend, Is.EqualTo(false));
-            Assert.That(response.Model.Where(x => x.AgentId == agentId).Sum(s => s.BeforeDividendAmount ?? s.AgentDividendAmount) +
+            Assert.That(response.Model.Where(x => x.AgentId == agentId)
+                            .Sum(s => s.BeforeDividendAmount ?? s.AgentDividendAmount) +
                         agentNegatives.Sum(s => s.AgentDividendAmount),
                 Is.EqualTo(16));
-            Assert.That(response.Model.Where(x => x.AgentId == agentId2).Sum(s => s.BeforeDividendAmount ?? s.AgentDividendAmount) +
+            Assert.That(response.Model.Where(x => x.AgentId == agentId2)
+                            .Sum(s => s.BeforeDividendAmount ?? s.AgentDividendAmount) +
                         agent2Negatives.Sum(s => s.AgentDividendAmount),
                 Is.EqualTo(34));
         });
@@ -431,7 +445,7 @@ public class GetNoSendDividendHandlerTests
             CreateCreateAgentDividendModelFixture(103, brandId, agentId2, 33, 100).Create<AgentDividendModel>(),
             CreateCreateAgentDividendModelFixture(104, brandId, agentId3, 33, -100, false).Create<AgentDividendModel>(),
             CreateCreateAgentDividendModelFixture(105, brandId, agentId, 50, -10).Create<AgentDividendModel>(),
-            CreateCreateAgentDividendModelFixture(106, brandId, agentId, 40, 20).Create<AgentDividendModel>(),
+            CreateCreateAgentDividendModelFixture(106, brandId, agentId, 40, 20).Create<AgentDividendModel>()
         };
 
         var agentNegatives = new[]
@@ -472,10 +486,12 @@ public class GetNoSendDividendHandlerTests
             Assert.That(response.Model.First(x => x.Id == 104).AutoSend, Is.EqualTo(false));
             Assert.That(response.Model.First(x => x.Id == 105).AutoSend, Is.EqualTo(false));
             Assert.That(response.Model.First(x => x.Id == 106).AutoSend, Is.EqualTo(true));
-            Assert.That(response.Model.Where(x => x.AgentId == agentId).Sum(s => s.BeforeDividendAmount ?? s.AgentDividendAmount) +
+            Assert.That(response.Model.Where(x => x.AgentId == agentId)
+                            .Sum(s => s.BeforeDividendAmount ?? s.AgentDividendAmount) +
                         agentNegatives.Sum(s => s.AgentDividendAmount),
                 Is.EqualTo(16));
-            Assert.That(response.Model.Where(x => x.AgentId == agentId2).Sum(s => s.BeforeDividendAmount ?? s.AgentDividendAmount) +
+            Assert.That(response.Model.Where(x => x.AgentId == agentId2)
+                            .Sum(s => s.BeforeDividendAmount ?? s.AgentDividendAmount) +
                         agent2Negatives.Sum(s => s.AgentDividendAmount),
                 Is.EqualTo(34));
         });

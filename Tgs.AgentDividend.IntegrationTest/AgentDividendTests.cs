@@ -15,7 +15,6 @@ using Tgs.Agent.Dividend.Domain.Models;
 using Tgs.Agent.Dividend.Repository.Entities;
 using AgentDividendBeforehand = Tgs.Agent.Dividend.Domain.Models.AgentDividendBeforehand;
 using AgentDividendRecordModel = Tgs.Agent.Dividend.Domain.Models.AgentDividendRecordModel;
-using GetAgentNegativeDividendRequest = Tgs.Agent.Dividend.Domain.Models.GetNegativeAgentDividendRequest;
 
 namespace Tgs.Agent.Dividend.IntegrationTest;
 
@@ -37,15 +36,15 @@ public class AgentDividendTests
 
         var agents = new[]
         {
-            CreateAgentFixture(agentId,parentId).Create<AgentModel>(),
-            CreateAgentFixture(parentId, null).Create<AgentModel>(),
+            CreateAgentFixture(agentId, parentId).Create<AgentModel>(),
+            CreateAgentFixture(parentId, null).Create<AgentModel>()
         };
 
         fakeRepository.GetBrandAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(CreateBrandModelFixture(brandId).Create<BrandModel>());
 
         fakeRepository.GetAgentDividendBeforehandAsync(Arg.Any<Guid>(), Arg.Any<DateTime>(), Arg.Any<DateTime>())
-            .Returns(fixture.CreateMany<AgentDividendBeforehand>(1).ToAsyncEnumerable());
+            .Returns(fixture.Create<AgentDividendBeforehand>());
 
         fakeRepository
             .GetDescendantAgentsByPathCacheAsyncEnumerable(Arg.Any<Guid>(),
@@ -92,18 +91,18 @@ public class AgentDividendTests
 
         var agents = new[]
         {
-            CreateAgentFixture(agentId,parentId).Create<AgentModel>(),
-            CreateAgentFixture(parentId, null).Create<AgentModel>(),
+            CreateAgentFixture(agentId, parentId).Create<AgentModel>(),
+            CreateAgentFixture(parentId, null).Create<AgentModel>()
         };
 
         fakeRepository.GetBrandAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(CreateBrandModelFixture(brandId).Create<BrandModel>());
 
         fakeRepository.GetNonArchivedBrandIdsAsyncEnumerable(Arg.Any<Guid?>())
-            .Returns(new Guid[]{ brandId }.ToAsyncEnumerable());
+            .Returns(new[] { brandId }.ToAsyncEnumerable());
 
         fakeRepository.GetAgentDividendBeforehandAsync(Arg.Any<Guid>(), Arg.Any<DateTime>(), Arg.Any<DateTime>())
-            .Returns(fixture.CreateMany<AgentDividendBeforehand>(1).ToAsyncEnumerable());
+            .Returns(fixture.Create<AgentDividendBeforehand>());
 
         fakeRepository
             .GetDescendantAgentsByPathCacheAsyncEnumerable(Arg.Any<Guid>(),
@@ -180,7 +179,8 @@ public class AgentDividendTests
 
         Assert.That(response, Has.Length.EqualTo(1));
 
-        _ = fakeRepository.ReceivedWithAnyArgs(1).GetAgentDividendRecordsAsync(default, null, null, null, null, null, null, null);
+        _ = fakeRepository.ReceivedWithAnyArgs(1)
+            .GetAgentDividendRecordsAsync(default, null, null, null, null, null, null, null);
     }
 
     [Test]
@@ -188,10 +188,10 @@ public class AgentDividendTests
     {
         var fakeRepository = Substitute.For<IRepository>();
         var fakeMediator = Substitute.For<IMediator>();
-        
+
         var id1 = Guid.NewGuid();
         var id2 = Guid.NewGuid();
-        var agentDividendRecordIds = new Guid[] { id1, id2 };
+        var agentDividendRecordIds = new[] { id1, id2 };
 
         await using var web = new TestAgentDividendApplication(builder => builder.ConfigureServices(services =>
         {
@@ -204,7 +204,7 @@ public class AgentDividendTests
 
         var sut = new AgentDividendClient(httpClient);
 
-        await sut.SendAgentDividendsAsync(agentDividendRecordIds, true,"user","remark", default);
+        await sut.SendAgentDividendsAsync(agentDividendRecordIds, true, "user", "remark", default);
     }
 
     [Test]
@@ -226,7 +226,7 @@ public class AgentDividendTests
 
         var sut = new AgentDividendClient(httpClient);
 
-        await sut.ClearAgentNegativeDividendAsync(agentId, Guid.NewGuid(), default);
+        await sut.ClearAgentNegativeDividendAsync(agentId, Guid.NewGuid());
 
         _ = fakeMediator.Received(1).Send(Arg.Any<ClearNegativeDividend>());
     }
@@ -257,7 +257,7 @@ public class AgentDividendTests
         Assert.That(amount, Is.EqualTo(negativeAgentDividendModels.Sum(x => x.AgentDividendAmount)));
     }
 
-    private static Fixture CreateAgentFixture(Guid agentId,Guid? parentId)
+    private static Fixture CreateAgentFixture(Guid agentId, Guid? parentId)
     {
         var fixture = new Fixture();
         fixture.Customize<AgentModel>(u => u

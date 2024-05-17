@@ -87,7 +87,8 @@ internal class AgentDividendClient(HttpClient client) : IAgentDividendClient
         _ = response.EnsureSuccessStatusCode();
     }
 
-    public async Task ClearAgentNegativeDividendAsync(Guid agentId, Guid clearByUserId, CancellationToken cancellationToken = default)
+    public async Task ClearAgentNegativeDividendAsync(Guid agentId, Guid clearByUserId,
+        CancellationToken cancellationToken = default)
     {
         var response = await client
             .PutAsync($"/api/agentDividend/{agentId}/clear-negative-dividend/{clearByUserId}", null, cancellationToken)
@@ -96,7 +97,8 @@ internal class AgentDividendClient(HttpClient client) : IAgentDividendClient
         _ = response.EnsureSuccessStatusCode();
     }
 
-    public async Task<decimal> GetNegativeAgentDividendAsync(Guid agentId, CancellationToken cancellationToken = default)
+    public async Task<decimal> GetNegativeAgentDividendAsync(Guid agentId,
+        CancellationToken cancellationToken = default)
     {
         var response = await client
             .GetAsync($"/api/agentDividend/{agentId}/negative-dividend", cancellationToken)
