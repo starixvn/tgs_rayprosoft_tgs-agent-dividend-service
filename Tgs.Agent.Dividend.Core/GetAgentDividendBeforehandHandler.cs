@@ -105,7 +105,8 @@ internal class GetAgentDividendBeforehandHandler(
         var childAgentDividends = parentAgentDividends.Where(w => w.DividendProviderAgentId != agent.AgentId);
 
 
-        agent.AgentDividendAmount = mainDistributionService.GetAgentDividendAmount(agent, multipleLayers, cancellationToken);
+        agent.AgentDividendAmount =
+            mainDistributionService.GetAgentDividendAmount(agent, multipleLayers, cancellationToken);
 
         var agentDividends = agentPlayerAggregates
             .Select(x =>

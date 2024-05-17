@@ -50,28 +50,33 @@ public class AgentPlayerAggregateModel
                 NoIncludeNetProfitBonusAdjustAmount) -
                BonusAmount;
     }
+
     public decimal ProductFeeAmount()
     {
         var cardGameAmount =
-            AgentDividendProductFees?.Where(w => w.GameGroupType == GameGroupType.CardGame).Sum(s => s.WinLossAmount) <= 0
+            AgentDividendProductFees?.Where(w => w.GameGroupType == GameGroupType.CardGame).Sum(s => s.WinLossAmount) <=
+            0
                 ? 0M
                 : AgentDividendProductFees?.Where(w => w.GameGroupType == GameGroupType.CardGame)
                     .Sum(s => s.WinLossAmount * s.ProductFeePercentage / 100) ?? 0M;
 
         var liveDealerAmount =
-            AgentDividendProductFees?.Where(w => w.GameGroupType == GameGroupType.LiveDealer).Sum(s => s.WinLossAmount) <= 0
+            AgentDividendProductFees?.Where(w => w.GameGroupType == GameGroupType.LiveDealer)
+                .Sum(s => s.WinLossAmount) <= 0
                 ? 0M
                 : AgentDividendProductFees?.Where(w => w.GameGroupType == GameGroupType.LiveDealer)
                     .Sum(s => s.WinLossAmount * s.ProductFeePercentage / 100) ?? 0M;
 
         var lotteryAmount =
-            AgentDividendProductFees?.Where(w => w.GameGroupType == GameGroupType.Lottery).Sum(s => s.WinLossAmount) <= 0
+            AgentDividendProductFees?.Where(w => w.GameGroupType == GameGroupType.Lottery).Sum(s => s.WinLossAmount) <=
+            0
                 ? 0M
                 : AgentDividendProductFees?.Where(w => w.GameGroupType == GameGroupType.Lottery)
                     .Sum(s => s.WinLossAmount * s.ProductFeePercentage / 100) ?? 0M;
 
         var sportsAmount =
-            AgentDividendProductFees?.Where(w => w.GameGroupType == GameGroupType.Sportsbook).Sum(s => s.WinLossAmount) <= 0
+            AgentDividendProductFees?.Where(w => w.GameGroupType == GameGroupType.Sportsbook)
+                .Sum(s => s.WinLossAmount) <= 0
                 ? 0M
                 : AgentDividendProductFees?.Where(w => w.GameGroupType == GameGroupType.Sportsbook)
                     .Sum(s => s.WinLossAmount * s.ProductFeePercentage / 100) ?? 0M;
@@ -82,7 +87,8 @@ public class AgentPlayerAggregateModel
                 : AgentDividendProductFees?.Where(w => w.GameGroupType == GameGroupType.Slot)
                     .Sum(s => s.WinLossAmount * s.ProductFeePercentage / 100) ?? 0M;
 
-        var virtualSportsAmount = AgentDividendProductFees?.Where(w => w.GameGroupType == GameGroupType.VirtualSports).Sum(s => s.WinLossAmount) <= 0
+        var virtualSportsAmount = AgentDividendProductFees?.Where(w => w.GameGroupType == GameGroupType.VirtualSports)
+            .Sum(s => s.WinLossAmount) <= 0
             ? 0M
             : AgentDividendProductFees?.Where(w => w.GameType == GameType.VirtualSports)
                 .Sum(s => s.WinLossAmount * s.ProductFeePercentage / 100) ?? 0M;

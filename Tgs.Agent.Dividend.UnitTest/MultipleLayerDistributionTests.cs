@@ -135,15 +135,18 @@ public class MultipleLayerDistributionTests
 
         agentPlayerAggregate.AgentDividendPlatformCharges =
         [
-            CreateAgentDividendPlatformChargeFixture(agentPlayerAggregate.Id, agentPlayerAggregate.AgentId,10, winLossAmount)
+            CreateAgentDividendPlatformChargeFixture(agentPlayerAggregate.Id, agentPlayerAggregate.AgentId, 10,
+                    winLossAmount)
                 .Create<AgentDividendPlatformChargeModel>()
         ];
 
         agentPlayerAggregate.AgentDividendProductFees =
         [
-            CreateAgentDividendProductFeeFixture(agentPlayerAggregate.Id, agentPlayerAggregate.AgentId,10, winLossAmount/2)
+            CreateAgentDividendProductFeeFixture(agentPlayerAggregate.Id, agentPlayerAggregate.AgentId, 10,
+                    winLossAmount / 2)
                 .Create<AgentDividendProductFeeModel>(),
-            CreateAgentDividendProductFeeFixture(agentPlayerAggregate.Id, agentPlayerAggregate.AgentId,10, winLossAmount/2)
+            CreateAgentDividendProductFeeFixture(agentPlayerAggregate.Id, agentPlayerAggregate.AgentId, 10,
+                    winLossAmount / 2)
                 .Create<AgentDividendProductFeeModel>()
         ];
 
@@ -237,7 +240,8 @@ public class MultipleLayerDistributionTests
         return fixture;
     }
 
-    private static Fixture CreateAgentDividendPlatformChargeFixture(int agentDividendId, Guid agentId, decimal percentage, decimal winLoss)
+    private static Fixture CreateAgentDividendPlatformChargeFixture(int agentDividendId, Guid agentId,
+        decimal percentage, decimal winLoss)
     {
         var fixture = new Fixture();
         fixture.Customize<AgentDividendPlatformChargeModel>(u => u
@@ -249,7 +253,8 @@ public class MultipleLayerDistributionTests
         return fixture;
     }
 
-    private static Fixture CreateAgentDividendProductFeeFixture(int agentDividendId, Guid agentId, decimal percentage, decimal winLoss)
+    private static Fixture CreateAgentDividendProductFeeFixture(int agentDividendId, Guid agentId, decimal percentage,
+        decimal winLoss)
     {
         var fixture = new Fixture();
         fixture.Customize<AgentDividendProductFeeModel>(u => u

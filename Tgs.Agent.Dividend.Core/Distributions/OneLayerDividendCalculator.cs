@@ -41,6 +41,7 @@ internal class OneLayerDividendCalculator(IContractRepository contractRepository
             yield return GetDefaultAggregate(idNumber + 1, agent.Id, brand, agents);
         }
         else
+        {
             await foreach (var agentPlayerAggregateModel in agentAggregates)
             {
                 agentPlayerAggregateModel.Id = idNumber + i + 1;
@@ -55,9 +56,7 @@ internal class OneLayerDividendCalculator(IContractRepository contractRepository
                     .ToArrayAsync(cancellationToken);
 
                 foreach (var agentDividendPlatformChargeModel in agentPlayerAggregateModel.AgentDividendPlatformCharges)
-                {
                     agentDividendPlatformChargeModel.AgentDividendId = agentPlayerAggregateModel.Id;
-                }
 
                 agentPlayerAggregateModel.AgentDividendProductFees = await repository
                     .GetAgentProductFeeCacheAsync(brand.Id,
@@ -68,14 +67,13 @@ internal class OneLayerDividendCalculator(IContractRepository contractRepository
                     .ToArrayAsync(cancellationToken);
 
                 foreach (var agentDividendProductFeeModel in agentPlayerAggregateModel.AgentDividendProductFees)
-                {
                     agentDividendProductFeeModel.AgentDividendId = agentPlayerAggregateModel.Id;
-                }
 
                 i++;
 
                 yield return agentPlayerAggregateModel;
             }
+        }
     }
 
     public async IAsyncEnumerable<AgentDividendMultipleLayerModel> GenerateMultipleLayerAsync(BrandModel brand,
@@ -160,11 +158,12 @@ internal class OneLayerDividendCalculator(IContractRepository contractRepository
         do
         {
             var agentDividendPercentage = agent.DividendPercentage < 0 ? 0 : agent.DividendPercentage;
-            var actualDividendPercentage = agentDividendPercentage - (childDividendPercentage < 0 ? 0 : childDividendPercentage);
+            var actualDividendPercentage =
+                agentDividendPercentage - (childDividendPercentage < 0 ? 0 : childDividendPercentage);
 
             var agentDividendAmount = currentAgentId == providerAgentId
-                ? (netProfit * actualDividendPercentage / 100M - platformChargeAmount - productFeeAmount)
-                : (netProfit * actualDividendPercentage / 100M);
+                ? netProfit * actualDividendPercentage / 100M - platformChargeAmount - productFeeAmount
+                : netProfit * actualDividendPercentage / 100M;
 
             yield return new AgentDividendMultipleLayerModel
             {
@@ -235,10 +234,7 @@ internal class OneLayerDividendCalculator(IContractRepository contractRepository
 
     private static string? GenerateAgentDividendPercentages(LTree? agentPath, AgentModel[] agents)
     {
-        if (agentPath is null)
-        {
-            return null;
-        }
+        if (agentPath is null) return null;
 
         var agentIds = agentPath.ToString()!.Split(".").Select(Guid.Parse);
         var agentTree = agents.Where(x => agentIds.Contains(x.Id)).Select(x => new AgentDividendPercentageData

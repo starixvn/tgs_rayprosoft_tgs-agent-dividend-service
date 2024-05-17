@@ -65,9 +65,7 @@ internal class MultipleLayerDividendCalculator(IContractRepository contractRepos
             .ToArrayAsync(cancellationToken);
 
         foreach (var agentAggregateAgentDividendPlatformCharge in agentAggregate.AgentDividendPlatformCharges)
-        {
             agentAggregateAgentDividendPlatformCharge.AgentDividendId = agentAggregate.Id;
-        }
 
         agentAggregate.AgentDividendProductFees = await repository
             .GetAgentProductFeeCacheAsync(brand.Id,
@@ -78,9 +76,7 @@ internal class MultipleLayerDividendCalculator(IContractRepository contractRepos
             .ToArrayAsync(cancellationToken);
 
         foreach (var agentAggregateAgentDividendProductFee in agentAggregate.AgentDividendProductFees)
-        {
             agentAggregateAgentDividendProductFee.AgentDividendId = agentAggregate.Id;
-        }
 
         yield return agentAggregate;
     }
@@ -95,7 +91,9 @@ internal class MultipleLayerDividendCalculator(IContractRepository contractRepos
             .GetAgentDividendConditionsAsync(agent.Id, cancellationToken)
             .ToArrayAsync(cancellationToken);
 
-        var snapshotId = preCalculation ? Guid.Empty : await GenerateAgentDividendSnapshotAsync(agent, conditions, cancellationToken);
+        var snapshotId = preCalculation
+            ? Guid.Empty
+            : await GenerateAgentDividendSnapshotAsync(agent, conditions, cancellationToken);
 
         var agentDividend = GetAgentDividendsByMultipleLayer(agentPlayerAggregate.Id,
             agent.Id,
@@ -160,7 +158,8 @@ internal class MultipleLayerDividendCalculator(IContractRepository contractRepos
             AgentCoveredBonusAdjust =
                 (agentCurrentCondition.BonusAdjustAmount * agentDividendPercentage / 100M).Truncate(2),
             Layer = layer,
-            Dividend = (agentCurrentCondition.NetProfit * agentDividendPercentage / 100M - platformChargeAmount - productFeeAmount).Truncate(2)
+            Dividend = (agentCurrentCondition.NetProfit * agentDividendPercentage / 100M - platformChargeAmount -
+                        productFeeAmount).Truncate(2)
         };
     }
 

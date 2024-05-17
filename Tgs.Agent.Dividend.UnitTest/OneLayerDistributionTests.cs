@@ -100,17 +100,21 @@ public class OneLayerDistributionTests
 
         agentPlayerAggregate.AgentDividendPlatformCharges =
         [
-            CreateAgentDividendPlatformChargeFixture(agentPlayerAggregate.Id, agentPlayerAggregate.AgentId, 10, agent4WinLossAmount)
+            CreateAgentDividendPlatformChargeFixture(agentPlayerAggregate.Id, agentPlayerAggregate.AgentId, 10,
+                    agent4WinLossAmount)
                 .Create<AgentDividendPlatformChargeModel>()
         ];
 
         agentPlayerAggregate.AgentDividendProductFees =
         [
-            CreateAgentDividendProductFeeFixture(agentPlayerAggregate.Id, GameType.Arcade, agentPlayerAggregate.AgentId, 10, agent4WinLossAmount / 2)
+            CreateAgentDividendProductFeeFixture(agentPlayerAggregate.Id, GameType.Arcade, agentPlayerAggregate.AgentId,
+                    10, agent4WinLossAmount / 2)
                 .Create<AgentDividendProductFeeModel>(),
-            CreateAgentDividendProductFeeFixture(agentPlayerAggregate.Id, GameType.Slot, agentPlayerAggregate.AgentId, 10, agent4WinLossAmount / 2)
+            CreateAgentDividendProductFeeFixture(agentPlayerAggregate.Id, GameType.Slot, agentPlayerAggregate.AgentId,
+                    10, agent4WinLossAmount / 2)
                 .Create<AgentDividendProductFeeModel>(),
-            CreateAgentDividendProductFeeFixture(agentPlayerAggregate.Id, GameType.VirtualSports, agentPlayerAggregate.AgentId, 10, -100)
+            CreateAgentDividendProductFeeFixture(agentPlayerAggregate.Id, GameType.VirtualSports,
+                    agentPlayerAggregate.AgentId, 10, -100)
                 .Create<AgentDividendProductFeeModel>()
         ];
 
@@ -139,7 +143,8 @@ public class OneLayerDistributionTests
             .GetAgentPlayerGameAggregatesCacheAsync(brandId, from, to, default)
             .Returns(agentPlayerGameAggregates.ToAsyncEnumerable());
 
-        var response = await sut.GenerateMultipleLayerAsync(brand, new AgentModel(), agentPlayerAggregate, false, default)
+        var response = await sut
+            .GenerateMultipleLayerAsync(brand, new AgentModel(), agentPlayerAggregate, false, default)
             .ToArrayAsync();
 
         Assert.Multiple(() =>
@@ -241,15 +246,18 @@ public class OneLayerDistributionTests
         {
             agentPlayerAggregateModel.AgentDividendPlatformCharges =
             [
-                CreateAgentDividendPlatformChargeFixture(agentPlayerAggregateModel.Id, agentPlayerAggregateModel.AgentId, 10, agent4WinLossAmount)
+                CreateAgentDividendPlatformChargeFixture(agentPlayerAggregateModel.Id,
+                        agentPlayerAggregateModel.AgentId, 10, agent4WinLossAmount)
                     .Create<AgentDividendPlatformChargeModel>()
             ];
 
             agentPlayerAggregateModel.AgentDividendProductFees =
             [
-                CreateAgentDividendProductFeeFixture(agentPlayerAggregateModel.Id, GameType.Slot, agentPlayerAggregateModel.AgentId, 10, agent4WinLossAmount / 2)
+                CreateAgentDividendProductFeeFixture(agentPlayerAggregateModel.Id, GameType.Slot,
+                        agentPlayerAggregateModel.AgentId, 10, agent4WinLossAmount / 2)
                     .Create<AgentDividendProductFeeModel>(),
-                CreateAgentDividendProductFeeFixture(agentPlayerAggregateModel.Id, GameType.Slot, agentPlayerAggregateModel.AgentId, 10, agent4WinLossAmount / 2)
+                CreateAgentDividendProductFeeFixture(agentPlayerAggregateModel.Id, GameType.Slot,
+                        agentPlayerAggregateModel.AgentId, 10, agent4WinLossAmount / 2)
                     .Create<AgentDividendProductFeeModel>()
             ];
         }
@@ -375,7 +383,8 @@ public class OneLayerDistributionTests
         return fixture;
     }
 
-    private static Fixture CreateAgentDividendPlatformChargeFixture(int agentDividendId, Guid agentId, decimal percentage, decimal winLoss)
+    private static Fixture CreateAgentDividendPlatformChargeFixture(int agentDividendId, Guid agentId,
+        decimal percentage, decimal winLoss)
     {
         var fixture = new Fixture();
         fixture.Customize<AgentDividendPlatformChargeModel>(u => u
@@ -387,7 +396,8 @@ public class OneLayerDistributionTests
         return fixture;
     }
 
-    private static Fixture CreateAgentDividendProductFeeFixture(int agentDividendId, GameType gameType, Guid agentId, decimal percentage, decimal winLoss)
+    private static Fixture CreateAgentDividendProductFeeFixture(int agentDividendId, GameType gameType, Guid agentId,
+        decimal percentage, decimal winLoss)
     {
         var fixture = new Fixture();
         fixture.Customize<AgentDividendProductFeeModel>(u => u

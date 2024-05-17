@@ -1,5 +1,4 @@
-﻿
-namespace Tgs.Agent.Dividend.Domain.Models;
+﻿namespace Tgs.Agent.Dividend.Domain.Models;
 
 public class AgentDividendPlatformChargeModel
 {
