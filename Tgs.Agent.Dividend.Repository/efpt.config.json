@@ -71,6 +71,10 @@
          "ObjectType": 0
       },
       {
+         "Name": "report.aggregate_execution_time",
+         "ObjectType": 0
+      },
+      {
          "Name": "report.player_aggregates",
          "ObjectType": 0
       },

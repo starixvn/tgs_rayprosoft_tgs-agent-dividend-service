@@ -52,7 +52,7 @@ public interface IRepository
 
     IAsyncEnumerable<NegativeAgentDividendModel> GetNegativeAgentDividendsAsync(Guid agentId);
 
-    Task<AgentDividendBeforehand?> GetAgentDividendBeforehandAsync(Guid agentId, DateTime from, DateTime to);
+    IAsyncEnumerable<AgentDividendBeforehand> GetAgentDividendBeforehandAsync(Guid agentId, DateTime from, DateTime to);
 
     Task<IEnumerable<AgentDividendRecordModel>> GetAgentDividendRecordsAsync(Guid brandId,
         DistributeStatus? status,
@@ -82,5 +82,7 @@ public interface IRepository
 
     void RemoveAllMemoryCache(CancellationToken cancellationToken);
 
-    Task ClearNegativeCommissionAsync(Guid agentId, Guid clearByUserId, CancellationToken cancellationToken = default);
+    Task ClearNegativeCommissionAsync(Guid agentId, Guid clearByUserId, CancellationToken cancellationToken);
+
+    Task<int> GetCompletePlayerAggregateCountAsync(DateTime from, DateTime to, CancellationToken cancellationToken);
 }

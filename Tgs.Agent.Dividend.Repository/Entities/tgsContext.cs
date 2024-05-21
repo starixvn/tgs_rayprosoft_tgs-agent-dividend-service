@@ -36,6 +36,8 @@ public partial class tgsContext : DbContext
 
     public virtual DbSet<AgentProductFee> AgentProductFees { get; set; }
 
+    public virtual DbSet<AggregateExecutionTime> AggregateExecutionTimes { get; set; }
+
     public virtual DbSet<Brand> Brands { get; set; }
 
     public virtual DbSet<BrandAgentDividendCondition> BrandAgentDividendConditions { get; set; }
@@ -65,6 +67,7 @@ public partial class tgsContext : DbContext
         modelBuilder.ApplyConfiguration(new Configurations.AgentDividendRecordConfiguration());
         modelBuilder.ApplyConfiguration(new Configurations.AgentDividendSnapshotConfiguration());
         modelBuilder.ApplyConfiguration(new Configurations.AgentProductFeeConfiguration());
+        modelBuilder.ApplyConfiguration(new Configurations.AggregateExecutionTimeConfiguration());
         modelBuilder.ApplyConfiguration(new Configurations.BrandConfiguration());
         modelBuilder.ApplyConfiguration(new Configurations.BrandAgentDividendConditionConfiguration());
         modelBuilder.ApplyConfiguration(new Configurations.PlayerConfiguration());

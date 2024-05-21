@@ -715,67 +715,75 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IMemoryC
             .ToAsyncEnumerable();
     }
 
-    public async Task<AgentDividendBeforehand?> GetAgentDividendBeforehandAsync(Guid agentId,
+    public async IAsyncEnumerable<AgentDividendBeforehand> GetAgentDividendBeforehandAsync(Guid agentId,
         DateTime from,
         DateTime to)
     {
-        var agentDividend = await context.AgentDividends
+        var agentDividends = await context.AgentDividends
             .Include(x => x.AgentDividendMultipleLayers)
-            .Where(x => x.AgentId == agentId && x.From == from && x.To == to).FirstOrDefaultAsync();
+            .Where(x => x.AgentId == agentId && x.From == from && x.To == to).ToArrayAsync();
 
-        if (agentDividend == null) return null;
+        var agentDividendIds = agentDividends.Select(x => x.Id);
 
-        var fee = (await context.AgentDividendProductFees
-            .FirstOrDefaultAsync(x => x.AgentDividendId == agentDividend.Id)) ??
-                  new AgentDividendProductFee();
+        var fees = await context.AgentDividendProductFees
+            .Where(x => agentDividendIds.Contains(x.AgentDividendId)).ToArrayAsync();
 
-        var cardGameAmount =
-            fee.CardGameWinLossAmount <= 0M ? 0M : fee.CardGameWinLossAmount * fee.CardGamePercentage / 100;
+        var records =
+            await context.AgentDividendRecords.Where(x => agentDividendIds.Contains(x.AgentDividendId)).ToArrayAsync();
 
-        var liveDealerAmount =
-            fee.LiveDealerWinLossAmount <= 0M ? 0M : fee.LiveDealerWinLossAmount * fee.LiveDealerPercentage / 100;
+        foreach (var agentDividend in agentDividends)
+        {
+            var fee = fees.FirstOrDefault(f => f.AgentDividendId == agentDividend.Id) ?? new AgentDividendProductFee();
 
-        var lotteryAmount =
-            fee.LotteryWinLossAmount <= 0M ? 0M : fee.LotteryWinLossAmount * fee.LotteryPercentage / 100;
+            var record = records.FirstOrDefault(f => f.AgentDividendId == agentDividend.Id);
 
-        var sportsAmount =
-            fee.SportsWinLossAmount <= 0M ? 0M : fee.SportsWinLossAmount * fee.SportsPercentage / 100;
+            var cardGameAmount =
+                fee.CardGameWinLossAmount <= 0M ? 0M : fee.CardGameWinLossAmount * fee.CardGamePercentage / 100;
 
-        var slotAmount =
-            fee.SlotWinLossAmount <= 0M ? 0M : fee.SlotWinLossAmount * fee.SlotPercentage / 100;
+            var liveDealerAmount =
+                fee.LiveDealerWinLossAmount <= 0M ? 0M : fee.LiveDealerWinLossAmount * fee.LiveDealerPercentage / 100;
 
-        var virtualSportsAmount =
-            fee.VirtualSportsWinLossAmount <= 0M ? 0M : fee.VirtualSportsWinLossAmount * fee.VirtualSportsPercentage / 100;
+            var lotteryAmount =
+                fee.LotteryWinLossAmount <= 0M ? 0M : fee.LotteryWinLossAmount * fee.LotteryPercentage / 100;
 
-        var record =
-            await context.AgentDividendRecords.FirstOrDefaultAsync(x => x.AgentDividendId == agentDividend.Id);
+            var sportsAmount =
+                fee.SportsWinLossAmount <= 0M ? 0M : fee.SportsWinLossAmount * fee.SportsPercentage / 100;
 
-        return new AgentDividendBeforehand(
-            agentDividend.From,
-            agentDividend.To,
-            agentDividend.ActiveNumber,
-            agentDividend.WinLossAmount,
-            agentDividend.BonusAmount - agentDividend.RebateAmount,
-            agentDividend.RebateAmount,
-            agentDividend.AgentDividendMultipleLayers.Where(w => w.DividendProviderAgentId == agentDividend.AgentId)
-                .Sum(s => s.Dividend),
-            agentDividend.AgentDividendPercentage,
-            agentDividend.AgentDividendMultipleLayers.Where(w => w.DividendProviderAgentId != agentDividend.AgentId)
-                .Sum(s => s.Dividend),
-            agentDividend.AgentDividendAmount,
-            agentDividend.BonusAdjustAmount,
-            agentDividend.AgentDividendMultipleLayers
-                .Where(w => w.DividendProviderAgentId == agentDividend.AgentId &&
-                            (w.AgentCoveredBonus != null || w.AgentCoveredBonusAdjust != null))
-                .Sum(s => s.AgentCoveredBonus) ?? 0M,
-            agentDividend.AgentDividendMultipleLayers
-                .Where(w => w.DividendProviderAgentId == agentDividend.AgentId &&
-                            (w.AgentCoveredBonus != null || w.AgentCoveredBonusAdjust != null))
-                .Sum(s => s.AgentCoveredBonusAdjust) ?? 0M,
-            cardGameAmount + liveDealerAmount + lotteryAmount + slotAmount + sportsAmount +
-            virtualSportsAmount,
-            record?.NegativeAgentDividendAmount ?? 0M,
-            agentDividend.SentOn);
+            var slotAmount =
+                fee.SlotWinLossAmount <= 0M ? 0M : fee.SlotWinLossAmount * fee.SlotPercentage / 100;
+
+            var virtualSportsAmount =
+                fee.VirtualSportsWinLossAmount <= 0M
+                    ? 0M
+                    : fee.VirtualSportsWinLossAmount * fee.VirtualSportsPercentage / 100;
+
+            yield return new AgentDividendBeforehand(
+                agentDividend.From,
+                agentDividend.To,
+                agentDividend.ActiveNumber,
+                agentDividend.WinLossAmount,
+                agentDividend.BonusAmount - agentDividend.RebateAmount,
+                agentDividend.RebateAmount,
+                agentDividend.AgentDividendMultipleLayers.Where(w => w.DividendProviderAgentId == agentDividend.AgentId)
+                    .Sum(s => s.Dividend),
+                agentDividend.AgentDividendPercentage,
+                agentDividend.AgentDividendMultipleLayers.Where(w => w.DividendProviderAgentId != agentDividend.AgentId)
+                    .Sum(s => s.Dividend),
+                agentDividend.AgentDividendAmount,
+                agentDividend.BonusAdjustAmount,
+                agentDividend.AgentDividendMultipleLayers
+                    .Where(w => w.DividendProviderAgentId == agentDividend.AgentId &&
+                                (w.AgentCoveredBonus != null || w.AgentCoveredBonusAdjust != null))
+                    .Sum(s => s.AgentCoveredBonus) ?? 0M,
+                agentDividend.AgentDividendMultipleLayers
+                    .Where(w => w.DividendProviderAgentId == agentDividend.AgentId &&
+                                (w.AgentCoveredBonus != null || w.AgentCoveredBonusAdjust != null))
+                    .Sum(s => s.AgentCoveredBonusAdjust) ?? 0M,
+                cardGameAmount + liveDealerAmount + lotteryAmount + slotAmount + sportsAmount +
+                virtualSportsAmount,
+                record?.NegativeAgentDividendAmount ?? 0M,
+                agentDividend.SentOn);
+        }
     }
 
     public async Task<IEnumerable<AgentDividendRecordModel>> GetAgentDividendRecordsAsync(Guid brandId,
@@ -1031,7 +1039,7 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IMemoryC
     }
 
     public async Task ClearNegativeCommissionAsync(Guid agentId, Guid clearByUserId,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken)
     {
         var commissions = context.AgentDividends
             .Where(x => x.AgentId == agentId && x.SentOn == null)
@@ -1057,6 +1065,13 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IMemoryC
 
         _ = await context.SaveChangesAsync(cancellationToken)
             .ConfigureAwait(false);
+    }
+
+    public Task<int> GetCompletePlayerAggregateCountAsync(DateTime from, DateTime to, CancellationToken cancellationToken)
+    {
+        return context.AggregateExecutionTimes
+            .Where(x => x.From >= from && x.To <= to && x.AggregateType == (short)AggregateType.Player)
+            .CountAsync(cancellationToken);
     }
 
     private async ValueTask CreateAgentDividendsAsync(IEnumerable<AgentDividendModel> models)

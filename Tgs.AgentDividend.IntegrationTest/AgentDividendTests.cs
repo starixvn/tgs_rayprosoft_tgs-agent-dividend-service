@@ -44,7 +44,7 @@ public class AgentDividendTests
             .Returns(CreateBrandModelFixture(brandId).Create<BrandModel>());
 
         fakeRepository.GetAgentDividendBeforehandAsync(Arg.Any<Guid>(), Arg.Any<DateTime>(), Arg.Any<DateTime>())
-            .Returns(fixture.Create<AgentDividendBeforehand>());
+            .Returns(fixture.CreateMany<AgentDividendBeforehand>(2).ToAsyncEnumerable());
 
         fakeRepository
             .GetDescendantAgentsByPathCacheAsyncEnumerable(Arg.Any<Guid>(),
@@ -102,7 +102,7 @@ public class AgentDividendTests
             .Returns(new[] { brandId }.ToAsyncEnumerable());
 
         fakeRepository.GetAgentDividendBeforehandAsync(Arg.Any<Guid>(), Arg.Any<DateTime>(), Arg.Any<DateTime>())
-            .Returns(fixture.Create<AgentDividendBeforehand>());
+            .Returns(fixture.CreateMany<AgentDividendBeforehand>(2).ToAsyncEnumerable());
 
         fakeRepository
             .GetDescendantAgentsByPathCacheAsyncEnumerable(Arg.Any<Guid>(),
