@@ -56,27 +56,18 @@ internal class MultipleLayerDividendCalculator(IContractRepository contractRepos
         agentAggregate.VirtualSportsWinLoss = agentPlayerGameAggregate?.VirtualSportsWinLoss ?? 0M;
         agentAggregate.ActiveNumber = validPlayerCount;
 
-        agentAggregate.AgentDividendPlatformCharges = await repository
-            .GetAgentPlatformChargeCacheAsync(brand.Id,
-                brand.CurrentSettlementFrom,
-                brand.CurrentSettlementTo,
-                cancellationToken)
-            .Where(x => x.AgentId == agent.Id)
-            .ToArrayAsync(cancellationToken);
-
-        foreach (var agentAggregateAgentDividendPlatformCharge in agentAggregate.AgentDividendPlatformCharges)
-            agentAggregateAgentDividendPlatformCharge.AgentDividendId = agentAggregate.Id;
-
-        agentAggregate.AgentDividendProductFees = await repository
+        agentAggregate.AgentDividendProductFee = await repository
             .GetAgentProductFeeCacheAsync(brand.Id,
                 brand.CurrentSettlementFrom,
                 brand.CurrentSettlementTo,
                 cancellationToken)
             .Where(x => x.AgentId == agent.Id)
-            .ToArrayAsync(cancellationToken);
+            .FirstOrDefaultAsync(cancellationToken);
 
-        foreach (var agentAggregateAgentDividendProductFee in agentAggregate.AgentDividendProductFees)
-            agentAggregateAgentDividendProductFee.AgentDividendId = agentAggregate.Id;
+        if (agentAggregate.AgentDividendProductFee != null)
+        {
+            agentAggregate.AgentDividendProductFee.AgentDividendId = agentAggregate.Id;
+        }
 
         yield return agentAggregate;
     }
@@ -106,7 +97,6 @@ internal class MultipleLayerDividendCalculator(IContractRepository contractRepos
                 NetProfit = agentPlayerAggregate.NetProfit()
             },
             conditions,
-            agentPlayerAggregate.PlatformChargeAmount(),
             agentPlayerAggregate.ProductFeeAmount());
 
         agentPlayerAggregate.AgentDividendPercentage = agentDividend.AgentDividendPercentage;
@@ -137,7 +127,6 @@ internal class MultipleLayerDividendCalculator(IContractRepository contractRepos
         bool checkDividendActiveCount,
         AgentConditionModel agentCurrentCondition,
         IEnumerable<AgentDividendConditionModel> agentDividendConditions,
-        decimal platformChargeAmount,
         decimal productFeeAmount)
     {
         var layer = agentId.ToString();
@@ -158,8 +147,7 @@ internal class MultipleLayerDividendCalculator(IContractRepository contractRepos
             AgentCoveredBonusAdjust =
                 (agentCurrentCondition.BonusAdjustAmount * agentDividendPercentage / 100M).Truncate(2),
             Layer = layer,
-            Dividend = (agentCurrentCondition.NetProfit * agentDividendPercentage / 100M - platformChargeAmount -
-                        productFeeAmount).Truncate(2)
+            Dividend = (agentCurrentCondition.NetProfit * agentDividendPercentage / 100M - productFeeAmount).Truncate(2)
         };
     }
 

@@ -138,8 +138,7 @@ internal class BrandAgentDividendHandler(
                                 AgentDividendSnapshotId = s.AgentDividendSnapshotId
                             })
                         .ToArray(),
-                    AgentDividendPlatformCharges = x.AgentDividendPlatformCharges ?? [],
-                    AgentDividendProductFees = x.AgentDividendProductFees ?? []
+                    AgentDividendProductFee = x.AgentDividendProductFee
                 };
             });
 

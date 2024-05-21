@@ -14,7 +14,6 @@ public record AgentDividendBeforehand(
     decimal BonusAdjustAmount,
     decimal AgentCoveredBonusAmount,
     decimal AgentCoveredBonusAdjustAmount,
-    decimal PlatformChargeAmount,
     decimal ProductFeeAmount,
     decimal NegativeAgentDividendAmount,
     DateTime? SentOn);

@@ -20,101 +20,101 @@ namespace Tgs.Agent.Dividend.Repository.Entities.Configurations
             entity.HasIndex(e => e.LicenseeId, "ix_brands_licensee_id");
 
             entity.Property(e => e.Id)
-            .ValueGeneratedNever()
-            .HasColumnName("id");
+                .ValueGeneratedNever()
+                .HasColumnName("id");
             entity.Property(e => e.AgentDividendType).HasColumnName("agent_dividend_type");
             entity.Property(e => e.ApiKey)
-            .HasMaxLength(64)
-            .HasColumnName("api_key");
+                .HasMaxLength(64)
+                .HasColumnName("api_key");
             entity.Property(e => e.AutoClearWageringRequirement).HasColumnName("auto_clear_wagering_requirement");
             entity.Property(e => e.AutoClearWageringRequirementBalance)
-            .HasPrecision(18, 6)
-            .HasColumnName("auto_clear_wagering_requirement_balance");
+                .HasPrecision(18, 6)
+                .HasColumnName("auto_clear_wagering_requirement_balance");
             entity.Property(e => e.AutoSentAgentBonus).HasColumnName("auto_sent_agent_bonus");
             entity.Property(e => e.AutoSentPlayerBonus).HasColumnName("auto_sent_player_bonus");
             entity.Property(e => e.CheckDividendActiveCount).HasColumnName("check_dividend_active_count");
             entity.Property(e => e.ClientId)
-            .HasMaxLength(128)
-            .HasColumnName("client_id");
+                .HasMaxLength(128)
+                .HasColumnName("client_id");
             entity.Property(e => e.Code)
-            .HasMaxLength(16)
-            .HasColumnName("code");
+                .HasMaxLength(16)
+                .HasColumnName("code");
             entity.Property(e => e.CreatedByUsername)
-            .HasMaxLength(32)
-            .HasColumnName("created_by_username");
+                .HasMaxLength(32)
+                .HasColumnName("created_by_username");
             entity.Property(e => e.CreatedOn).HasColumnName("created_on");
             entity.Property(e => e.CurrentSettlementFrom).HasColumnName("current_settlement_from");
             entity.Property(e => e.CurrentSettlementTo).HasColumnName("current_settlement_to");
             entity.Property(e => e.DepositHandlingFeeRateTenPercentile).HasColumnName("deposit_handling_fee_rate_ten_percentile");
             entity.Property(e => e.DepositPaymentLockEnabled)
-            .HasDefaultValue(false)
-            .HasColumnName("deposit_payment_lock_enabled");
+                .HasDefaultValue(false)
+                .HasColumnName("deposit_payment_lock_enabled");
             entity.Property(e => e.Description)
-            .HasMaxLength(256)
-            .HasColumnName("description");
+                .HasMaxLength(256)
+                .HasColumnName("description");
             entity.Property(e => e.EnableAgentSms)
-            .HasDefaultValue(false)
-            .HasColumnName("enable_agent_sms");
+                .HasDefaultValue(false)
+                .HasColumnName("enable_agent_sms");
             entity.Property(e => e.EnableBankInfoRegisterFlow)
-            .HasDefaultValue(false)
-            .HasColumnName("enable_bank_info_register_flow");
+                .HasDefaultValue(false)
+                .HasColumnName("enable_bank_info_register_flow");
             entity.Property(e => e.EnableEmailRegisterFlow)
-            .HasDefaultValue(false)
-            .HasColumnName("enable_email_register_flow");
+                .HasDefaultValue(false)
+                .HasColumnName("enable_email_register_flow");
             entity.Property(e => e.EnablePlatformAccountFundCheck)
-            .HasDefaultValue(false)
-            .HasColumnName("enable_platform_account_fund_check");
+                .HasDefaultValue(false)
+                .HasColumnName("enable_platform_account_fund_check");
             entity.Property(e => e.EnablePlayerAgent)
-            .HasDefaultValue(false)
-            .HasColumnName("enable_player_agent");
+                .HasDefaultValue(false)
+                .HasColumnName("enable_player_agent");
             entity.Property(e => e.EnablePlayerIdentity)
-            .HasDefaultValue(false)
-            .HasColumnName("enable_player_identity");
+                .HasDefaultValue(false)
+                .HasColumnName("enable_player_identity");
             entity.Property(e => e.EnableSms)
-            .HasDefaultValue(false)
-            .HasColumnName("enable_sms");
+                .HasDefaultValue(false)
+                .HasColumnName("enable_sms");
             entity.Property(e => e.EnableSmsRegisterFlow)
-            .HasDefaultValue(false)
-            .HasColumnName("enable_sms_register_flow");
+                .HasDefaultValue(false)
+                .HasColumnName("enable_sms_register_flow");
             entity.Property(e => e.LicenseeId).HasColumnName("licensee_id");
             entity.Property(e => e.LogoInfo)
-            .HasColumnType("jsonb")
-            .HasColumnName("logo_info");
+                .HasColumnType("jsonb")
+                .HasColumnName("logo_info");
             entity.Property(e => e.Name)
-            .HasMaxLength(255)
-            .HasColumnName("name");
+                .HasMaxLength(255)
+                .HasColumnName("name");
             entity.Property(e => e.NextSettlementFrom).HasColumnName("next_settlement_from");
             entity.Property(e => e.NextSettlementTo).HasColumnName("next_settlement_to");
             entity.Property(e => e.OperationalEmail)
-            .HasMaxLength(128)
-            .HasColumnName("operational_email");
+                .HasMaxLength(128)
+                .HasColumnName("operational_email");
             entity.Property(e => e.PlatformCharge)
-            .HasPrecision(9, 6)
-            .HasColumnName("platform_charge");
+                .HasPrecision(9, 6)
+                .HasColumnName("platform_charge");
             entity.Property(e => e.PlayerRegisterFlowSettings)
-            .HasColumnType("jsonb")
-            .HasColumnName("player_register_flow_settings");
+                .HasColumnType("jsonb")
+                .HasColumnName("player_register_flow_settings");
             entity.Property(e => e.PreviousSettlementFrom).HasColumnName("previous_settlement_from");
             entity.Property(e => e.PreviousSettlementTo).HasColumnName("previous_settlement_to");
             entity.Property(e => e.SecretKey)
-            .HasMaxLength(32)
-            .HasColumnName("secret_key");
+                .HasMaxLength(32)
+                .HasColumnName("secret_key");
             entity.Property(e => e.SettlementDay).HasColumnName("settlement_day");
             entity.Property(e => e.SettlementIntervalType).HasColumnName("settlement_interval_type");
             entity.Property(e => e.SmsVendorCode).HasColumnName("sms_vendor_code");
             entity.Property(e => e.SmsVendorSettings)
-            .HasColumnType("jsonb")
-            .HasColumnName("sms_vendor_settings");
+                .HasColumnType("jsonb")
+                .HasColumnName("sms_vendor_settings");
             entity.Property(e => e.Status).HasColumnName("status");
             entity.Property(e => e.TimeSpanMinutes)
-            .HasDefaultValue(480)
-            .HasColumnName("time_span_minutes");
+                .HasDefaultValue(480)
+                .HasColumnName("time_span_minutes");
             entity.Property(e => e.TimeZoneId)
-            .HasMaxLength(256)
-            .HasColumnName("time_zone_id");
+                .HasMaxLength(256)
+                .HasColumnName("time_zone_id");
             entity.Property(e => e.UpdatedByUsername)
-            .HasMaxLength(32)
-            .HasColumnName("updated_by_username");
+                .HasMaxLength(32)
+                .HasColumnName("updated_by_username");
             entity.Property(e => e.UpdatedOn).HasColumnName("updated_on");
             entity.Property(e => e.WithdrawHandlingFeeRateTenPercentile).HasColumnName("withdraw_handling_fee_rate_ten_percentile");
 

@@ -28,13 +28,15 @@ public partial class tgsContext : DbContext
 
     public virtual DbSet<AgentDividendMultipleLayer> AgentDividendMultipleLayers { get; set; }
 
-    public virtual DbSet<AgentDividendPlatformCharge> AgentDividendPlatformCharges { get; set; }
-
     public virtual DbSet<AgentDividendProductFee> AgentDividendProductFees { get; set; }
 
     public virtual DbSet<AgentDividendRecord> AgentDividendRecords { get; set; }
 
     public virtual DbSet<AgentDividendSnapshot> AgentDividendSnapshots { get; set; }
+
+    public virtual DbSet<AgentProductFee> AgentProductFees { get; set; }
+
+    public virtual DbSet<AggregateExecutionTime> AggregateExecutionTimes { get; set; }
 
     public virtual DbSet<Brand> Brands { get; set; }
 
@@ -54,18 +56,18 @@ public partial class tgsContext : DbContext
     {
         modelBuilder
             .HasPostgresExtension("ltree")
-            .HasPostgresExtension("pg_trgm")
-            .HasPostgresExtension("uuid-ossp");
+            .HasPostgresExtension("pg_trgm");
 
         modelBuilder.ApplyConfiguration(new Configurations.AgentConfiguration());
         modelBuilder.ApplyConfiguration(new Configurations.AgentClearCommissionRecordConfiguration());
         modelBuilder.ApplyConfiguration(new Configurations.AgentDividendConfiguration());
         modelBuilder.ApplyConfiguration(new Configurations.AgentDividendConditionConfiguration());
         modelBuilder.ApplyConfiguration(new Configurations.AgentDividendMultipleLayerConfiguration());
-        modelBuilder.ApplyConfiguration(new Configurations.AgentDividendPlatformChargeConfiguration());
         modelBuilder.ApplyConfiguration(new Configurations.AgentDividendProductFeeConfiguration());
         modelBuilder.ApplyConfiguration(new Configurations.AgentDividendRecordConfiguration());
         modelBuilder.ApplyConfiguration(new Configurations.AgentDividendSnapshotConfiguration());
+        modelBuilder.ApplyConfiguration(new Configurations.AgentProductFeeConfiguration());
+        modelBuilder.ApplyConfiguration(new Configurations.AggregateExecutionTimeConfiguration());
         modelBuilder.ApplyConfiguration(new Configurations.BrandConfiguration());
         modelBuilder.ApplyConfiguration(new Configurations.BrandAgentDividendConditionConfiguration());
         modelBuilder.ApplyConfiguration(new Configurations.PlayerConfiguration());

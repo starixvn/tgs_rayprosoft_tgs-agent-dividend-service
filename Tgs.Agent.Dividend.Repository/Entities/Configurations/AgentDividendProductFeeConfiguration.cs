@@ -13,24 +13,60 @@ namespace Tgs.Agent.Dividend.Repository.Entities.Configurations
     {
         public void Configure(EntityTypeBuilder<AgentDividendProductFee> entity)
         {
-            entity.HasKey(e => e.Id).HasName("pk_agent_dividend_product_fees_id");
+            entity.HasKey(e => e.AgentId).HasName("pk_agent_dividend_product_fees_id");
 
             entity.ToTable("agent_dividend_product_fees", "dbo");
 
             entity.HasIndex(e => e.AgentDividendId, "ix_agent_dividend_product_fees_agent_dividend_id");
 
-            entity.Property(e => e.Id)
-            .ValueGeneratedNever()
-            .HasColumnName("id");
+            entity.Property(e => e.AgentId)
+                .ValueGeneratedNever()
+                .HasColumnName("agent_id");
             entity.Property(e => e.AgentDividendId).HasColumnName("agent_dividend_id");
+            entity.Property(e => e.BrandId).HasColumnName("brand_id");
+            entity.Property(e => e.CardGamePercentage)
+                .HasPrecision(18, 6)
+                .HasColumnName("card_game_percentage");
+            entity.Property(e => e.CardGameWinLossAmount)
+                .HasPrecision(18, 6)
+                .HasColumnName("card_game_win_loss_amount");
             entity.Property(e => e.CreatedOn).HasColumnName("created_on");
-            entity.Property(e => e.GameType).HasColumnName("game_type");
-            entity.Property(e => e.Percentage)
-            .HasPrecision(18, 6)
-            .HasColumnName("percentage");
-            entity.Property(e => e.WinLossAmount)
-            .HasPrecision(18, 6)
-            .HasColumnName("win_loss_amount");
+            entity.Property(e => e.From)
+                .HasDefaultValueSql("'-infinity'::timestamp with time zone")
+                .HasColumnName("from");
+            entity.Property(e => e.LiveDealerPercentage)
+                .HasPrecision(18, 6)
+                .HasColumnName("live_dealer_percentage");
+            entity.Property(e => e.LiveDealerWinLossAmount)
+                .HasPrecision(18, 6)
+                .HasColumnName("live_dealer_win_loss_amount");
+            entity.Property(e => e.LotteryPercentage)
+                .HasPrecision(18, 6)
+                .HasColumnName("lottery_percentage");
+            entity.Property(e => e.LotteryWinLossAmount)
+                .HasPrecision(18, 6)
+                .HasColumnName("lottery_win_loss_amount");
+            entity.Property(e => e.SlotPercentage)
+                .HasPrecision(18, 6)
+                .HasColumnName("slot_percentage");
+            entity.Property(e => e.SlotWinLossAmount)
+                .HasPrecision(18, 6)
+                .HasColumnName("slot_win_loss_amount");
+            entity.Property(e => e.SportsPercentage)
+                .HasPrecision(18, 6)
+                .HasColumnName("sports_percentage");
+            entity.Property(e => e.SportsWinLossAmount)
+                .HasPrecision(18, 6)
+                .HasColumnName("sports_win_loss_amount");
+            entity.Property(e => e.To)
+                .HasDefaultValueSql("'-infinity'::timestamp with time zone")
+                .HasColumnName("to");
+            entity.Property(e => e.VirtualSportsPercentage)
+                .HasPrecision(18, 6)
+                .HasColumnName("virtual_sports_percentage");
+            entity.Property(e => e.VirtualSportsWinLossAmount)
+                .HasPrecision(18, 6)
+                .HasColumnName("virtual_sports_win_loss_amount");
 
             OnConfigurePartial(entity);
         }

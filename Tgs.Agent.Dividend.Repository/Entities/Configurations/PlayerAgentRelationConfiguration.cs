@@ -22,23 +22,23 @@ namespace Tgs.Agent.Dividend.Repository.Entities.Configurations
             entity.HasIndex(e => e.BrandId, "ix_player_agent_relations_brand_id");
 
             entity.Property(e => e.PlayerCode)
-            .HasMaxLength(16)
-            .HasColumnName("player_code");
+                .HasMaxLength(16)
+                .HasColumnName("player_code");
             entity.Property(e => e.AgentId).HasColumnName("agent_id");
             entity.Property(e => e.BrandId).HasColumnName("brand_id");
             entity.Property(e => e.Status).HasColumnName("status");
 
             entity.HasOne(d => d.Agent).WithOne(p => p.PlayerAgentRelation)
-            .HasForeignKey<PlayerAgentRelation>(d => d.AgentId)
-            .HasConstraintName("fk_player_agents_agents_agent_id");
+                .HasForeignKey<PlayerAgentRelation>(d => d.AgentId)
+                .HasConstraintName("fk_player_agents_agents_agent_id");
 
             entity.HasOne(d => d.Brand).WithMany(p => p.PlayerAgentRelations)
-            .HasForeignKey(d => d.BrandId)
-            .HasConstraintName("fk_player_agents_brands_brand_id");
+                .HasForeignKey(d => d.BrandId)
+                .HasConstraintName("fk_player_agents_brands_brand_id");
 
             entity.HasOne(d => d.PlayerCodeNavigation).WithOne(p => p.PlayerAgentRelation)
-            .HasForeignKey<PlayerAgentRelation>(d => d.PlayerCode)
-            .HasConstraintName("fk_player_agents_players_player_code");
+                .HasForeignKey<PlayerAgentRelation>(d => d.PlayerCode)
+                .HasConstraintName("fk_player_agents_players_player_code");
 
             OnConfigurePartial(entity);
         }

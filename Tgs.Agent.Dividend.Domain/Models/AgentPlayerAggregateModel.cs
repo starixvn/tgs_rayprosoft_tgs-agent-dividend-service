@@ -1,5 +1,4 @@
-﻿using Tgs.Agent.Dividend.Domain.Enums;
-
+﻿
 namespace Tgs.Agent.Dividend.Domain.Models;
 
 public class AgentPlayerAggregateModel
@@ -40,8 +39,7 @@ public class AgentPlayerAggregateModel
     public decimal VirtualSportsWinLoss { get; set; }
     public decimal AgentDividendAmount { get; set; }
     public int ActiveNumber { get; set; }
-    public AgentDividendPlatformChargeModel[]? AgentDividendPlatformCharges { get; set; }
-    public AgentDividendProductFeeModel[]? AgentDividendProductFees { get; set; }
+    public AgentDividendProductFeeModel? AgentDividendProductFee { get; set; }
 
     public decimal NetProfit()
     {
@@ -53,53 +51,30 @@ public class AgentPlayerAggregateModel
 
     public decimal ProductFeeAmount()
     {
-        var cardGameAmount =
-            AgentDividendProductFees?.Where(w => w.GameGroupType == GameGroupType.CardGame).Sum(s => s.WinLossAmount) <=
-            0
-                ? 0M
-                : AgentDividendProductFees?.Where(w => w.GameGroupType == GameGroupType.CardGame)
-                    .Sum(s => s.WinLossAmount * s.ProductFeePercentage / 100) ?? 0M;
-
-        var liveDealerAmount =
-            AgentDividendProductFees?.Where(w => w.GameGroupType == GameGroupType.LiveDealer)
-                .Sum(s => s.WinLossAmount) <= 0
-                ? 0M
-                : AgentDividendProductFees?.Where(w => w.GameGroupType == GameGroupType.LiveDealer)
-                    .Sum(s => s.WinLossAmount * s.ProductFeePercentage / 100) ?? 0M;
-
-        var lotteryAmount =
-            AgentDividendProductFees?.Where(w => w.GameGroupType == GameGroupType.Lottery).Sum(s => s.WinLossAmount) <=
-            0
-                ? 0M
-                : AgentDividendProductFees?.Where(w => w.GameGroupType == GameGroupType.Lottery)
-                    .Sum(s => s.WinLossAmount * s.ProductFeePercentage / 100) ?? 0M;
-
-        var sportsAmount =
-            AgentDividendProductFees?.Where(w => w.GameGroupType == GameGroupType.Sportsbook)
-                .Sum(s => s.WinLossAmount) <= 0
-                ? 0M
-                : AgentDividendProductFees?.Where(w => w.GameGroupType == GameGroupType.Sportsbook)
-                    .Sum(s => s.WinLossAmount * s.ProductFeePercentage / 100) ?? 0M;
-
-        var slotAmount =
-            AgentDividendProductFees?.Where(w => w.GameGroupType == GameGroupType.Slot).Sum(s => s.WinLossAmount) <= 0
-                ? 0M
-                : AgentDividendProductFees?.Where(w => w.GameGroupType == GameGroupType.Slot)
-                    .Sum(s => s.WinLossAmount * s.ProductFeePercentage / 100) ?? 0M;
-
-        var virtualSportsAmount = AgentDividendProductFees?.Where(w => w.GameGroupType == GameGroupType.VirtualSports)
-            .Sum(s => s.WinLossAmount) <= 0
+        var cardGameAmount = (AgentDividendProductFee?.CardGameWinLossAmount ?? 0M) <= 0M
             ? 0M
-            : AgentDividendProductFees?.Where(w => w.GameType == GameType.VirtualSports)
-                .Sum(s => s.WinLossAmount * s.ProductFeePercentage / 100) ?? 0M;
+            : AgentDividendProductFee!.CardGameWinLossAmount * AgentDividendProductFee!.CurrentCardGamePercentage / 100;
+
+        var liveDealerAmount = (AgentDividendProductFee?.LiveDealerWinLossAmount ?? 0M) <= 0M
+            ? 0M
+            : AgentDividendProductFee!.LiveDealerWinLossAmount * AgentDividendProductFee!.CurrentLiveDealerPercentage / 100;
+
+        var lotteryAmount = (AgentDividendProductFee?.LotteryWinLossAmount ?? 0M) <= 0M
+            ? 0M
+            : AgentDividendProductFee!.LotteryWinLossAmount * AgentDividendProductFee!.CurrentLotteryPercentage / 100;
+
+        var sportsAmount = (AgentDividendProductFee?.SportsWinLossAmount ?? 0M) <= 0M
+            ? 0M
+            : AgentDividendProductFee!.SportsWinLossAmount * AgentDividendProductFee!.CurrentSportsPercentage / 100;
+
+        var slotAmount = (AgentDividendProductFee?.SlotWinLossAmount ?? 0M) <= 0M
+            ? 0M
+            : AgentDividendProductFee!.SlotWinLossAmount * AgentDividendProductFee!.CurrentSlotPercentage / 100;
+
+        var virtualSportsAmount = (AgentDividendProductFee?.VirtualSportsWinLossAmount ?? 0M) <= 0M
+            ? 0M
+            : AgentDividendProductFee!.VirtualSportsWinLossAmount * AgentDividendProductFee!.CurrentVirtualSportsPercentage / 100;
 
         return cardGameAmount + liveDealerAmount + lotteryAmount + sportsAmount + slotAmount + virtualSportsAmount;
-    }
-
-    public decimal PlatformChargeAmount()
-    {
-        return AgentDividendPlatformCharges?.Sum(x => x.WinLossAmount) <= 0
-            ? 0M
-            : AgentDividendPlatformCharges?.Sum(x => x.PlatformChargePercentage * x.WinLossAmount / 100) ?? 0M;
     }
 }

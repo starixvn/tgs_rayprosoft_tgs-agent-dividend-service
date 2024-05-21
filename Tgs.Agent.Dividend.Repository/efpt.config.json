@@ -2,7 +2,6 @@
    "CodeGenerationMode": 4,
    "ContextClassName": "tgsContext",
    "ContextNamespace": null,
-   "DefaultDacpacSchema": null,
    "FilterSchemas": false,
    "IncludeConnectionString": false,
    "ModelNamespace": "Entities",
@@ -28,10 +27,6 @@
          "ObjectType": 0
       },
       {
-         "Name": "dbo.agent_dividend_platform_charges",
-         "ObjectType": 0
-      },
-      {
          "Name": "dbo.agent_dividend_product_fees",
          "ObjectType": 0
       },
@@ -45,6 +40,10 @@
       },
       {
          "Name": "dbo.agent_dividends",
+         "ObjectType": 0
+      },
+      {
+         "Name": "dbo.agent_product_fees",
          "ObjectType": 0
       },
       {
@@ -72,6 +71,10 @@
          "ObjectType": 0
       },
       {
+         "Name": "report.aggregate_execution_time",
+         "ObjectType": 0
+      },
+      {
          "Name": "report.player_aggregates",
          "ObjectType": 0
       },
@@ -80,8 +83,9 @@
          "ObjectType": 0
       }
    ],
-   "UiHint": "tgs",
+   "UiHint": null,
    "UncountableWords": null,
+   "UseAsyncStoredProcedureCalls": true,
    "UseBoolPropertiesWithoutDefaultSql": false,
    "UseDatabaseNames": false,
    "UseDateOnlyTimeOnly": false,
@@ -98,6 +102,7 @@
    "UseNoObjectFilter": false,
    "UseNodaTime": false,
    "UseNullableReferences": true,
+   "UsePrefixNavigationNaming": false,
    "UseSchemaFolders": true,
    "UseSchemaNamespaces": false,
    "UseSpatial": true,

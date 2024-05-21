@@ -2,6 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using System.Threading;
 using Tgs.Agent.Dividend.Domain.Interfaces.Repositories;
 using Tgs.Agent.Dividend.Domain.Models;
 
@@ -49,6 +50,19 @@ public class AgentDividendBackground(
 
                 if (!await repository.GetNonArchivedBrandIdsAsyncEnumerable(model.BrandId)
                         .AnyAsync(stoppingToken)) continue;
+
+                var brand = await repository.GetBrandAsync(model.BrandId, stoppingToken).ConfigureAwait(false);
+
+                var days = brand.CurrentSettlementTo.Subtract(brand.CurrentSettlementFrom).Hours;
+
+                var count = await repository.GetCompletePlayerAggregateCountAsync(brand.CurrentSettlementFrom,
+                    brand.CurrentSettlementTo,
+                    stoppingToken);
+
+                if (days != count)
+                {
+                    continue;
+                }
 
                 var response = await mediator.Send(new AgentDividendRequest(model.BrandId, false), stoppingToken);
 

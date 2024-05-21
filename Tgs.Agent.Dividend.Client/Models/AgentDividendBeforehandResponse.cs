@@ -2,6 +2,6 @@
 
 public class AgentDividendBeforehandResponse
 {
-    public AgentDividendBeforehand Previous { get; set; } = null!;
-    public AgentDividendBeforehand Current { get; set; } = null!;
+    public IEnumerable<AgentDividendBeforehand> Previous { get; set; } = null!;
+    public IEnumerable<AgentDividendBeforehand> Current { get; set; } = null!;
 }

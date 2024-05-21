@@ -106,7 +106,7 @@ public class OneLayerDistributionTests
         _fakeMediator.Send(Arg.Any<GetNoSendDividendRequest>())
             .Returns(new NoSendDividendResponse
             {
-                Model = Enumerable.Empty<AgentDividendModel>(),
+                Model = [],
                 NegativeDividendsIds = new Dictionary<int, int> { { 1, 1 } }
             });
 
