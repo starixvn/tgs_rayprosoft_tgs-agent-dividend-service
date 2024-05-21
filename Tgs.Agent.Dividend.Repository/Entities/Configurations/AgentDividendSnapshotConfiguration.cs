@@ -18,12 +18,12 @@ namespace Tgs.Agent.Dividend.Repository.Entities.Configurations
             entity.ToTable("agent_dividend_snapshots", "dbo");
 
             entity.Property(e => e.Id)
-            .ValueGeneratedNever()
-            .HasColumnName("id");
+                .ValueGeneratedNever()
+                .HasColumnName("id");
             entity.Property(e => e.CreatedOn).HasColumnName("created_on");
             entity.Property(e => e.Data)
-            .HasColumnType("jsonb")
-            .HasColumnName("data");
+                .HasColumnType("jsonb")
+                .HasColumnName("data");
 
             OnConfigurePartial(entity);
         }

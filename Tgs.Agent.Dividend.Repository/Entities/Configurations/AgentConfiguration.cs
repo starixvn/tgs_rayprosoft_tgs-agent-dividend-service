@@ -24,84 +24,84 @@ namespace Tgs.Agent.Dividend.Repository.Entities.Configurations
             entity.HasIndex(e => e.ParentAgentId, "ix_agents_parent_agent_id");
 
             entity.Property(e => e.Id)
-            .ValueGeneratedNever()
-            .HasColumnName("id");
+                .ValueGeneratedNever()
+                .HasColumnName("id");
             entity.Property(e => e.AgentStatus).HasColumnName("agent_status");
             entity.Property(e => e.BrandId).HasColumnName("brand_id");
             entity.Property(e => e.CardGameRebatePercentage)
-            .HasPrecision(18, 6)
-            .HasColumnName("card_game_rebate_percentage");
+                .HasPrecision(18, 6)
+                .HasColumnName("card_game_rebate_percentage");
             entity.Property(e => e.CommissionPercentage)
-            .HasPrecision(18, 6)
-            .HasColumnName("commission_percentage");
+                .HasPrecision(18, 6)
+                .HasColumnName("commission_percentage");
             entity.Property(e => e.CreatedByUsername).HasColumnName("created_by_username");
             entity.Property(e => e.CreatedOn).HasColumnName("created_on");
             entity.Property(e => e.DefaultWalletId).HasColumnName("default_wallet_id");
             entity.Property(e => e.DividendPercentage)
-            .HasPrecision(18, 6)
-            .HasColumnName("dividend_percentage");
+                .HasPrecision(18, 6)
+                .HasColumnName("dividend_percentage");
             entity.Property(e => e.Email)
-            .HasMaxLength(64)
-            .HasColumnName("email");
+                .HasMaxLength(64)
+                .HasColumnName("email");
             entity.Property(e => e.InvitationCode)
-            .HasMaxLength(6)
-            .HasColumnName("invitation_code");
+                .HasMaxLength(6)
+                .HasColumnName("invitation_code");
             entity.Property(e => e.LevelType).HasColumnName("level_type");
             entity.Property(e => e.LiveDealerRebatePercentage)
-            .HasPrecision(18, 6)
-            .HasColumnName("live_dealer_rebate_percentage");
+                .HasPrecision(18, 6)
+                .HasColumnName("live_dealer_rebate_percentage");
             entity.Property(e => e.LotteryRebatePercentage)
-            .HasPrecision(18, 6)
-            .HasColumnName("lottery_rebate_percentage");
+                .HasPrecision(18, 6)
+                .HasColumnName("lottery_rebate_percentage");
             entity.Property(e => e.NegativeAgentDividendCarryForward)
-            .HasDefaultValue(true)
-            .HasColumnName("negative_agent_dividend_carry_forward");
+                .HasDefaultValue(true)
+                .HasColumnName("negative_agent_dividend_carry_forward");
             entity.Property(e => e.ParentAgentId).HasColumnName("parent_agent_id");
             entity.Property(e => e.Password).HasColumnName("password");
             entity.Property(e => e.Path).HasColumnName("path");
             entity.Property(e => e.Phone)
-            .HasMaxLength(32)
-            .HasColumnName("phone");
+                .HasMaxLength(32)
+                .HasColumnName("phone");
             entity.Property(e => e.Qq)
-            .HasMaxLength(64)
-            .HasColumnName("qq");
+                .HasMaxLength(64)
+                .HasColumnName("qq");
             entity.Property(e => e.RealName)
-            .HasMaxLength(32)
-            .HasColumnName("real_name");
+                .HasMaxLength(32)
+                .HasColumnName("real_name");
             entity.Property(e => e.RegisteredOn).HasColumnName("registered_on");
             entity.Property(e => e.Remarks).HasColumnName("remarks");
             entity.Property(e => e.Salt).HasColumnName("salt");
             entity.Property(e => e.SlotRebatePercentage)
-            .HasPrecision(18, 6)
-            .HasColumnName("slot_rebate_percentage");
+                .HasPrecision(18, 6)
+                .HasColumnName("slot_rebate_percentage");
             entity.Property(e => e.SnapshotEventId).HasColumnName("snapshot_event_id");
             entity.Property(e => e.SportsRebatePercentage)
-            .HasPrecision(18, 6)
-            .HasColumnName("sports_rebate_percentage");
+                .HasPrecision(18, 6)
+                .HasColumnName("sports_rebate_percentage");
             entity.Property(e => e.Status).HasColumnName("status");
             entity.Property(e => e.Type).HasColumnName("type");
             entity.Property(e => e.UpdatedByUsername).HasColumnName("updated_by_username");
             entity.Property(e => e.UpdatedOn).HasColumnName("updated_on");
             entity.Property(e => e.Username)
-            .HasMaxLength(32)
-            .HasColumnName("username");
+                .HasMaxLength(32)
+                .HasColumnName("username");
             entity.Property(e => e.VirtualSportsRebatePercentage)
-            .HasPrecision(18, 6)
-            .HasColumnName("virtual_sports_rebate_percentage");
+                .HasPrecision(18, 6)
+                .HasColumnName("virtual_sports_rebate_percentage");
             entity.Property(e => e.WalletId).HasColumnName("wallet_id");
             entity.Property(e => e.Wechat)
-            .HasMaxLength(64)
-            .HasColumnName("wechat");
+                .HasMaxLength(64)
+                .HasColumnName("wechat");
             entity.Property(e => e.WithdrawPassword).HasColumnName("withdraw_password");
             entity.Property(e => e.WithdrawSalt).HasColumnName("withdraw_salt");
 
             entity.HasOne(d => d.Brand).WithMany(p => p.Agents)
-            .HasForeignKey(d => d.BrandId)
-            .HasConstraintName("fk_agents_brands_brand_id");
+                .HasForeignKey(d => d.BrandId)
+                .HasConstraintName("fk_agents_brands_brand_id");
 
             entity.HasOne(d => d.ParentAgent).WithMany(p => p.InverseParentAgent)
-            .HasForeignKey(d => d.ParentAgentId)
-            .HasConstraintName("fk_agents_parent_agent_id");
+                .HasForeignKey(d => d.ParentAgentId)
+                .HasConstraintName("fk_agents_parent_agent_id");
 
             OnConfigurePartial(entity);
         }

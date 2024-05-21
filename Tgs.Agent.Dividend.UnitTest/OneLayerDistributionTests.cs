@@ -16,9 +16,9 @@ public class OneLayerDistributionTests
     {
     }
 
-    [TestCase(100, 77, 60, 33, 11, 57)]
-    [TestCase(100, 90, 60, 33, 22, 70)]
-    [TestCase(100, 90, 80, 70, 60, 70)]
+    [TestCase(100, 77, 60, 33, 11, 67)]
+    [TestCase(100, 90, 60, 33, 22, 80)]
+    [TestCase(100, 90, 80, 70, 60, 80)]
     public async Task Generate_Agent_Dividend(
         decimal agent4WinLossAmount,
         decimal agentDividendPercentage,
@@ -98,25 +98,10 @@ public class OneLayerDistributionTests
                 JsonSerializer.Serialize(agent4Path))
             .Create<AgentPlayerAggregateModel>();
 
-        agentPlayerAggregate.AgentDividendPlatformCharges =
-        [
-            CreateAgentDividendPlatformChargeFixture(agentPlayerAggregate.Id, agentPlayerAggregate.AgentId, 10,
-                    agent4WinLossAmount)
-                .Create<AgentDividendPlatformChargeModel>()
-        ];
-
-        agentPlayerAggregate.AgentDividendProductFees =
-        [
-            CreateAgentDividendProductFeeFixture(agentPlayerAggregate.Id, GameType.Arcade, agentPlayerAggregate.AgentId,
-                    10, agent4WinLossAmount / 2)
-                .Create<AgentDividendProductFeeModel>(),
-            CreateAgentDividendProductFeeFixture(agentPlayerAggregate.Id, GameType.Slot, agentPlayerAggregate.AgentId,
-                    10, agent4WinLossAmount / 2)
-                .Create<AgentDividendProductFeeModel>(),
-            CreateAgentDividendProductFeeFixture(agentPlayerAggregate.Id, GameType.VirtualSports,
-                    agentPlayerAggregate.AgentId, 10, -100)
-                .Create<AgentDividendProductFeeModel>()
-        ];
+        agentPlayerAggregate.AgentDividendProductFee =
+            CreateAgentDividendProductFeeFixture(agentPlayerAggregate.Id, agentPlayerAggregate.AgentId,
+                    0, 0, 0, 0, 0, 0, 10, agent4WinLossAmount, 0, 0, 10, -agent4WinLossAmount)
+                .Create<AgentDividendProductFeeModel>();
 
         var agentPlayerGameAggregates = new[]
         {
@@ -158,9 +143,9 @@ public class OneLayerDistributionTests
         });
     }
 
-    [TestCase(100, 77, 17, 60, 27, 33, 22, 11, -9)]
-    [TestCase(100, 90, 30, 60, 27, 33, 11, 22, 2)]
-    [TestCase(100, 90, 10, 80, 10, 70, 10, 60, 40)]
+    [TestCase(100, 77, 17, 60, 27, 33, 22, 11, 1)]
+    [TestCase(100, 90, 30, 60, 27, 33, 11, 22, 12)]
+    [TestCase(100, 90, 10, 80, 10, 70, 10, 60, 50)]
     public async Task Generate_Agent_Dividend_Difference_Percentage_With_Same_Interval(
         decimal agent4WinLossAmount,
         decimal agentDividendPercentage,
@@ -244,22 +229,10 @@ public class OneLayerDistributionTests
 
         foreach (var agentPlayerAggregateModel in agentPlayerAggregates)
         {
-            agentPlayerAggregateModel.AgentDividendPlatformCharges =
-            [
-                CreateAgentDividendPlatformChargeFixture(agentPlayerAggregateModel.Id,
-                        agentPlayerAggregateModel.AgentId, 10, agent4WinLossAmount)
-                    .Create<AgentDividendPlatformChargeModel>()
-            ];
-
-            agentPlayerAggregateModel.AgentDividendProductFees =
-            [
-                CreateAgentDividendProductFeeFixture(agentPlayerAggregateModel.Id, GameType.Slot,
-                        agentPlayerAggregateModel.AgentId, 10, agent4WinLossAmount / 2)
-                    .Create<AgentDividendProductFeeModel>(),
-                CreateAgentDividendProductFeeFixture(agentPlayerAggregateModel.Id, GameType.Slot,
-                        agentPlayerAggregateModel.AgentId, 10, agent4WinLossAmount / 2)
-                    .Create<AgentDividendProductFeeModel>()
-            ];
+            agentPlayerAggregateModel.AgentDividendProductFee =
+                CreateAgentDividendProductFeeFixture(agentPlayerAggregateModel.Id, agentPlayerAggregateModel.AgentId,
+                        0, 0, 0, 0, 0, 0, 10, agent4WinLossAmount, 0, 0, 0, 0)
+                    .Create<AgentDividendProductFeeModel>();
         }
 
         var agentPlayerGameAggregates = new[]
@@ -383,29 +356,30 @@ public class OneLayerDistributionTests
         return fixture;
     }
 
-    private static Fixture CreateAgentDividendPlatformChargeFixture(int agentDividendId, Guid agentId,
-        decimal percentage, decimal winLoss)
-    {
-        var fixture = new Fixture();
-        fixture.Customize<AgentDividendPlatformChargeModel>(u => u
-            .With(s => s.AgentId, agentId)
-            .With(s => s.AgentDividendId, agentDividendId)
-            .With(s => s.PlatformChargePercentage, percentage)
-            .With(s => s.WinLossAmount, winLoss));
-        fixture.Behaviors.Add(new OmitOnRecursionBehavior());
-        return fixture;
-    }
-
-    private static Fixture CreateAgentDividendProductFeeFixture(int agentDividendId, GameType gameType, Guid agentId,
-        decimal percentage, decimal winLoss)
+    private static Fixture CreateAgentDividendProductFeeFixture(int agentDividendId, Guid agentId,
+        decimal cardGamePercentage, decimal cardGameWinLoss,
+        decimal liveDealerPercentage, decimal liveDealerWinLoss,
+        decimal lotteryPercentage, decimal lotteryWinLoss,
+        decimal slotPercentage, decimal slotWinLoss,
+        decimal sportsPercentage, decimal sportsWinLoss,
+        decimal virtualSportsPercentage, decimal virtualSportsWinLoss)
     {
         var fixture = new Fixture();
         fixture.Customize<AgentDividendProductFeeModel>(u => u
             .With(s => s.AgentId, agentId)
-            .With(s => s.GameType, gameType)
             .With(s => s.AgentDividendId, agentDividendId)
-            .With(s => s.ProductFeePercentage, percentage)
-            .With(s => s.WinLossAmount, winLoss));
+            .With(s => s.CardGameWinLossAmount, cardGameWinLoss)
+            .With(s => s.CurrentCardGamePercentage, cardGamePercentage)
+            .With(s => s.LiveDealerWinLossAmount, liveDealerWinLoss)
+            .With(s => s.CurrentLiveDealerPercentage, liveDealerPercentage)
+            .With(s => s.LotteryWinLossAmount, lotteryWinLoss)
+            .With(s => s.CurrentLotteryPercentage, lotteryPercentage)
+            .With(s => s.SlotWinLossAmount, slotWinLoss)
+            .With(s => s.CurrentSlotPercentage, slotPercentage)
+            .With(s => s.SportsWinLossAmount, sportsWinLoss)
+            .With(s => s.CurrentSportsPercentage, sportsPercentage)
+            .With(s => s.VirtualSportsWinLossAmount, virtualSportsWinLoss)
+            .With(s => s.CurrentVirtualSportsPercentage, virtualSportsPercentage));
         fixture.Behaviors.Add(new OmitOnRecursionBehavior());
         return fixture;
     }

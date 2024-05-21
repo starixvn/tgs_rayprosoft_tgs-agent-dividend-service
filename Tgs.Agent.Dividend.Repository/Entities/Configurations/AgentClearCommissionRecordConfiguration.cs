@@ -18,8 +18,8 @@ namespace Tgs.Agent.Dividend.Repository.Entities.Configurations
             entity.ToTable("agent_clear_commission_records", "dbo");
 
             entity.Property(e => e.Id)
-            .ValueGeneratedNever()
-            .HasColumnName("id");
+                .ValueGeneratedNever()
+                .HasColumnName("id");
             entity.Property(e => e.AgentDividendId).HasColumnName("agent_dividend_id");
             entity.Property(e => e.ClearByUserId).HasColumnName("clear_by_user_id");
             entity.Property(e => e.CommissionAmount).HasColumnName("commission_amount");

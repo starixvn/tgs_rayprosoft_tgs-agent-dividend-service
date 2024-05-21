@@ -7,15 +7,39 @@ namespace Tgs.Agent.Dividend.Repository.Entities;
 
 public partial class AgentDividendProductFee
 {
-    public Guid Id { get; set; }
+    public Guid BrandId { get; set; }
 
     public int AgentDividendId { get; set; }
 
-    public short GameType { get; set; }
+    public decimal VirtualSportsPercentage { get; set; }
 
-    public decimal Percentage { get; set; }
-
-    public decimal WinLossAmount { get; set; }
+    public decimal VirtualSportsWinLossAmount { get; set; }
 
     public DateTime CreatedOn { get; set; }
+
+    public Guid AgentId { get; set; }
+
+    public decimal CardGamePercentage { get; set; }
+
+    public decimal CardGameWinLossAmount { get; set; }
+
+    public DateTime From { get; set; }
+
+    public decimal LiveDealerPercentage { get; set; }
+
+    public decimal LiveDealerWinLossAmount { get; set; }
+
+    public decimal LotteryPercentage { get; set; }
+
+    public decimal LotteryWinLossAmount { get; set; }
+
+    public decimal SlotPercentage { get; set; }
+
+    public decimal SlotWinLossAmount { get; set; }
+
+    public decimal SportsPercentage { get; set; }
+
+    public decimal SportsWinLossAmount { get; set; }
+
+    public DateTime To { get; set; }
 }

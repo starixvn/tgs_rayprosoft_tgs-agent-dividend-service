@@ -23,102 +23,102 @@ namespace Tgs.Agent.Dividend.Repository.Entities.Configurations
 
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.AgentAdjustAmount)
-            .HasPrecision(18, 6)
-            .HasColumnName("agent_adjust_amount");
+                .HasPrecision(18, 6)
+                .HasColumnName("agent_adjust_amount");
             entity.Property(e => e.AgentDividendPercentage)
-            .HasPrecision(18, 6)
-            .HasColumnName("agent_dividend_percentage");
+                .HasPrecision(18, 6)
+                .HasColumnName("agent_dividend_percentage");
             entity.Property(e => e.AgentDividendPercentageTreeData)
-            .HasColumnType("jsonb")
-            .HasColumnName("agent_dividend_percentage_tree_data");
+                .HasColumnType("jsonb")
+                .HasColumnName("agent_dividend_percentage_tree_data");
             entity.Property(e => e.AgentId).HasColumnName("agent_id");
             entity.Property(e => e.AllAgentRebateAmount)
-            .HasPrecision(18, 6)
-            .HasColumnName("all_agent_rebate_amount");
+                .HasPrecision(18, 6)
+                .HasColumnName("all_agent_rebate_amount");
             entity.Property(e => e.BetAmount)
-            .HasPrecision(18, 6)
-            .HasColumnName("bet_amount");
+                .HasPrecision(18, 6)
+                .HasColumnName("bet_amount");
             entity.Property(e => e.BirthdayAmount)
-            .HasPrecision(18, 6)
-            .HasColumnName("birthday_amount");
+                .HasPrecision(18, 6)
+                .HasColumnName("birthday_amount");
             entity.Property(e => e.BonusAdjustAmount)
-            .HasPrecision(18, 6)
-            .HasColumnName("bonus_adjust_amount");
+                .HasPrecision(18, 6)
+                .HasColumnName("bonus_adjust_amount");
             entity.Property(e => e.BonusAmount)
-            .HasPrecision(18, 6)
-            .HasColumnName("bonus_amount");
+                .HasPrecision(18, 6)
+                .HasColumnName("bonus_amount");
             entity.Property(e => e.BrandId).HasColumnName("brand_id");
             entity.Property(e => e.ChiefAgentDividendPercentage)
-            .HasPrecision(18, 6)
-            .HasColumnName("chief_agent_dividend_percentage");
+                .HasPrecision(18, 6)
+                .HasColumnName("chief_agent_dividend_percentage");
             entity.Property(e => e.CompanyAdjustAmount)
-            .HasPrecision(18, 6)
-            .HasColumnName("company_adjust_amount");
+                .HasPrecision(18, 6)
+                .HasColumnName("company_adjust_amount");
             entity.Property(e => e.CreatedOn).HasColumnName("created_on");
             entity.Property(e => e.DepositAmount)
-            .HasPrecision(18, 6)
-            .HasColumnName("deposit_amount");
+                .HasPrecision(18, 6)
+                .HasColumnName("deposit_amount");
             entity.Property(e => e.DepositHandlingFee)
-            .HasPrecision(18, 6)
-            .HasColumnName("deposit_handling_fee");
+                .HasPrecision(18, 6)
+                .HasColumnName("deposit_handling_fee");
             entity.Property(e => e.DividendAmount)
-            .HasPrecision(18, 6)
-            .HasColumnName("dividend_amount");
+                .HasPrecision(18, 6)
+                .HasColumnName("dividend_amount");
             entity.Property(e => e.FirstFundInCount).HasColumnName("first_fund_in_count");
             entity.Property(e => e.Hour).HasColumnName("hour");
             entity.Property(e => e.Minute).HasColumnName("minute");
             entity.Property(e => e.NoIncludeNetProfitAgentAdjustAmount)
-            .HasPrecision(18, 6)
-            .HasColumnName("no_include_net_profit_agent_adjust_amount");
+                .HasPrecision(18, 6)
+                .HasColumnName("no_include_net_profit_agent_adjust_amount");
             entity.Property(e => e.NoIncludeNetProfitBonusAdjustAmount)
-            .HasPrecision(18, 6)
-            .HasColumnName("no_include_net_profit_bonus_adjust_amount");
+                .HasPrecision(18, 6)
+                .HasColumnName("no_include_net_profit_bonus_adjust_amount");
             entity.Property(e => e.NoIncludeNetProfitCompanyAdjustAmount)
-            .HasPrecision(18, 6)
-            .HasColumnName("no_include_net_profit_company_adjust_amount");
+                .HasPrecision(18, 6)
+                .HasColumnName("no_include_net_profit_company_adjust_amount");
             entity.Property(e => e.OriginalTurnover)
-            .HasPrecision(18, 6)
-            .HasColumnName("original_turnover");
+                .HasPrecision(18, 6)
+                .HasColumnName("original_turnover");
             entity.Property(e => e.PlatformChargePercentage)
-            .HasPrecision(18, 6)
-            .HasColumnName("platform_charge_percentage");
+                .HasPrecision(18, 6)
+                .HasColumnName("platform_charge_percentage");
             entity.Property(e => e.PlayerCode)
-            .HasMaxLength(16)
-            .HasColumnName("player_code");
+                .HasMaxLength(16)
+                .HasColumnName("player_code");
             entity.Property(e => e.PromotionAmount)
-            .HasPrecision(18, 6)
-            .HasColumnName("promotion_amount");
+                .HasPrecision(18, 6)
+                .HasColumnName("promotion_amount");
             entity.Property(e => e.RebateAmount)
-            .HasPrecision(18, 6)
-            .HasColumnName("rebate_amount");
+                .HasPrecision(18, 6)
+                .HasColumnName("rebate_amount");
             entity.Property(e => e.RegisteredCount).HasColumnName("registered_count");
             entity.Property(e => e.ReportDate).HasColumnName("report_date");
             entity.Property(e => e.ReportDateTime).HasColumnName("report_date_time");
             entity.Property(e => e.RoundCount).HasColumnName("round_count");
             entity.Property(e => e.SeasonAmount)
-            .HasPrecision(18, 6)
-            .HasColumnName("season_amount");
+                .HasPrecision(18, 6)
+                .HasColumnName("season_amount");
             entity.Property(e => e.SystemAdjustAmount)
-            .HasPrecision(18, 6)
-            .HasColumnName("system_adjust_amount");
+                .HasPrecision(18, 6)
+                .HasColumnName("system_adjust_amount");
             entity.Property(e => e.Turnover)
-            .HasPrecision(18, 6)
-            .HasColumnName("turnover");
+                .HasPrecision(18, 6)
+                .HasColumnName("turnover");
             entity.Property(e => e.UpgradeAmount)
-            .HasPrecision(18, 6)
-            .HasColumnName("upgrade_amount");
+                .HasPrecision(18, 6)
+                .HasColumnName("upgrade_amount");
             entity.Property(e => e.ValidBetAmount)
-            .HasPrecision(18, 6)
-            .HasColumnName("valid_bet_amount");
+                .HasPrecision(18, 6)
+                .HasColumnName("valid_bet_amount");
             entity.Property(e => e.WinLossAmount)
-            .HasPrecision(18, 6)
-            .HasColumnName("win_loss_amount");
+                .HasPrecision(18, 6)
+                .HasColumnName("win_loss_amount");
             entity.Property(e => e.WithdrawHandlingFee)
-            .HasPrecision(18, 6)
-            .HasColumnName("withdraw_handling_fee");
+                .HasPrecision(18, 6)
+                .HasColumnName("withdraw_handling_fee");
             entity.Property(e => e.WithdrawalAmount)
-            .HasPrecision(18, 6)
-            .HasColumnName("withdrawal_amount");
+                .HasPrecision(18, 6)
+                .HasColumnName("withdrawal_amount");
 
             OnConfigurePartial(entity);
         }

@@ -397,42 +397,6 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IMemoryC
         foreach (var model in models) yield return model;
     }
 
-    public async IAsyncEnumerable<AgentDividendPlatformChargeModel> GetAgentPlatformChargeCacheAsync(Guid brandId,
-        DateTime from,
-        DateTime to,
-        [EnumeratorCancellation] CancellationToken cancellationToken)
-    {
-        var key = $"AgentPlatformChargeCache{brandId}{from}{to}";
-
-        memoryCacheKeyMapper.AddCacheKey(key);
-
-        var models = await memoryCache.GetOrCreateAsync(key,
-                         cacheEntry =>
-                         {
-                             cacheEntry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5);
-
-                             return context.PlayerAggregates
-                                 .Where(x => x.BrandId == brandId)
-                                 .Where(x => x.AgentId != null)
-                                 .Where(x => x.ReportDate >= from && x.ReportDate <= to)
-                                 .GroupBy(x => new
-                                 {
-                                     x.AgentId,
-                                     x.PlatformChargePercentage
-                                 })
-                                 .Select(x => new AgentDividendPlatformChargeModel
-                                 {
-                                     AgentId = x.Key.AgentId!.Value,
-                                     PlatformChargePercentage = x.Key.PlatformChargePercentage,
-                                     WinLossAmount = x.Sum(p => p.WinLossAmount)
-                                 })
-                                 .ToArrayAsync(cancellationToken);
-                         }) ??
-                     [];
-
-        foreach (var model in models) yield return model;
-    }
-
     public async IAsyncEnumerable<AgentDividendProductFeeModel> GetAgentProductFeeCacheAsync(Guid brandId,
         DateTime from,
         DateTime to,
@@ -451,26 +415,35 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IMemoryC
                                  .Where(x => x.BrandId == brandId)
                                  .Where(x => x.AgentId != null)
                                  .Where(x => x.ReportDate >= from && x.ReportDate <= to)
-                                 .Join(context.PlayerAggregates,
-                                     a => new { a.AgentId, a.ReportDate, a.Hour },
-                                     a => new { a.AgentId, a.ReportDate, a.Hour },
-                                     (playerGameAggregate, playerAggregate) => new
+                                 .Join(context.AgentProductFees,
+                                     a => a.AgentId,
+                                     a => a.AgentId,
+                                     (playerGameAggregate, agentProductFee) => new
                                      {
                                          playerGameAggregate,
-                                         playerAggregate
+                                         agentProductFee
                                      })
                                  .GroupBy(x => new
                                  {
                                      x.playerGameAggregate.AgentId,
                                      x.playerGameAggregate.GameType,
-                                     x.playerGameAggregate.ProductFeePercentage
+                                     x.agentProductFee
                                  })
                                  .Select(x => new AgentDividendProductFeeModel
                                  {
                                      AgentId = x.Key.AgentId!.Value,
-                                     ProductFeePercentage = x.Key.ProductFeePercentage,
-                                     GameType = (GameType)x.Key.GameType,
-                                     WinLossAmount = x.Sum(p => p.playerGameAggregate.WinLoss)
+                                     CurrentCardGamePercentage = x.Key.agentProductFee.CurrentCardGamePercentage,
+                                     CurrentLiveDealerPercentage = x.Key.agentProductFee.CurrentLiveDealerPercentage,
+                                     CurrentLotteryPercentage = x.Key.agentProductFee.CurrentLotteryPercentage,
+                                     CurrentSlotPercentage = x.Key.agentProductFee.CurrentSlotPercentage,
+                                     CurrentSportsPercentage = x.Key.agentProductFee.CurrentSportsPercentage,
+                                     CurrentVirtualSportsPercentage = x.Key.agentProductFee.CurrentVirtualSportsPercentage,
+                                     CardGameWinLossAmount = x.Where(w => w.playerGameAggregate.GameType == (short)GameType.CardGame).Sum(p => p.playerGameAggregate.WinLoss),
+                                     LiveDealerWinLossAmount = x.Where(w => w.playerGameAggregate.GameType == (short)GameType.LiveDealer).Sum(p => p.playerGameAggregate.WinLoss),
+                                     LotteryWinLossAmount = x.Where(w => w.playerGameAggregate.GameType == (short)GameType.Lottery).Sum(p => p.playerGameAggregate.WinLoss),
+                                     SlotWinLossAmount = x.Where(w => Consts.SlotGroup.Select(s => (short)s).Contains(w.playerGameAggregate.GameType)).Sum(p => p.playerGameAggregate.WinLoss),
+                                     SportsWinLossAmount = x.Where(w => Consts.SportsGroup.Select(s => (short)s).Contains(w.playerGameAggregate.GameType)).Sum(p => p.playerGameAggregate.WinLoss),
+                                     VirtualSportsWinLossAmount = x.Where(w => w.playerGameAggregate.GameType == (short)GameType.VirtualSports).Sum(p => p.playerGameAggregate.WinLoss),
                                  })
                                  .ToArrayAsync(cancellationToken);
                          }) ??
@@ -752,43 +725,27 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IMemoryC
 
         if (agentDividend == null) return null;
 
-        var fees = await context.AgentDividendProductFees
-            .Where(x => x.AgentDividendId == agentDividend.Id)
-            .GroupBy(x => x.AgentDividendId, (id, fees) => new
-            {
-                AgentDividendId = id,
-                CardGameAmount =
-                    fees.Where(w => w.GameType == (short)GameType.CardGame)
-                        .Sum(s => (s.WinLossAmount < 0 ? 0 : s.WinLossAmount) * s.Percentage / 100),
-                LiveDealerAmount =
-                    fees.Where(w => w.GameType == (short)GameType.LiveDealer)
-                        .Sum(s => (s.WinLossAmount < 0 ? 0 : s.WinLossAmount) * s.Percentage / 100),
-                LotteryAmount =
-                    fees.Where(w => w.GameType == (short)GameType.Lottery)
-                        .Sum(s => (s.WinLossAmount < 0 ? 0 : s.WinLossAmount) * s.Percentage / 100),
-                SportsAmount =
-                    fees.Where(w => Consts.SportsGroup.Select(s => (short)s).Contains(w.GameType))
-                        .Sum(s => (s.WinLossAmount < 0 ? 0 : s.WinLossAmount) * s.Percentage / 100),
-                SlotAmount =
-                    fees.Where(w => Consts.SlotGroup.Select(s => (short)s).Contains(w.GameType))
-                        .Sum(s => (s.WinLossAmount < 0 ? 0 : s.WinLossAmount) * s.Percentage / 100),
-                VirtualSportsAmount =
-                    fees.Where(w => w.GameType == (short)GameType.VirtualSports)
-                        .Sum(s => (s.WinLossAmount < 0 ? 0 : s.WinLossAmount) * s.Percentage / 100)
-            }).ToArrayAsync()
-            .ConfigureAwait(false);
+        var fee = (await context.AgentDividendProductFees
+            .FirstOrDefaultAsync(x => x.AgentDividendId == agentDividend.Id)) ??
+                  new AgentDividendProductFee();
 
-        var platformCharges = await context.AgentDividendPlatformCharges
-            .Where(x => x.AgentDividendId == agentDividend.Id)
-            .GroupBy(x => x.AgentDividendId,
-                (id, platformCharges) => new
-                {
-                    AgentDividendId = id,
-                    platformCharge =
-                        platformCharges.Sum(s => (s.WinLossAmount < 0 ? 0 : s.WinLossAmount) * s.Percentage / 100)
-                })
-            .ToArrayAsync()
-            .ConfigureAwait(false);
+        var cardGameAmount =
+            fee.CardGameWinLossAmount <= 0M ? 0M : fee.CardGameWinLossAmount * fee.CardGamePercentage / 100;
+
+        var liveDealerAmount =
+            fee.LiveDealerWinLossAmount <= 0M ? 0M : fee.LiveDealerWinLossAmount * fee.LiveDealerPercentage / 100;
+
+        var lotteryAmount =
+            fee.LotteryWinLossAmount <= 0M ? 0M : fee.LotteryWinLossAmount * fee.LotteryPercentage / 100;
+
+        var sportsAmount =
+            fee.SportsWinLossAmount <= 0M ? 0M : fee.SportsWinLossAmount * fee.SportsPercentage / 100;
+
+        var slotAmount =
+            fee.SlotWinLossAmount <= 0M ? 0M : fee.SlotWinLossAmount * fee.SlotPercentage / 100;
+
+        var virtualSportsAmount =
+            fee.VirtualSportsWinLossAmount <= 0M ? 0M : fee.VirtualSportsWinLossAmount * fee.VirtualSportsPercentage / 100;
 
         var record =
             await context.AgentDividendRecords.FirstOrDefaultAsync(x => x.AgentDividendId == agentDividend.Id);
@@ -815,10 +772,8 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IMemoryC
                 .Where(w => w.DividendProviderAgentId == agentDividend.AgentId &&
                             (w.AgentCoveredBonus != null || w.AgentCoveredBonusAdjust != null))
                 .Sum(s => s.AgentCoveredBonusAdjust) ?? 0M,
-            platformCharges.Sum(s => s.platformCharge),
-            fees.Sum(s =>
-                s.CardGameAmount + s.LiveDealerAmount + s.LotteryAmount + s.SlotAmount + s.SportsAmount +
-                s.VirtualSportsAmount),
+            cardGameAmount + liveDealerAmount + lotteryAmount + slotAmount + sportsAmount +
+            virtualSportsAmount,
             record?.NegativeAgentDividendAmount ?? 0M,
             agentDividend.SentOn);
     }
@@ -974,6 +929,22 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IMemoryC
                         .SetProperty(e => e.CurrentSettlementTo, brand.CurrentSettlementTo)
                         .SetProperty(e => e.NextSettlementFrom, brand.NextSettlementFrom)
                         .SetProperty(e => e.NextSettlementTo, brand.NextSettlementTo),
+                cancellationToken);
+
+        await context.AgentProductFees.Where(x => x.BrandId == brand.Id)
+            .ExecuteUpdateAsync(s =>
+                    s.SetProperty(e => e.PreviousCardGamePercentage, e => e.CurrentCardGamePercentage)
+                        .SetProperty(e => e.PreviousLiveDealerPercentage, e => e.CurrentLiveDealerPercentage)
+                        .SetProperty(e => e.PreviousLotteryPercentage, e => e.CurrentLotteryPercentage)
+                        .SetProperty(e => e.PreviousSlotPercentage, e => e.CurrentSlotPercentage)
+                        .SetProperty(e => e.PreviousSportsPercentage, e => e.CurrentSportsPercentage)
+                        .SetProperty(e => e.PreviousVirtualSportsPercentage, e => e.CurrentVirtualSportsPercentage)
+                        .SetProperty(e => e.CurrentCardGamePercentage, e => e.NextCardGamePercentage)
+                        .SetProperty(e => e.CurrentLiveDealerPercentage, e => e.NextLiveDealerPercentage)
+                        .SetProperty(e => e.CurrentLotteryPercentage, e => e.NextLotteryPercentage)
+                        .SetProperty(e => e.CurrentSlotPercentage, e => e.NextSlotPercentage)
+                        .SetProperty(e => e.CurrentSportsPercentage, e => e.NextSportsPercentage)
+                        .SetProperty(e => e.CurrentVirtualSportsPercentage, e => e.NextVirtualSportsPercentage),
                 cancellationToken);
 
         await context.SaveChangesAsync(cancellationToken);
@@ -1152,25 +1123,25 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IMemoryC
             })
         );
 
-        await context.AgentDividendPlatformCharges.AddRangeAsync(models.SelectMany(x =>
-            x.AgentDividendPlatformCharges.Select(s => new AgentDividendPlatformCharge
+        await context.AgentDividendProductFees.AddRangeAsync(models.Where(x => x.AgentDividendProductFee != null)
+            .Select(x => new AgentDividendProductFee
             {
-                Id = Guid.NewGuid(),
-                AgentDividendId = s.AgentDividendId,
-                Percentage = s.PlatformChargePercentage,
-                WinLossAmount = s.WinLossAmount,
+                BrandId = x.BrandId,
+                AgentId = x.AgentId,
+                AgentDividendId = x.AgentDividendProductFee!.AgentDividendId,
+                CardGameWinLossAmount = x.AgentDividendProductFee!.CardGameWinLossAmount,
+                CardGamePercentage = x.AgentDividendProductFee!.CurrentCardGamePercentage,
+                LiveDealerWinLossAmount = x.AgentDividendProductFee!.LiveDealerWinLossAmount,
+                LiveDealerPercentage = x.AgentDividendProductFee!.CurrentLiveDealerPercentage,
+                LotteryWinLossAmount = x.AgentDividendProductFee!.LotteryWinLossAmount,
+                LotteryPercentage = x.AgentDividendProductFee!.CurrentLotteryPercentage,
+                SlotWinLossAmount = x.AgentDividendProductFee!.SlotWinLossAmount,
+                SlotPercentage = x.AgentDividendProductFee!.CurrentSlotPercentage,
+                SportsWinLossAmount = x.AgentDividendProductFee!.SportsWinLossAmount,
+                SportsPercentage = x.AgentDividendProductFee!.CurrentSportsPercentage,
+                VirtualSportsWinLossAmount = x.AgentDividendProductFee!.VirtualSportsWinLossAmount,
+                VirtualSportsPercentage = x.AgentDividendProductFee!.CurrentVirtualSportsPercentage,
                 CreatedOn = DateTime.UtcNow
-            })));
-
-        await context.AgentDividendProductFees.AddRangeAsync(models.SelectMany(x =>
-            x.AgentDividendProductFees.Select(s => new AgentDividendProductFee
-            {
-                Id = Guid.NewGuid(),
-                GameType = (short)s.GameType,
-                AgentDividendId = s.AgentDividendId,
-                Percentage = s.ProductFeePercentage,
-                WinLossAmount = s.WinLossAmount,
-                CreatedOn = DateTime.UtcNow
-            })));
+            }));
     }
 }

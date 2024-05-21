@@ -19,11 +19,6 @@ public interface IRepository
         DateTime to,
         CancellationToken cancellationToken);
 
-    IAsyncEnumerable<AgentDividendPlatformChargeModel> GetAgentPlatformChargeCacheAsync(Guid brandId,
-        DateTime from,
-        DateTime to,
-        CancellationToken cancellationToken);
-
     IAsyncEnumerable<AgentDividendProductFeeModel> GetAgentProductFeeCacheAsync(Guid brandId,
         DateTime from,
         DateTime to,

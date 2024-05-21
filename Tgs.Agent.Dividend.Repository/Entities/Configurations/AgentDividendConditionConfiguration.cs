@@ -24,18 +24,18 @@ namespace Tgs.Agent.Dividend.Repository.Entities.Configurations
             entity.Property(e => e.ActiveNumber).HasColumnName("active_number");
             entity.Property(e => e.ContractId).HasColumnName("contract_id");
             entity.Property(e => e.DividendPercentage)
-            .HasPrecision(9, 6)
-            .HasColumnName("dividend_percentage");
+                .HasPrecision(9, 6)
+                .HasColumnName("dividend_percentage");
             entity.Property(e => e.NetProfit)
-            .HasPrecision(18, 6)
-            .HasColumnName("net_profit");
+                .HasPrecision(18, 6)
+                .HasColumnName("net_profit");
             entity.Property(e => e.WinLossAmount)
-            .HasPrecision(18, 6)
-            .HasColumnName("win_loss_amount");
+                .HasPrecision(18, 6)
+                .HasColumnName("win_loss_amount");
 
             entity.HasOne(d => d.Agent).WithMany(p => p.AgentDividendConditions)
-            .HasForeignKey(d => d.AgentId)
-            .HasConstraintName("fk_agents_dividend_conditions_agent_id");
+                .HasForeignKey(d => d.AgentId)
+                .HasConstraintName("fk_agents_dividend_conditions_agent_id");
 
             OnConfigurePartial(entity);
         }

@@ -6,22 +6,16 @@ public class AgentDividendProductFeeModel
 {
     public int AgentDividendId { get; set; }
     public Guid AgentId { get; set; }
-    public GameType GameType { get; set; }
-    public decimal ProductFeePercentage { get; set; }
-    public decimal WinLossAmount { get; set; }
-
-    public GameGroupType GameGroupType => GameType switch
-    {
-        GameType.Arcade => GameGroupType.Slot,
-        GameType.Fishing => GameGroupType.Slot,
-        GameType.Slot => GameGroupType.Slot,
-        GameType.TableGame => GameGroupType.Slot,
-        GameType.Sportsbook => GameGroupType.Sportsbook,
-        GameType.ESports => GameGroupType.Sportsbook,
-        GameType.VirtualSports => GameGroupType.VirtualSports,
-        GameType.LiveDealer => GameGroupType.LiveDealer,
-        GameType.CardGame => GameGroupType.CardGame,
-        GameType.Lottery => GameGroupType.Lottery,
-        _ => throw new ArgumentOutOfRangeException()
-    };
+    public decimal CurrentCardGamePercentage { get; set; }
+    public decimal CurrentLiveDealerPercentage { get; set; }
+    public decimal CurrentLotteryPercentage { get; set; }
+    public decimal CurrentSlotPercentage { get; set; }
+    public decimal CurrentSportsPercentage { get; set; }
+    public decimal CurrentVirtualSportsPercentage { get; set; }
+    public decimal CardGameWinLossAmount { get; set; }
+    public decimal LiveDealerWinLossAmount { get; set; }
+    public decimal LotteryWinLossAmount { get; set; }
+    public decimal SlotWinLossAmount { get; set; }
+    public decimal SportsWinLossAmount { get; set; }
+    public decimal VirtualSportsWinLossAmount { get; set; }
 }

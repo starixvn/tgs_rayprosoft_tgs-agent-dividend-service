@@ -46,6 +46,5 @@ public class AgentDividendModel
     public bool NegativeAgentDividendCarryForward { get; set; }
     public bool ShouldReferToNextRecord { get; set; }
     public AgentDividendMultipleLayerModel[] AgentDividendMultipleLayerModels { get; set; } = default!;
-    public AgentDividendPlatformChargeModel[] AgentDividendPlatformCharges { get; set; } = default!;
-    public AgentDividendProductFeeModel[] AgentDividendProductFees { get; set; } = default!;
+    public AgentDividendProductFeeModel? AgentDividendProductFee { get; set; } = default!;
 }

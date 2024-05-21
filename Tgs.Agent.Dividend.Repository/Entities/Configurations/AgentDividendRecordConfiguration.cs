@@ -22,35 +22,35 @@ namespace Tgs.Agent.Dividend.Repository.Entities.Configurations
             entity.HasIndex(e => e.AgentDividendId, "ux_agent_dividend_records").IsUnique();
 
             entity.Property(e => e.Id)
-            .ValueGeneratedNever()
-            .HasColumnName("id");
+                .ValueGeneratedNever()
+                .HasColumnName("id");
             entity.Property(e => e.ActualAgentDividendAmount)
-            .HasPrecision(18, 6)
-            .HasColumnName("actual_agent_dividend_amount");
+                .HasPrecision(18, 6)
+                .HasColumnName("actual_agent_dividend_amount");
             entity.Property(e => e.AgentDividendAmount)
-            .HasPrecision(18, 6)
-            .HasColumnName("agent_dividend_amount");
+                .HasPrecision(18, 6)
+                .HasColumnName("agent_dividend_amount");
             entity.Property(e => e.AgentDividendId).HasColumnName("agent_dividend_id");
             entity.Property(e => e.AgentId).HasColumnName("agent_id");
             entity.Property(e => e.ApprovedOn).HasColumnName("approved_on");
             entity.Property(e => e.BrandId).HasColumnName("brand_id");
             entity.Property(e => e.CreatedOn).HasColumnName("created_on");
             entity.Property(e => e.NegativeAgentDividendAmount)
-            .HasPrecision(18, 6)
-            .HasColumnName("negative_agent_dividend_amount");
+                .HasPrecision(18, 6)
+                .HasColumnName("negative_agent_dividend_amount");
             entity.Property(e => e.NegativeAgentDividendCarryForward)
-            .HasDefaultValue(false)
-            .HasColumnName("negative_agent_dividend_carry_forward");
+                .HasDefaultValue(false)
+                .HasColumnName("negative_agent_dividend_carry_forward");
             entity.Property(e => e.Remark).HasColumnName("remark");
             entity.Property(e => e.SentByUsername)
-            .HasMaxLength(64)
-            .HasColumnName("sent_by_username");
+                .HasMaxLength(64)
+                .HasColumnName("sent_by_username");
             entity.Property(e => e.Status)
-            .HasDefaultValue((short)0)
-            .HasColumnName("status");
+                .HasDefaultValue((short)0)
+                .HasColumnName("status");
             entity.Property(e => e.UpdatedOn)
-            .HasDefaultValueSql("'-infinity'::timestamp with time zone")
-            .HasColumnName("updated_on");
+                .HasDefaultValueSql("'-infinity'::timestamp with time zone")
+                .HasColumnName("updated_on");
 
             OnConfigurePartial(entity);
         }
