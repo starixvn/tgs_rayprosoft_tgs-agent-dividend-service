@@ -53,13 +53,13 @@ public class AgentDividendBackground(
 
                 var brand = await repository.GetBrandAsync(model.BrandId, stoppingToken).ConfigureAwait(false);
 
-                var days = brand.CurrentSettlementTo.Subtract(brand.CurrentSettlementFrom).Hours;
+                var days = brand.CurrentSettlementTo.AddDays(1).Subtract(brand.CurrentSettlementFrom).Days;
 
                 var count = await repository.GetCompletePlayerAggregateCountAsync(brand.CurrentSettlementFrom,
-                    brand.CurrentSettlementTo,
+                    brand.CurrentSettlementTo.AddDays(1),
                     stoppingToken);
 
-                if (days != count)
+                if (days * 24 != count)
                 {
                     continue;
                 }
