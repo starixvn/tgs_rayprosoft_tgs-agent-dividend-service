@@ -415,35 +415,46 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IMemoryC
                                  .Where(x => x.BrandId == brandId)
                                  .Where(x => x.AgentId != null)
                                  .Where(x => x.ReportDate >= from && x.ReportDate <= to)
-                                 .Join(context.AgentProductFees,
-                                     a => a.AgentId,
-                                     a => a.AgentId,
-                                     (playerGameAggregate, agentProductFee) => new
-                                     {
-                                         playerGameAggregate,
-                                         agentProductFee
-                                     })
-                                 .GroupBy(x => new
+                                 .GroupBy(x => x.AgentId)
+                                 .Select(x => new
                                  {
-                                     x.playerGameAggregate.AgentId,
-                                     x.playerGameAggregate.GameType,
-                                     x.agentProductFee
+                                     AgentId = x.Key,
+                                     CardGameWinLossAmount = x.Where(w => w.GameType == (short)GameType.CardGame).Sum(p => p.WinLoss),
+                                     LiveDealerWinLossAmount = x.Where(w => w.GameType == (short)GameType.LiveDealer).Sum(p => p.WinLoss),
+                                     LotteryWinLossAmount = x.Where(w => w.GameType == (short)GameType.Lottery).Sum(p => p.WinLoss),
+                                     SlotWinLossAmount = x.Where(w => Consts.SlotGroup.Select(s => (short)s).Contains(w.GameType)).Sum(p => p.WinLoss),
+                                     SportsWinLossAmount = x.Where(w => Consts.SportsGroup.Select(s => (short)s).Contains(w.GameType)).Sum(p => p.WinLoss),
+                                     VirtualSportsWinLossAmount = x.Where(w => w.GameType == (short)GameType.VirtualSports).Sum(p => p.WinLoss),
                                  })
+                                 .GroupJoin(context.AgentProductFees,
+                                     a => a.AgentId,
+                                     a => a.AgentId,
+                                     (aggregate, productFee) => new
+                                     {
+                                         aggregate,
+                                         productFee = productFee.DefaultIfEmpty()
+                                     })
+                                 .SelectMany(x => x.productFee.DefaultIfEmpty(),
+                                     (x, productFee) => new
+                                     {
+                                         x.aggregate,
+                                         productFee
+                                     })
                                  .Select(x => new AgentDividendProductFeeModel
                                  {
-                                     AgentId = x.Key.AgentId!.Value,
-                                     CurrentCardGamePercentage = x.Key.agentProductFee.CurrentCardGamePercentage,
-                                     CurrentLiveDealerPercentage = x.Key.agentProductFee.CurrentLiveDealerPercentage,
-                                     CurrentLotteryPercentage = x.Key.agentProductFee.CurrentLotteryPercentage,
-                                     CurrentSlotPercentage = x.Key.agentProductFee.CurrentSlotPercentage,
-                                     CurrentSportsPercentage = x.Key.agentProductFee.CurrentSportsPercentage,
-                                     CurrentVirtualSportsPercentage = x.Key.agentProductFee.CurrentVirtualSportsPercentage,
-                                     CardGameWinLossAmount = x.Where(w => w.playerGameAggregate.GameType == (short)GameType.CardGame).Sum(p => p.playerGameAggregate.WinLoss),
-                                     LiveDealerWinLossAmount = x.Where(w => w.playerGameAggregate.GameType == (short)GameType.LiveDealer).Sum(p => p.playerGameAggregate.WinLoss),
-                                     LotteryWinLossAmount = x.Where(w => w.playerGameAggregate.GameType == (short)GameType.Lottery).Sum(p => p.playerGameAggregate.WinLoss),
-                                     SlotWinLossAmount = x.Where(w => Consts.SlotGroup.Select(s => (short)s).Contains(w.playerGameAggregate.GameType)).Sum(p => p.playerGameAggregate.WinLoss),
-                                     SportsWinLossAmount = x.Where(w => Consts.SportsGroup.Select(s => (short)s).Contains(w.playerGameAggregate.GameType)).Sum(p => p.playerGameAggregate.WinLoss),
-                                     VirtualSportsWinLossAmount = x.Where(w => w.playerGameAggregate.GameType == (short)GameType.VirtualSports).Sum(p => p.playerGameAggregate.WinLoss),
+                                     AgentId = x.aggregate.AgentId!.Value,
+                                     CurrentCardGamePercentage = x.productFee == null ? 0M : x.productFee.CurrentCardGamePercentage,
+                                     CurrentLiveDealerPercentage = x.productFee == null ? 0M : x.productFee.CurrentLiveDealerPercentage,
+                                     CurrentLotteryPercentage = x.productFee == null ? 0M : x.productFee.CurrentLotteryPercentage,
+                                     CurrentSlotPercentage = x.productFee == null ? 0M : x.productFee.CurrentSlotPercentage,
+                                     CurrentSportsPercentage = x.productFee == null ? 0M : x.productFee.CurrentSportsPercentage,
+                                     CurrentVirtualSportsPercentage = x.productFee == null ? 0M : x.productFee.CurrentVirtualSportsPercentage,
+                                     CardGameWinLossAmount = x.aggregate.CardGameWinLossAmount,
+                                     LiveDealerWinLossAmount = x.aggregate.LiveDealerWinLossAmount,
+                                     LotteryWinLossAmount = x.aggregate.LotteryWinLossAmount,
+                                     SlotWinLossAmount = x.aggregate.SlotWinLossAmount,
+                                     SportsWinLossAmount = x.aggregate.SportsWinLossAmount,
+                                     VirtualSportsWinLossAmount = x.aggregate.VirtualSportsWinLossAmount,
                                  })
                                  .ToArrayAsync(cancellationToken);
                          }) ??
