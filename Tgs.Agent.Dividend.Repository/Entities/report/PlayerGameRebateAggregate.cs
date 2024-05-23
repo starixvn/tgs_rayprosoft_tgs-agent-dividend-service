@@ -58,8 +58,4 @@ public partial class PlayerGameRebateAggregate
     public decimal WinLoss { get; set; }
 
     public int RoundCount { get; set; }
-
-    public decimal PlatformChargePercentage { get; set; }
-
-    public decimal ProductFeePercentage { get; set; }
 }

@@ -1128,7 +1128,6 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IMemoryC
                 BeforeDividendAmount = model.BeforeDividendAmount,
                 ReferencedAgentDividendId = model.ReferencedAgentDividendId,
                 ActiveNumber = model.ActiveNumber,
-                PlatformChargePercentage = 0,
                 NegativeAgentDividendCarryForward = model.NegativeAgentDividendCarryForward,
                 AgentDividendMultipleLayers = model.AgentDividendMultipleLayerModels.Select(x
                         => new AgentDividendMultipleLayer

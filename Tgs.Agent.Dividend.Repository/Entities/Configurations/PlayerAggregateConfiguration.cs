@@ -79,9 +79,6 @@ namespace Tgs.Agent.Dividend.Repository.Entities.Configurations
             entity.Property(e => e.OriginalTurnover)
                 .HasPrecision(18, 6)
                 .HasColumnName("original_turnover");
-            entity.Property(e => e.PlatformChargePercentage)
-                .HasPrecision(18, 6)
-                .HasColumnName("platform_charge_percentage");
             entity.Property(e => e.PlayerCode)
                 .HasMaxLength(16)
                 .HasColumnName("player_code");
