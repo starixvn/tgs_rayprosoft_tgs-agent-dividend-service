@@ -1153,6 +1153,8 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IMemoryC
             {
                 BrandId = x.BrandId,
                 AgentId = x.AgentId,
+                From = x.From.UtcDateTime,
+                To = x.To.UtcDateTime,
                 AgentDividendId = x.AgentDividendProductFee!.AgentDividendId,
                 CardGameWinLossAmount = x.AgentDividendProductFee!.CardGameWinLossAmount,
                 CardGamePercentage = x.AgentDividendProductFee!.CurrentCardGamePercentage,
