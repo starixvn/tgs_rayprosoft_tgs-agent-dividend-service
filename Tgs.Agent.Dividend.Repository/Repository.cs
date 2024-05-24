@@ -782,14 +782,7 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IMemoryC
                     .Sum(s => s.Dividend),
                 agentDividend.AgentDividendAmount,
                 agentDividend.BonusAdjustAmount,
-                agentDividend.AgentDividendMultipleLayers
-                    .Where(w => w.DividendProviderAgentId == agentDividend.AgentId &&
-                                (w.AgentCoveredBonus != null || w.AgentCoveredBonusAdjust != null))
-                    .Sum(s => s.AgentCoveredBonus) ?? 0M,
-                agentDividend.AgentDividendMultipleLayers
-                    .Where(w => w.DividendProviderAgentId == agentDividend.AgentId &&
-                                (w.AgentCoveredBonus != null || w.AgentCoveredBonusAdjust != null))
-                    .Sum(s => s.AgentCoveredBonusAdjust) ?? 0M,
+                agentDividend.AgentAdjustAmount,
                 cardGameAmount + liveDealerAmount + lotteryAmount + slotAmount + sportsAmount +
                 virtualSportsAmount,
                 record?.NegativeAgentDividendAmount ?? 0M,

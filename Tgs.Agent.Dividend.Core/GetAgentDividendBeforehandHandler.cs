@@ -105,7 +105,6 @@ internal class GetAgentDividendBeforehandHandler(
 
             var childAgentDividends = parentAgentDividends.Where(w => w.DividendProviderAgentId != agent.AgentId);
 
-
             agent.AgentDividendAmount =
                 mainDistributionService.GetAgentDividendAmount(agent, multipleLayers, cancellationToken);
 
@@ -137,15 +136,14 @@ internal class GetAgentDividendBeforehandHandler(
                 brand.CurrentSettlementTo,
                 agent.ActiveNumber,
                 agent.WinLossAmount,
-                agent.BonusAmount - agent.RebateAmount,
+                agent.BonusAmount,
                 agent.RebateAmount,
                 agentDividend?.Dividend ?? 0M,
-                agentDividend?.AgentDividendPercentage ?? 0M,
+                agent.AgentDividendPercentage,
                 childAgentDividends.Sum(s => s.Dividend),
                 agent.AgentDividendAmount,
                 agent.BonusAdjustAmount,
-                parentAgentDividends.Sum(s => s.AgentCoveredBonus),
-                parentAgentDividends.Sum(s => s.AgentCoveredBonusAdjust),
+                agent.AgentAdjustAmount,
                 agent.ProductFeeAmount(),
                 sendDividend.Model.Where(m => m.AgentId == agentId).Sum(s => s.NegativeAgentDividendAmount),
                 null);
