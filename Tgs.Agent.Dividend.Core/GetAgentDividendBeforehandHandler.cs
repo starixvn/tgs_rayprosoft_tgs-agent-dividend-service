@@ -146,6 +146,7 @@ internal class GetAgentDividendBeforehandHandler(
                 agent.AgentAdjustAmount,
                 agent.ProductFeeAmount(),
                 sendDividend.Model.Where(m => m.AgentId == agentId).Sum(s => s.NegativeAgentDividendAmount),
+                null,
                 null);
         }
     }

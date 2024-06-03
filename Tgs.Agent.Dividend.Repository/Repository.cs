@@ -786,6 +786,7 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IMemoryC
                 cardGameAmount + liveDealerAmount + lotteryAmount + slotAmount + sportsAmount +
                 virtualSportsAmount,
                 record?.NegativeAgentDividendAmount ?? 0M,
+                (DistributeStatus?)record?.Status,
                 agentDividend.SentOn);
         }
     }

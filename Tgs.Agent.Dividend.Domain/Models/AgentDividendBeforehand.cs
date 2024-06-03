@@ -1,4 +1,6 @@
-﻿namespace Tgs.Agent.Dividend.Domain.Models;
+﻿using Tgs.Agent.Dividend.Domain.Enums;
+
+namespace Tgs.Agent.Dividend.Domain.Models;
 
 public record AgentDividendBeforehand(
     DateTime From,
@@ -15,4 +17,5 @@ public record AgentDividendBeforehand(
     decimal AgentAdjustAmount,
     decimal ProductFeeAmount,
     decimal NegativeAgentDividendAmount,
+    DistributeStatus? Status,
     DateTime? SentOn);
