@@ -80,11 +80,11 @@ internal class GetAgentDividendBeforehandHandler(
 
         foreach (var agentPlayerAggregateModel in agentPlayerAggregates)
         {
-            var instance = agentInstances.First(a => a.agent.Id == agentPlayerAggregateModel.AgentId);
+            var (agent, distributionService) = agentInstances.First(a => a.agent.Id == agentPlayerAggregateModel.AgentId);
 
-            var data = await instance.distributionService.GenerateMultipleLayerAsync(
+            var data = await distributionService.GenerateMultipleLayerAsync(
                     brand,
-                    instance.agent,
+                    agent,
                     agentPlayerAggregateModel,
                     true,
                     cancellationToken)
@@ -93,7 +93,7 @@ internal class GetAgentDividendBeforehandHandler(
             multipleLayers.AddRange(data);
         }
 
-        foreach (var agent in agentPlayerAggregates)
+        foreach (var agent in agentPlayerAggregates.Where(x => x.AgentId == agentId))
         {
             var (_, mainDistributionService) = agentInstances.First(a => a.agent.Id == agent.AgentId);
 
