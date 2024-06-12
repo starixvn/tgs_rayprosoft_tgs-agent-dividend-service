@@ -11,7 +11,7 @@ internal class GetNegativeAgentDividendRecordsHandler(
     public async Task<decimal> Handle(GetNegativeAgentDividendRequest request,
         CancellationToken cancellationToken)
     {
-        return await repository.GetNegativeAgentDividendsAsync(request.AgentId)
-            .SumAsync(x => x.AgentDividendAmount, cancellationToken);
+        return Math.Min(0, await repository.GetNegativeAgentDividendsAsync(request.AgentId)
+            .SumAsync(x => x.AgentDividendAmount, cancellationToken));
     }
 }

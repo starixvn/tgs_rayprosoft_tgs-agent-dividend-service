@@ -54,7 +54,7 @@ public interface IRepository
 
     IAsyncEnumerable<AgentDividendBeforehand> GetAgentDividendBeforehandAsync(Guid agentId, DateTime from, DateTime to);
 
-    Task<IEnumerable<AgentDividendRecordModel>> GetAgentDividendRecordsAsync(Guid brandId,
+    IAsyncEnumerable<AgentDividendRecordModel> GetAgentDividendRecordsAsync(Guid brandId,
         DistributeStatus? status,
         DateTime? from,
         DateTime? to,

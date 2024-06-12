@@ -791,7 +791,7 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IMemoryC
         }
     }
 
-    public async Task<IEnumerable<AgentDividendRecordModel>> GetAgentDividendRecordsAsync(Guid brandId,
+    public IAsyncEnumerable<AgentDividendRecordModel> GetAgentDividendRecordsAsync(Guid brandId,
         DistributeStatus? status,
         DateTime? from,
         DateTime? to,
@@ -800,7 +800,7 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IMemoryC
         string? agentUsername,
         bool? negativeAgentDividendCarryForward)
     {
-        return await context.AgentDividends.Where(x => x.BrandId == brandId)
+        return context.AgentDividends.Where(x => x.BrandId == brandId)
             .Where(from != null, x => x.From >= from)
             .Where(to != null, x => x.To < to)
             .Join(context.AgentDividendRecords,
@@ -855,7 +855,7 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IMemoryC
                     x.adr.UpdatedOn,
                     x.adr.ApprovedOn,
                     x.adr.Remark))
-            .ToArrayAsync();
+            .ToAsyncEnumerable();
     }
 
     public Task<AgentDividendRecordManuallyModel?> GetAgentDividendRecordAsync(Guid id,

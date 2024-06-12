@@ -9,10 +9,10 @@ internal class GetAgentDividendRecordsHandler(
     IRepository repository)
     : IStreamRequestHandler<GetAgentDividendRecordsRequest, AgentDividendRecordModel>
 {
-    public async IAsyncEnumerable<AgentDividendRecordModel> Handle(GetAgentDividendRecordsRequest request,
-        [EnumeratorCancellation] CancellationToken cancellationToken)
+    public IAsyncEnumerable<AgentDividendRecordModel> Handle(GetAgentDividendRecordsRequest request,
+        CancellationToken cancellationToken)
     {
-        var records = await repository.GetAgentDividendRecordsAsync(request.BrandId,
+        return repository.GetAgentDividendRecordsAsync(request.BrandId,
             request.Status,
             request.From,
             request.To,
@@ -20,7 +20,5 @@ internal class GetAgentDividendRecordsHandler(
             request.ApprovedTo,
             request.AgentUsername,
             request.NegativeAgentDividendCarryForward);
-
-        foreach (var agentDividendRecordModel in records) yield return agentDividendRecordModel;
     }
 }
