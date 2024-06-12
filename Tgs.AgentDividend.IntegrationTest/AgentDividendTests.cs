@@ -160,7 +160,7 @@ public class AgentDividendTests
                 Arg.Any<DateTime?>(),
                 Arg.Any<string?>(),
                 Arg.Any<bool?>())
-            .Returns(fixture.CreateMany<AgentDividendRecordModel>(1));
+            .Returns(fixture.CreateMany<AgentDividendRecordModel>(1).ToAsyncEnumerable());
 
         await using var web = new TestAgentDividendApplication(builder => builder.ConfigureServices(services =>
         {
@@ -254,7 +254,7 @@ public class AgentDividendTests
 
         var amount = await sut.GetNegativeAgentDividendAsync(agentId);
 
-        Assert.That(amount, Is.EqualTo(negativeAgentDividendModels.Sum(x => x.AgentDividendAmount)));
+        Assert.That(amount, Is.EqualTo(Math.Min(0, negativeAgentDividendModels.Sum(x => x.AgentDividendAmount))));
     }
 
     private static Fixture CreateAgentFixture(Guid agentId, Guid? parentId)
