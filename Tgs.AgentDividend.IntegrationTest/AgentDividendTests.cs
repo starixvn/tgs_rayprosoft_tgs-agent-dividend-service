@@ -254,7 +254,7 @@ public class AgentDividendTests
 
         var amount = await sut.GetNegativeAgentDividendAsync(agentId);
 
-        Assert.That(amount, Is.EqualTo(Math.Min(0, negativeAgentDividendModels.Sum(x => x.AgentDividendAmount))));
+        Assert.That(amount, Is.EqualTo(Math.Min(0M, negativeAgentDividendModels.Sum(x => x.AgentDividendAmount))));
     }
 
     private static Fixture CreateAgentFixture(Guid agentId, Guid? parentId)
