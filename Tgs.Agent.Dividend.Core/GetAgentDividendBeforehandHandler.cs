@@ -22,19 +22,30 @@ internal class GetAgentDividendBeforehandHandler(
     {
         var brand = await repository.GetBrandAsync(request.BrandId, cancellationToken).ConfigureAwait(false);
 
+        var previous = await repository
+            .GetAgentDividendBeforehandAsync(request.AgentId, brand.PreviousSettlementFrom, brand.PreviousSettlementTo)
+            .ToArrayAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        var lastAgentDividend = previous.MaxBy(x => x.Id);
+
+        var lastNegativeDividendAmount = lastAgentDividend is null or
+            { NegativeAgentDividendCarryForward: false, TotalDividendAmount: < 0M }
+            ? lastAgentDividend?.NegativeAgentDividendAmount ?? 0M
+            : lastAgentDividend.NegativeAgentDividendAmount + lastAgentDividend.TotalDividendAmount;
+
         return new AgentDividendBeforehandResponse
         {
-            Previous = await repository
-                .GetAgentDividendBeforehandAsync(request.AgentId, brand.PreviousSettlementFrom, brand.PreviousSettlementTo)
-                .ToArrayAsync(cancellationToken)
-                .ConfigureAwait(false),
-            Current = await GetCurrentAgentDividendBeforehandAsync(brand, request.AgentId, cancellationToken)
+            Previous = previous,
+            Current = await GetCurrentAgentDividendBeforehandAsync(brand, request.AgentId, lastNegativeDividendAmount,
+                    cancellationToken)
                 .ToArrayAsync(cancellationToken).ConfigureAwait(false)
         };
     }
 
     private async IAsyncEnumerable<AgentDividendBeforehand> GetCurrentAgentDividendBeforehandAsync(BrandModel brand,
         Guid agentId,
+        decimal negativeAgentDividendAmount,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         var childAgents = await agentClient
@@ -80,7 +91,8 @@ internal class GetAgentDividendBeforehandHandler(
 
         foreach (var agentPlayerAggregateModel in agentPlayerAggregates)
         {
-            var (agent, distributionService) = agentInstances.First(a => a.agent.Id == agentPlayerAggregateModel.AgentId);
+            var (agent, distributionService) =
+                agentInstances.First(a => a.agent.Id == agentPlayerAggregateModel.AgentId);
 
             var data = await distributionService.GenerateMultipleLayerAsync(
                     brand,
@@ -93,6 +105,8 @@ internal class GetAgentDividendBeforehandHandler(
             multipleLayers.AddRange(data);
         }
 
+        var count = 0;
+
         foreach (var agent in agentPlayerAggregates.Where(x => x.AgentId == agentId))
         {
             var (_, mainDistributionService) = agentInstances.First(a => a.agent.Id == agent.AgentId);
@@ -101,37 +115,15 @@ internal class GetAgentDividendBeforehandHandler(
                 multipleLayers,
                 cancellationToken).ToArray();
 
-            var agentDividend = parentAgentDividends.FirstOrDefault(w => w.DividendProviderAgentId == agent.AgentId);
-
             var childAgentDividends = parentAgentDividends.Where(w => w.DividendProviderAgentId != agent.AgentId);
 
             agent.AgentDividendAmount =
                 mainDistributionService.GetAgentDividendAmount(agent, multipleLayers, cancellationToken);
 
-            var agentDividends = agentPlayerAggregates
-                .Select(x =>
-                {
-                    var (_, distributionService) =
-                        agentInstances.First(a => a.agent.Id == x.AgentId);
-
-                    x.AgentDividendAmount =
-                        distributionService.GetAgentDividendAmount(x,
-                            multipleLayers,
-                            cancellationToken);
-
-                    return new AgentDividendModel
-                    {
-                        Id = x.Id,
-                        BrandId = x.BrandId,
-                        AgentId = x.AgentId,
-                        AgentDividendAmount = x.AgentDividendAmount
-                    };
-                });
-
-            var sendDividend =
-                await mediator.Send(new GetNoSendDividendRequest(agentDividends.ToArray()), cancellationToken);
+            var agentModel = agents.First(x => x.Id == agentId);
 
             yield return new AgentDividendBeforehand(
+                0,
                 brand.CurrentSettlementFrom,
                 brand.CurrentSettlementTo,
                 agent.ActiveNumber,
@@ -145,9 +137,12 @@ internal class GetAgentDividendBeforehandHandler(
                 agent.BonusAdjustAmount,
                 agent.AgentAdjustAmount,
                 agent.ProductFeeAmount(),
-                sendDividend.Model.Where(m => m.AgentId == agentId).Sum(s => s.NegativeAgentDividendAmount),
+                negativeAgentDividendAmount,
+                agentModel.NegativeAgentDividendCarryForward,
                 null,
                 null);
+
+            count++;
         }
     }
 }

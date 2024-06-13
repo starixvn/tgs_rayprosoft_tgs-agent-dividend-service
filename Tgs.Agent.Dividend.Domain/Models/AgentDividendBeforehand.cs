@@ -3,6 +3,7 @@
 namespace Tgs.Agent.Dividend.Domain.Models;
 
 public record AgentDividendBeforehand(
+    int Id,
     DateTime From,
     DateTime To,
     int ActiveNumber,
@@ -17,5 +18,6 @@ public record AgentDividendBeforehand(
     decimal AgentAdjustAmount,
     decimal ProductFeeAmount,
     decimal NegativeAgentDividendAmount,
+    bool NegativeAgentDividendCarryForward,
     DistributeStatus? Status,
     DateTime? SentOn);
