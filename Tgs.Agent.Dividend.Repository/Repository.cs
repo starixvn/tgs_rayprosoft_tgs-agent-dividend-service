@@ -775,8 +775,7 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IMemoryC
                 agentDividend.WinLossAmount,
                 agentDividend.BonusAmount - agentDividend.RebateAmount,
                 agentDividend.RebateAmount,
-                agentDividend.AgentDividendMultipleLayers.Where(w => w.DividendProviderAgentId == agentDividend.AgentId)
-                    .Sum(s => s.Dividend),
+                agentDividend.NetProfit * agentDividend.AgentDividendPercentage / 100,
                 agentDividend.AgentDividendPercentage,
                 agentDividend.AgentDividendMultipleLayers.Where(w => w.DividendProviderAgentId != agentDividend.AgentId)
                     .Sum(s => s.Dividend),

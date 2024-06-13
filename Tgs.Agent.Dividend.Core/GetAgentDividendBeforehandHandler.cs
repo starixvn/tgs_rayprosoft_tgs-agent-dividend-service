@@ -138,7 +138,7 @@ internal class GetAgentDividendBeforehandHandler(
                 agent.WinLossAmount,
                 agent.BonusAmount,
                 agent.RebateAmount,
-                agentDividend?.Dividend ?? 0M,
+                agent.NetProfit() * agent.AgentDividendPercentage / 100,
                 agent.AgentDividendPercentage,
                 childAgentDividends.Sum(s => s.Dividend),
                 agent.AgentDividendAmount,
