@@ -32,7 +32,8 @@ internal class GetAgentDividendBeforehandHandler(
         var lastNegativeDividendAmount = Math.Min(0M, lastAgentDividend is null or
             { NegativeAgentDividendCarryForward: false, TotalDividendAmount: < 0M }
             ? lastAgentDividend?.NegativeAgentDividendAmount ?? 0M
-            : lastAgentDividend.NegativeAgentDividendAmount + lastAgentDividend.TotalDividendAmount);
+            : lastAgentDividend.NegativeAgentDividendAmount + lastAgentDividend.DirectDividendAmount +
+            lastAgentDividend.TeamContributionAmount - lastAgentDividend.AgentAdjustAmount);
 
         return new AgentDividendBeforehandResponse
         {
