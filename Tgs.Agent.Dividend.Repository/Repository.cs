@@ -769,6 +769,7 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IMemoryC
                     : fee.VirtualSportsWinLossAmount * fee.VirtualSportsPercentage / 100;
 
             yield return new AgentDividendBeforehand(
+                agentDividend.Id,
                 agentDividend.From,
                 agentDividend.To,
                 agentDividend.ActiveNumber,
@@ -785,6 +786,7 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IMemoryC
                 cardGameAmount + liveDealerAmount + lotteryAmount + slotAmount + sportsAmount +
                 virtualSportsAmount,
                 record?.NegativeAgentDividendAmount ?? 0M,
+                agentDividend.NegativeAgentDividendCarryForward,
                 (DistributeStatus?)record?.Status,
                 agentDividend.SentOn);
         }
