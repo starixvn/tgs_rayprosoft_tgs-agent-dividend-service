@@ -29,10 +29,10 @@ internal class GetAgentDividendBeforehandHandler(
 
         var lastAgentDividend = previous.MaxBy(x => x.Id);
 
-        var lastNegativeDividendAmount = lastAgentDividend is null or
+        var lastNegativeDividendAmount = Math.Min(0M, lastAgentDividend is null or
             { NegativeAgentDividendCarryForward: false, TotalDividendAmount: < 0M }
             ? lastAgentDividend?.NegativeAgentDividendAmount ?? 0M
-            : lastAgentDividend.NegativeAgentDividendAmount + lastAgentDividend.TotalDividendAmount;
+            : lastAgentDividend.NegativeAgentDividendAmount + lastAgentDividend.TotalDividendAmount);
 
         return new AgentDividendBeforehandResponse
         {

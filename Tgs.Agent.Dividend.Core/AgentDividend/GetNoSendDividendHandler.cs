@@ -43,7 +43,7 @@ internal class GetNoSendDividendHandler(IRepository repository)
         IEnumerable<NegativeAgentDividendModel> agentNoSendDividends)
     {
         var negativeAmount = agentNoSendDividends.Sum(x => x.AgentDividendAmount);
-        negativeAmount = Math.Min(0, negativeAmount);
+        negativeAmount = Math.Min(0M, negativeAmount);
         var haveDeductedNegativeDividend =
             deductedNegativeDividends.TryGetValue(dividend.AgentId, out var deductedNegativeDividend);
         return haveDeductedNegativeDividend ? deductedNegativeDividend : negativeAmount;
