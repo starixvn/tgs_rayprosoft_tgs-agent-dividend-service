@@ -768,6 +768,11 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IMemoryC
                     ? 0M
                     : fee.VirtualSportsWinLossAmount * fee.VirtualSportsPercentage / 100;
 
+            var totalDividendAmount = agentDividend is null or
+                { NegativeAgentDividendCarryForward: false, AgentDividendAmount: < 0M }
+                ? record?.NegativeAgentDividendAmount ?? 0M
+                : record?.NegativeAgentDividendAmount ?? 0M + agentDividend.AgentDividendAmount;
+
             yield return new AgentDividendBeforehand(
                 agentDividend.Id,
                 agentDividend.From,
@@ -780,7 +785,7 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IMemoryC
                 agentDividend.AgentDividendPercentage,
                 agentDividend.AgentDividendMultipleLayers.Where(w => w.DividendProviderAgentId != agentDividend.AgentId)
                     .Sum(s => s.Dividend),
-                agentDividend.AgentDividendAmount,
+                totalDividendAmount,
                 agentDividend.BonusAdjustAmount,
                 agentDividend.AgentAdjustAmount,
                 cardGameAmount + liveDealerAmount + lotteryAmount + slotAmount + sportsAmount +

@@ -123,6 +123,12 @@ internal class GetAgentDividendBeforehandHandler(
 
             var agentModel = agents.First(x => x.Id == agentId);
 
+            var currentNegativeAgentDividendAmount = count == 0 ? negativeAgentDividendAmount : 0M;
+
+            var totalDividendAmount = agentModel.NegativeAgentDividendCarryForward == false && agent.AgentDividendAmount < 0M
+                ? currentNegativeAgentDividendAmount
+                : currentNegativeAgentDividendAmount + agent.AgentDividendAmount;
+
             yield return new AgentDividendBeforehand(
                 0,
                 brand.CurrentSettlementFrom,
@@ -134,11 +140,11 @@ internal class GetAgentDividendBeforehandHandler(
                 agent.NetProfit() * agent.AgentDividendPercentage / 100,
                 agent.AgentDividendPercentage,
                 childAgentDividends.Sum(s => s.Dividend),
-                agent.AgentDividendAmount,
+                totalDividendAmount,
                 agent.BonusAdjustAmount,
                 agent.AgentAdjustAmount,
                 agent.ProductFeeAmount(),
-                negativeAgentDividendAmount,
+                currentNegativeAgentDividendAmount,
                 agentModel.NegativeAgentDividendCarryForward,
                 null,
                 null);
