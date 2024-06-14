@@ -58,7 +58,9 @@ internal class GetNoSendDividendHandler(IRepository repository)
 
         if (agentDividendCount > 1)
         {
-            var actualAmount = dividend.AgentDividendAmount + agentNoSendDividend;
+            var actualAmount = dividend is { NegativeAgentDividendCarryForward: false, AgentDividendAmount: < 0M }
+                ? agentNoSendDividend
+                : dividend.AgentDividendAmount + agentNoSendDividend;
 
             var changeToPositiveNumber = actualAmount >= 0;
 
