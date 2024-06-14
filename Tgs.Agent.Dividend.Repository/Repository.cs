@@ -771,7 +771,7 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IMemoryC
             var totalDividendAmount = agentDividend is null or
                 { NegativeAgentDividendCarryForward: false, AgentDividendAmount: < 0M }
                 ? record?.NegativeAgentDividendAmount ?? 0M
-                : record?.NegativeAgentDividendAmount ?? 0M + agentDividend.AgentDividendAmount;
+                : (record?.NegativeAgentDividendAmount ?? 0M) + agentDividend.AgentDividendAmount;
 
             yield return new AgentDividendBeforehand(
                 agentDividend.Id,
