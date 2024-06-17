@@ -121,7 +121,12 @@ internal class GetAgentDividendBeforehandHandler(
 
             var currentNegativeAgentDividendAmount = count == 0 ? negativeAgentDividendAmount : 0M;
 
-            var totalDividendAmount = currentNegativeAgentDividendAmount + agent.AgentDividendAmount;
+            var agentDividendAmount =
+                agentModel.NegativeAgentDividendCarryForward == false && agent.AgentDividendAmount < 0M
+                    ? 0M
+                    : agent.AgentDividendAmount;
+
+            var totalDividendAmount = currentNegativeAgentDividendAmount + agentDividendAmount;
 
             yield return new AgentDividendBeforehand(
                 0,
