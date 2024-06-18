@@ -26,6 +26,11 @@ internal class GetNoSendDividendHandler(IRepository repository)
 
             DeductNegativeDividend(dividend, agentNoSendDividend, deductedNegativeDividends, request.AgentDividends);
 
+            if (agentNoSendDividends.Length == 0 && dividend.AgentDividendAmount > 0M)
+            {
+                dividend.ReferencedAgentDividendId = dividend.Id;
+            }
+
             if (agentNoSendDividend < 0 && dividend.AgentDividendAmount + agentNoSendDividend >= 0)
             {
                 AdjustDividendAmount(dividend, agentNoSendDividend);
