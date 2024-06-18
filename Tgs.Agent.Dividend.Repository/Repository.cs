@@ -779,7 +779,7 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IMemoryC
                 agentDividend.To,
                 agentDividend.ActiveNumber,
                 agentDividend.WinLossAmount,
-                agentDividend.BonusAmount - agentDividend.RebateAmount,
+                agentDividend.BonusAmount,
                 agentDividend.RebateAmount,
                 agentDividend.NetProfit * agentDividend.AgentDividendPercentage / 100,
                 agentDividend.AgentDividendPercentage,
