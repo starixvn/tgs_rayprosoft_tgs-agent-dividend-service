@@ -779,18 +779,20 @@ internal class Repository(tgsContext context, IMemoryCache memoryCache, IMemoryC
                 agentDividend.To,
                 agentDividend.ActiveNumber,
                 agentDividend.WinLossAmount,
-                agentDividend.BonusAmount * agentDividend.AgentDividendPercentage / 100,
+                agentDividend.BonusAmount,
                 agentDividend.RebateAmount,
                 agentDividend.NetProfit * agentDividend.AgentDividendPercentage / 100,
                 agentDividend.AgentDividendPercentage,
                 agentDividend.AgentDividendMultipleLayers.Where(w => w.DividendProviderAgentId != agentDividend.AgentId)
                     .Sum(s => s.Dividend),
                 totalDividendAmount,
-                agentDividend.BonusAdjustAmount * agentDividend.AgentDividendPercentage / 100,
+                agentDividend.BonusAdjustAmount,
                 agentDividend.AgentAdjustAmount,
                 cardGameAmount + liveDealerAmount + lotteryAmount + slotAmount + sportsAmount +
                 virtualSportsAmount,
                 record?.NegativeAgentDividendAmount ?? 0M,
+                agentDividend.BonusAmount * agentDividend.AgentDividendPercentage / 100,
+                agentDividend.BonusAdjustAmount * agentDividend.AgentDividendPercentage / 100,
                 agentDividend.NegativeAgentDividendCarryForward,
                 (DistributeStatus?)record?.Status,
                 agentDividend.SentOn);
