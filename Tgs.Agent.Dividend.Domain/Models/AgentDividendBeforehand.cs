@@ -18,6 +18,8 @@ public record AgentDividendBeforehand(
     decimal AgentAdjustAmount,
     decimal ProductFeeAmount,
     decimal NegativeAgentDividendAmount,
+    decimal AgentCoveredBonus,
+    decimal AgentCoveredBonusAdjust,
     bool NegativeAgentDividendCarryForward,
     DistributeStatus? Status,
     DateTime? SentOn);
