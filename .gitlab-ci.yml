@@ -83,8 +83,8 @@ deploy-prod:
   variables:
     namespace: prod
     kube_config: KubeConfig_Raypro_prod
-    DedicatedKey: dedicated_ondemand
-    NodeSelectorKey: node-selector_ondemand
+    DedicatedKey: dedicated_devops
+    NodeSelectorKey: node-selector_devops
   environment:
     name: service-prod
   stage: deploy-prod
