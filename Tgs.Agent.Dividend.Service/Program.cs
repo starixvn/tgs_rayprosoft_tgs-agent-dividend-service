@@ -34,16 +34,15 @@ builder.Services
     });
 
 builder.Services.AddOpenTelemetry()
-    .WithTracing(builder => builder
-        .SetResourceBuilder(ResourceBuilder.CreateDefault()
-            .AddEnvironmentVariableDetector())
+    .ConfigureResource(_ => _.AddService(builder.Configuration.GetValue<string>("Otel:ServiceName")))
+    .WithTracing(traceProviderBuilder => traceProviderBuilder
         .AddSource("Tgs.*")
         .AddSource("TGS.*")
         .AddAspNetCoreInstrumentation()
         .AddHttpClientInstrumentation()
         .AddEntityFrameworkCoreInstrumentation(options => options.SetDbStatementForText = true)
         .AddProfileViewExporter()
-        .AddOtlpExporter())
+        .AddOtlpExporter(options => options.Endpoint = builder.Configuration.GetValue<Uri>("Otel:Collector")))
     .Services
     .Configure<AspNetCoreTraceInstrumentationOptions>(options => options.Filter =
         httpContext => !httpContext.Request.Path.HasValue ||
