@@ -5,8 +5,11 @@ using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using Tgs.Agent.Dividend.Core.DependencyInjection;
 using Tgs.Agent.Dividend.Core.Workers;
+using Tgs.PlayerService.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.WebHost.UseSentry();
 
 builder.Logging
     .AddOpenTelemetry(options =>
@@ -34,7 +37,7 @@ builder.Services
     });
 
 builder.Services.AddOpenTelemetry()
-    .ConfigureResource(_ => _.AddService(builder.Configuration.GetValue<string>("Otel:ServiceName")))
+    .ConfigureResource(_ => _.AddService(builder.Configuration.GetValue<string>("Otel:OTEL_SERVICE_NAME")))
     .WithTracing(traceProviderBuilder => traceProviderBuilder
         .AddSource("Tgs.*")
         .AddSource("TGS.*")
@@ -42,7 +45,7 @@ builder.Services.AddOpenTelemetry()
         .AddHttpClientInstrumentation()
         .AddEntityFrameworkCoreInstrumentation(options => options.SetDbStatementForText = true)
         .AddProfileViewExporter()
-        .AddOtlpExporter(options => options.Endpoint = builder.Configuration.GetValue<Uri>("Otel:Collector")))
+        .AddOtlpExporter(options => options.Endpoint = builder.Configuration.GetValue<Uri>("Otel:OTEL_COLLECTOR")))
     .Services
     .Configure<AspNetCoreTraceInstrumentationOptions>(options => options.Filter =
         httpContext => !httpContext.Request.Path.HasValue ||
@@ -81,9 +84,11 @@ builder.Services.AddControllers();
 builder.Services.AddHealthChecks();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddScoped<ExceptionMiddleware>();
 
 var app = builder.Build();
 
+app.UseMiddleware<ExceptionMiddleware>();
 app.UseSwaggerUI();
 app.MapControllers();
 app.MapSwagger();
